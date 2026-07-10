@@ -3,7 +3,7 @@ import { Link, useLocation, useParams } from 'react-router-dom'
 
 import { ChoiceGlyph } from '../components/ChoiceGlyph'
 import { fetchPlayerSession, submitAnswer } from '../lib/api'
-import { useCountdown, useSessionChannel } from '../lib/live'
+import { useSessionChannel } from '../lib/live'
 import { getPlayerRecord, setPlayerRecord } from '../lib/storage'
 import type { PlayerSessionView } from '../lib/types'
 
@@ -71,8 +71,6 @@ export function PlayerSessionPage() {
   }, [loadSession])
 
   useSessionChannel(joinCode, loadSession)
-
-  const countdown = useCountdown(view?.currentQuestion?.endsAt ?? null)
 
   const handleSubmit = async (choiceId: string) => {
     if (!joinCode || !participantId || !view?.currentQuestion) {
@@ -143,12 +141,6 @@ export function PlayerSessionPage() {
 
       {isLiveQuestion ? (
         <section className="player-answer-stage">
-          <div className="player-stage-meta">
-            <span>{countdown}s</span>
-            <span>
-              {view?.currentQuestion?.questionNumber}/{view?.currentQuestion?.totalQuestions}
-            </span>
-          </div>
           <div className="player-answer-grid">
             {view?.currentQuestion?.choiceIds.map((choiceId, index) => (
               <button
@@ -159,6 +151,7 @@ export function PlayerSessionPage() {
                 key={choiceId}
                 onClick={() => handleSubmit(choiceId)}
                 type="button"
+                aria-label={`choice ${index + 1}`}
               >
                 <ChoiceGlyph index={index} />
               </button>
