@@ -19,6 +19,8 @@ import { createServerSupabaseClient } from './supabase.js'
 
 const JOIN_CODE_ALPHABET = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'
 const MAX_PLAYERS_PER_SESSION = 100
+const DEFAULT_QUESTION_TIME_SEC = 15
+const HOT_STREAK_BONUS = 100
 const QUESTION_IMAGE_BUCKET = 'question-images'
 const ALLOWED_IMAGE_TYPES = new Map<string, string>([
   ['image/jpeg', 'jpg'],
@@ -129,7 +131,7 @@ const createQuestion = (
     prompt,
     choices: mappedChoices,
     correctChoiceId: mappedChoices[correctChoiceIndex]?.id ?? mappedChoices[0].id,
-    timeLimitSec,
+    timeLimitSec: Math.min(timeLimitSec, DEFAULT_QUESTION_TIME_SEC),
     explanation,
     facilitatorPrompt,
     themeTag,
@@ -162,7 +164,7 @@ const seedQuizSets = (): QuizSet[] => {
             'ใส่ animation เยอะ ๆ',
           ],
           1,
-          20,
+          15,
           'การเรียนรู้ที่นำไปใช้ต่อได้ ต้องมีทั้งโครงคิดและสิ่งที่ลงมือทำต่อได้ทันที',
           'ตอนนี้ class ไหนของเราควรเพิ่ม next action ให้ชัดขึ้น',
           'learning-design',
@@ -176,7 +178,7 @@ const seedQuizSets = (): QuizSet[] => {
             'ลดราคาทุกสินค้า',
           ],
           2,
-          18,
+          15,
           'เมื่อฐานลูกค้าเดิมยังตอบสนอง ปัญหามักอยู่ที่ conversion หรือข้อเสนอในจุดซื้อ',
           'ทีมเราแยกได้ชัดพอหรือยังระหว่างปัญหา traffic กับปัญหา conversion',
           'decision-making',
@@ -190,7 +192,7 @@ const seedQuizSets = (): QuizSet[] => {
             'ให้ติดลบเพื่อเร่งเกม',
           ],
           2,
-          18,
+          15,
           'คำตอบผิดจำนวนมากคือสัญญาณการเรียนรู้ ไม่ใช่แค่คะแนนที่ตกลง',
           'มีช่วงไหนในคลาสเราที่ควร debrief มากกว่าปล่อยผ่าน',
           'facilitation',
@@ -204,7 +206,7 @@ const seedQuizSets = (): QuizSet[] => {
             'random trivia ไม่มีบริบท',
           ],
           0,
-          22,
+          15,
           'โจทย์ที่ดีควรสะท้อนการตัดสินใจจริง เพื่อเปิด discussion ต่อได้',
           'course ไหนของเราควรแปลงเป็น scenario question เพิ่ม',
           'scenario-thinking',
@@ -605,7 +607,14 @@ export class SessionStore {
     const responseMs = Math.max(0, Date.now() - startedAt)
     const isCorrect = question.correctChoiceId === selectedChoiceId
     const speedRatio = Math.max(0, 1 - responseMs / timeLimitMs)
-    const pointsAwarded = isCorrect ? 600 + Math.round(speedRatio * 400) : 0
+    const streakBefore = this.getConsecutiveCorrectCount(
+      session,
+      quizSet,
+      participantId,
+      session.currentQuestionIndex - 1,
+    )
+    const streakBonus = isCorrect && streakBefore >= 1 ? HOT_STREAK_BONUS : 0
+    const pointsAwarded = isCorrect ? 600 + Math.round(speedRatio * 400) + streakBonus : 0
 
     const submissionRow = {
       id: toId(),
@@ -638,6 +647,21 @@ export class SessionStore {
       .eq('id', participant.id)
     if (updateParticipantError) {
       throw updateParticipantError
+    }
+
+    const answeredCountForQuestion =
+      session.submissions.filter((submission) => submission.questionId === question.id).length + 1
+
+    if (session.participants.length > 0 && answeredCountForQuestion >= session.participants.length) {
+      const { error: closeError } = await this.supabase
+        .from('live_sessions')
+        .update(this.closeQuestion(session.currentQuestionIndex))
+        .eq('id', session.id)
+        .eq('status', 'question_open')
+
+      if (closeError) {
+        throw closeError
+      }
     }
 
     return clone(this.mapSubmission(submissionRow))
@@ -732,10 +756,17 @@ export class SessionStore {
       throw new Error('Quiz set not found')
     }
 
-    const rankings = this.buildRankings(session)
+    const rankings = this.buildRankings(session, quizSet)
     const questionStats = this.buildQuestionStats(session, quizSet)
     const topicStats = this.buildTopicStats(questionStats)
     const summary = this.buildSummary(session, questionStats, topicStats)
+    const currentQuestionSubmissionCount =
+      session.currentQuestionIndex >= 0
+        ? session.submissions.filter(
+            (submission) =>
+              submission.questionId === quizSet.questions[session.currentQuestionIndex]?.id,
+          ).length
+        : 0
 
     return clone({
       session,
@@ -744,6 +775,7 @@ export class SessionStore {
       questionStats,
       topicStats,
       summary,
+      currentQuestionSubmissionCount,
     })
   }
 
@@ -763,7 +795,7 @@ export class SessionStore {
       throw new Error('Quiz set not found')
     }
 
-    const rankings = this.buildRankings(session)
+    const rankings = this.buildRankings(session, quizSet)
     const yourRank = rankings.find((item) => item.participantId === participantId)?.rank ?? null
 
     return clone({
@@ -1007,7 +1039,7 @@ export class SessionStore {
       prompt,
       choices: toQuestionTuple(choices),
       correctChoiceId,
-      timeLimitSec: Math.max(10, Math.min(60, question.timeLimitSec || 20)),
+      timeLimitSec: Math.max(10, Math.min(DEFAULT_QUESTION_TIME_SEC, question.timeLimitSec || DEFAULT_QUESTION_TIME_SEC)),
       explanation,
       facilitatorPrompt,
       themeTag,
@@ -1034,7 +1066,7 @@ export class SessionStore {
       status: 'question_open',
       current_question_index: nextIndex,
       question_started_at: new Date(startedAt).toISOString(),
-      question_ends_at: new Date(startedAt + nextQuestion.timeLimitSec * 1000).toISOString(),
+      question_ends_at: new Date(startedAt + Math.min(nextQuestion.timeLimitSec, DEFAULT_QUESTION_TIME_SEC) * 1000).toISOString(),
       updated_at: nowIso(),
     }
   }
@@ -1062,7 +1094,7 @@ export class SessionStore {
     }
   }
 
-  private buildRankings(session: LiveSession): PlayerRanking[] {
+  private buildRankings(session: LiveSession, quizSet: QuizSet): PlayerRanking[] {
     return [...session.participants]
       .sort((left, right) => {
         if (right.score !== left.score) {
@@ -1080,6 +1112,7 @@ export class SessionStore {
         displayName: participant.displayName,
         score: participant.score,
         correctAnswers: participant.correctAnswers,
+        currentStreak: this.getCurrentStreak(session, quizSet, participant.id),
         rank: index + 1,
       }))
   }
@@ -1190,6 +1223,47 @@ export class SessionStore {
       strongestTopic: summary.strongestTopic,
       weakestTopic: summary.weakestTopic,
     }
+  }
+
+  private getConsecutiveCorrectCount(
+    session: LiveSession,
+    quizSet: QuizSet,
+    participantId: string,
+    endQuestionIndex: number,
+  ) {
+    if (endQuestionIndex < 0) {
+      return 0
+    }
+
+    let streak = 0
+
+    for (let questionIndex = endQuestionIndex; questionIndex >= 0; questionIndex -= 1) {
+      const questionId = quizSet.questions[questionIndex]?.id
+      if (!questionId) {
+        break
+      }
+
+      const submission = session.submissions.find(
+        (item) => item.participantId === participantId && item.questionId === questionId,
+      )
+
+      if (!submission?.isCorrect) {
+        break
+      }
+
+      streak += 1
+    }
+
+    return streak
+  }
+
+  private getCurrentStreak(session: LiveSession, quizSet: QuizSet, participantId: string) {
+    return this.getConsecutiveCorrectCount(
+      session,
+      quizSet,
+      participantId,
+      Math.max(session.lastClosedQuestionIndex ?? session.currentQuestionIndex, session.currentQuestionIndex),
+    )
   }
 
   private getQuestionImageUrl(path: string) {

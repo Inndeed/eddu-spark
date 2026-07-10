@@ -87,6 +87,7 @@ export interface PlayerRanking {
   displayName: string
   score: number
   correctAnswers: number
+  currentStreak: number
   rank: number
 }
 
@@ -126,6 +127,7 @@ export interface HostSessionView {
   questionStats: QuestionStats[]
   topicStats: TopicStat[]
   summary: SessionSummary
+  currentQuestionSubmissionCount: number
 }
 
 export interface PlayerQuestionView {

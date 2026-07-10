@@ -21,6 +21,10 @@ export function PlayerSessionPage() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [submittingChoiceId, setSubmittingChoiceId] = useState<string | null>(null)
+  const [optimisticSubmission, setOptimisticSubmission] = useState<{
+    questionId: string
+    choiceId: string
+  } | null>(null)
 
   const loadSession = useCallback(async () => {
     if (!joinCode || !participantId) {
@@ -31,6 +35,24 @@ export function PlayerSessionPage() {
     try {
       const payload = await fetchPlayerSession(joinCode, participantId)
       setView(payload)
+      setOptimisticSubmission((current) => {
+        if (!current || !payload.currentQuestion) {
+          return null
+        }
+
+        if (payload.currentQuestion.id !== current.questionId) {
+          return null
+        }
+
+        if (payload.currentQuestion.submittedChoiceId) {
+          return {
+            questionId: current.questionId,
+            choiceId: payload.currentQuestion.submittedChoiceId,
+          }
+        }
+
+        return payload.session.status === 'question_open' ? current : null
+      })
       setPlayerRecord({
         joinCode,
         participantId,
@@ -53,17 +75,22 @@ export function PlayerSessionPage() {
   const countdown = useCountdown(view?.currentQuestion?.endsAt ?? null)
 
   const handleSubmit = async (choiceId: string) => {
-    if (!joinCode || !participantId) {
+    if (!joinCode || !participantId || !view?.currentQuestion) {
       return
     }
 
     setSubmittingChoiceId(choiceId)
     setError(null)
+    setOptimisticSubmission({
+      questionId: view.currentQuestion.id,
+      choiceId,
+    })
 
     try {
       await submitAnswer(joinCode, participantId, choiceId)
-      await loadSession()
+      void loadSession()
     } catch (submitError) {
+      setOptimisticSubmission(null)
       setError(submitError instanceof Error ? submitError.message : 'Submit failed')
     } finally {
       setSubmittingChoiceId(null)
@@ -93,9 +120,14 @@ export function PlayerSessionPage() {
     )
   }
 
-  const submittedChoiceId = view?.currentQuestion?.submittedChoiceId ?? null
-  const isLiveQuestion = !!view?.currentQuestion && !submittedChoiceId
-  const isWaitingDuringQuestion = !!view?.currentQuestion && !!submittedChoiceId
+  const submittedChoiceId =
+    view?.currentQuestion?.submittedChoiceId ??
+    (optimisticSubmission?.questionId === view?.currentQuestion?.id
+      ? optimisticSubmission?.choiceId ?? null
+      : null)
+  const isLiveQuestion = view?.session.status === 'question_open' && !!view?.currentQuestion && !submittedChoiceId
+  const isWaitingDuringQuestion =
+    view?.session.status === 'question_open' && !!view?.currentQuestion && !!submittedChoiceId
 
   return (
     <main className="player-live-shell">
@@ -103,7 +135,7 @@ export function PlayerSessionPage() {
 
       {view?.session.status === 'lobby' ? (
         <section className="player-full-panel player-wait-panel">
-          <span className="eyebrow">Lobby</span>
+          <span className="eyebrow">Join</span>
           <h1>{joinCode}</h1>
           <p>{view.playerCount} players</p>
         </section>
@@ -120,7 +152,9 @@ export function PlayerSessionPage() {
           <div className="player-answer-grid">
             {view?.currentQuestion?.choiceIds.map((choiceId, index) => (
               <button
-                className={`player-answer-button ${answerClassNames[index]}`}
+                className={`player-answer-button ${answerClassNames[index]} ${
+                  submittingChoiceId === choiceId ? 'is-submitting' : ''
+                }`.trim()}
                 disabled={submittingChoiceId !== null}
                 key={choiceId}
                 onClick={() => handleSubmit(choiceId)}

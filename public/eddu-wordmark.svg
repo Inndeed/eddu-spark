@@ -1,10 +1,8 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="296" height="92" viewBox="0 0 296 92" fill="none">
-  <rect width="296" height="92" rx="24" fill="#0B0B0B"/>
-  <rect x="10" y="10" width="276" height="72" rx="18" fill="#F2DEC9"/>
-  <circle cx="38" cy="28" r="10" fill="#FF6200"/>
-  <circle cx="258" cy="28" r="10" fill="#FFD21E"/>
-  <circle cx="38" cy="64" r="10" fill="#E02828"/>
-  <circle cx="258" cy="64" r="10" fill="#00A651"/>
-  <text x="42" y="55" fill="#0B0B0B" font-family="Montserrat, Noto Sans Thai, sans-serif" font-size="36" font-weight="800" letter-spacing="-1.5">eddu</text>
-  <text x="195" y="55" fill="#FF6200" font-family="Montserrat, Noto Sans Thai, sans-serif" font-size="18" font-weight="700">.org</text>
+<svg xmlns="http://www.w3.org/2000/svg" width="270" height="72" viewBox="0 0 270 72" fill="none">
+  <circle cx="22" cy="18" r="10" fill="#FF7814"/>
+  <circle cx="248" cy="18" r="10" fill="#FFD84A"/>
+  <circle cx="22" cy="54" r="10" fill="#EA3737"/>
+  <circle cx="248" cy="54" r="10" fill="#12B55F"/>
+  <text x="38" y="46" fill="#FFF4E1" font-family="Montserrat, Noto Sans Thai, sans-serif" font-size="38" font-weight="800" letter-spacing="-1.6">eddu</text>
+  <text x="194" y="46" fill="#FFBE7E" font-family="Montserrat, Noto Sans Thai, sans-serif" font-size="19" font-weight="700">.org</text>
 </svg>

@@ -9,24 +9,24 @@ export const formatDateTime = (value: string) => dateTimeFormatter.format(new Da
 
 export const modeLabel = (mode: QuizMode) => {
   if (mode === 'knowledge_check') {
-    return 'Classic Quiz'
+    return 'Quiz'
   }
 
-  return 'Classic Quiz'
+  return 'Quiz'
 }
 
 export const statusLabel = (status: SessionStatus) => {
   if (status === 'lobby') {
-    return 'Lobby'
+    return 'Join'
   }
   if (status === 'question_open') {
-    return 'Live Question'
+    return 'Question'
   }
   if (status === 'question_closed') {
     return 'Reveal'
   }
   if (status === 'leaderboard') {
-    return 'Leaderboard'
+    return 'Top 5'
   }
 
   return 'Finished'
