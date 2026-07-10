@@ -197,7 +197,7 @@ export function HostLivePage() {
               <h1>{view?.session.quizSetTitle}</h1>
             </div>
             <div className="live-meta-strip">
-              <span>{view?.session.participants.length ?? 0} players</span>
+              <span>{view?.session.participants.length ?? 0} คน</span>
               <span>{view ? formatDateTime(view.session.createdAt) : '-'}</span>
             </div>
           </div>
@@ -255,7 +255,7 @@ export function HostLivePage() {
                 </div>
                 <div className="stage-status-strip">
                   <div className="stage-progress-pill">
-                    {view?.currentQuestionSubmissionCount ?? 0}/{view?.session.participants.length ?? 0} answered
+                    {view?.currentQuestionSubmissionCount ?? 0}/{view?.session.participants.length ?? 0} ตอบแล้ว
                   </div>
                   <div className="timer-badge timer-badge-large">{countdown}s</div>
                 </div>
@@ -339,12 +339,12 @@ export function HostLivePage() {
                         <div className="host-answer-card-head">
                           <ChoiceGlyph index={index} />
                           <span className={`pill ${isCorrect ? 'pill-success pill-correct-answer' : ''}`.trim()}>
-                            {isCorrect ? 'Correct' : `${distributionItem?.count ?? 0} votes`}
+                            {isCorrect ? 'ถูกต้อง' : `${distributionItem?.count ?? 0} โหวต`}
                           </span>
                         </div>
                         <strong>{choice.text}</strong>
                         <div className="answer-stat-row">
-                          <span>{distributionItem?.count ?? 0} votes</span>
+                          <span>{distributionItem?.count ?? 0} โหวต</span>
                           <span>
                             {percentLabel(
                               (distributionItem?.count ?? 0) /
@@ -383,23 +383,23 @@ export function HostLivePage() {
                 <section className="host-panel side-panel-card embedded-panel">
                   <div className="panel-header">
                     <span className="eyebrow">Debrief</span>
-                    <h2>Next view</h2>
+                    <h2>ชวนคุยต่อ</h2>
                   </div>
                   <div className="summary-grid">
                     <article className="summary-card">
-                      <strong>Accuracy</strong>
+                      <strong>ถูก</strong>
                       <p>{percentLabel(closedQuestionStats.accuracyRate)}</p>
                     </article>
                     <article className="summary-card">
-                      <strong>Answered</strong>
+                      <strong>ตอบแล้ว</strong>
                       <p>{closedQuestionStats.totalSubmissions}</p>
                     </article>
                     <article className="summary-card">
-                      <strong>Explain</strong>
+                      <strong>เฉลย</strong>
                       <p>{closedQuestion.explanation || '-'}</p>
                     </article>
                     <article className="summary-card">
-                      <strong>Prompt</strong>
+                      <strong>ชวนคุย</strong>
                       <p>{closedQuestion.facilitatorPrompt || '-'}</p>
                     </article>
                   </div>
@@ -451,23 +451,23 @@ export function HostLivePage() {
                 <section className="host-panel side-panel-card embedded-panel">
                   <div className="panel-header">
                     <span className="eyebrow">Summary</span>
-                    <h2>Session</h2>
+                    <h2>ภาพรวม</h2>
                   </div>
                   <div className="summary-grid">
                     <article className="summary-card">
-                      <strong>Players</strong>
+                      <strong>ผู้เล่น</strong>
                       <p>{view?.summary.totalParticipants ?? 0}</p>
                     </article>
                     <article className="summary-card">
-                      <strong>Hardest</strong>
+                      <strong>ยากสุด</strong>
                       <p>{view?.summary.hardestQuestion ?? '-'}</p>
                     </article>
                     <article className="summary-card">
-                      <strong>Strongest</strong>
+                      <strong>เด่นสุด</strong>
                       <p>{view?.summary.strongestTopic ?? '-'}</p>
                     </article>
                     <article className="summary-card">
-                      <strong>Weakest</strong>
+                      <strong>อ่อนสุด</strong>
                       <p>{view?.summary.weakestTopic ?? '-'}</p>
                     </article>
                   </div>

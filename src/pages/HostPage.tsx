@@ -379,7 +379,7 @@ export function HostPage() {
           </div>
 
           <div className="library-toolbar">
-            <p className="library-helper-text">เลือก quiz เพื่อแก้ไข หรือสร้างชุดใหม่จากหน้านี้ได้เลย</p>
+            <p className="library-helper-text">เลือกชุดที่ต้องการแล้วกดแก้ไขหรือเริ่มเล่น</p>
             <button className="button button-primary" onClick={startNewQuiz} type="button">
               New Quiz
             </button>
@@ -393,7 +393,7 @@ export function HostPage() {
                 <div className="library-card-top">
                   <div>
                     <h3>{quizSet.title}</h3>
-                    <p>{quizSet.questions.length} questions</p>
+                    <p>{quizSet.questions.length} ข้อ</p>
                   </div>
                   <span className="pill">{formatDateTime(quizSet.updatedAt)}</span>
                 </div>
@@ -420,7 +420,7 @@ export function HostPage() {
 
           <div className="panel-header">
             <span className="eyebrow">Recent</span>
-            <h2>Sessions</h2>
+            <h2>ล่าสุด</h2>
           </div>
 
           <div className="card-list">
@@ -434,7 +434,7 @@ export function HostPage() {
                   <span className="join-pill">{sessionSummary.joinCode}</span>
                 </div>
                 <div className="library-meta">
-                  <span>{sessionSummary.participantCount} players</span>
+                  <span>{sessionSummary.participantCount} คน</span>
                   <span>{formatDateTime(sessionSummary.updatedAt)}</span>
                 </div>
                 <Link className="button button-secondary button-inline" to={`/host/live/${sessionSummary.joinCode}`}>
@@ -637,7 +637,7 @@ export function HostPage() {
           <div className="host-panel host-editor-panel editor-empty-panel">
             <span className="eyebrow">Editor</span>
             <h2>เลือก Quiz ก่อน</h2>
-            <p>กด Edit จาก Library หรือสร้าง New Quiz เพื่อเริ่มแก้ไข</p>
+            <p>กด Edit หรือ New Quiz เพื่อเริ่ม</p>
           </div>
         )}
       </section>

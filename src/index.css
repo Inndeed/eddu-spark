@@ -921,6 +921,7 @@ label {
 .join-qr-panel p {
   word-break: break-word;
   color: rgba(11, 11, 11, 0.68);
+  font-size: 0.95rem;
 }
 
 .join-code-display {
@@ -1249,6 +1250,10 @@ label {
   .library-toolbar {
     align-items: flex-start;
     flex-direction: column;
+  }
+
+  .join-qr-panel p {
+    display: none;
   }
 
   .compact-field-grid,
