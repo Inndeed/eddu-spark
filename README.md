@@ -103,8 +103,9 @@ Vercel is useful here as a secondary helper for previews or future refactors, bu
 2. Sign in with a Supabase-backed host account
 3. Create or edit a quiz set
 4. Launch a live session to get a 6-character join code
-5. Share `/play` with participants
-6. Run the game from the live console
+5. Share `/play` or the QR deep link with participants
+6. Participants enter room code, then name, then join the session
+7. Run the game from the live console
 
 ## Important files
 
@@ -118,6 +119,13 @@ Vercel is useful here as a secondary helper for previews or future refactors, bu
 ## Notes
 
 - Host APIs require a valid Supabase session plus a matching active row in `public.host_users`.
-- Player flow remains account-free and uses `join code + name + team`.
+- Player flow remains account-free and uses `code -> name -> play`.
 - The Node server remains the authoritative source for timers, scoring, and session progression.
 - This build is prepared for internet deployment, but it still requires real Supabase and Railway credentials before it can be launched publicly.
+
+## Production checklist
+
+- Railway envs must include `SUPABASE_URL`, `SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY`, `VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY`, `APP_BASE_URL`, and `NODE_ENV=production`.
+- Supabase must include `quiz_questions.image_path` and `quiz_questions.image_alt` before question image upload is verified in production.
+- Create at least one active host user in `public.host_users` using `npm run host:create`.
+- The `question-images` Supabase Storage bucket must exist as a public bucket, or the deployed app must be able to create it on boot with the service role.
