@@ -345,7 +345,7 @@ const start = async () => {
   if (isProduction) {
     const distDir = path.join(process.cwd(), 'dist')
     app.use(express.static(distDir))
-    app.get('*', (request, response, next) => {
+    app.use((request, response, next) => {
       if (request.path.startsWith('/api')) {
         next()
         return
