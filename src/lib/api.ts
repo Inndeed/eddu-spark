@@ -26,6 +26,12 @@ export interface HostBootstrapData {
   }
 }
 
+export interface UploadedQuestionImage {
+  imagePath: string
+  imageUrl: string
+  imageAlt: string | null
+}
+
 export interface AppHealthData {
   status: 'ok' | 'setup_required'
   mode: 'supabase' | 'setup_required'
@@ -84,13 +90,22 @@ export const saveQuizSet = async (
 
 export const launchSession = async (
   quizSetId: string,
-  showLeaderboardEveryRound: boolean,
 ) =>
   request<{ joinCode: string }>(
     '/api/sessions',
     {
       method: 'POST',
-      body: JSON.stringify({ quizSetId, showLeaderboardEveryRound }),
+      body: JSON.stringify({ quizSetId }),
+    },
+    await getRequiredHostToken(),
+  )
+
+export const uploadQuestionImage = async (file: string, alt: string) =>
+  request<UploadedQuestionImage>(
+    '/api/quiz-assets/questions',
+    {
+      method: 'POST',
+      body: JSON.stringify({ file, alt }),
     },
     await getRequiredHostToken(),
   )
@@ -118,11 +133,10 @@ export const sendHostAction = async (
 export const joinSession = (
   joinCode: string,
   displayName: string,
-  teamName: string,
 ) =>
   request<{ participantId: string; joinCode: string }>('/api/play/join', {
     method: 'POST',
-    body: JSON.stringify({ joinCode, displayName, teamName }),
+    body: JSON.stringify({ joinCode, displayName }),
   })
 
 export const fetchPlayerSession = (joinCode: string, participantId: string) =>

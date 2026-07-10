@@ -33,6 +33,8 @@ create table if not exists public.quiz_questions (
   explanation text not null default '',
   facilitator_prompt text not null default '',
   theme_tag text not null default 'general',
+  image_path text,
+  image_alt text,
   created_at timestamptz not null default timezone('utc', now()),
   updated_at timestamptz not null default timezone('utc', now()),
   unique (quiz_set_id, position)

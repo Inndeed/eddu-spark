@@ -1,6 +1,6 @@
-# EDDU Spark
+# Eddu Quiz
 
-EDDU Spark is a browser-based internal live quiz game inspired by Kahoot and rebuilt for EDDU’s workshop and training context.
+Eddu Quiz is a browser-based internal live quiz game inspired by Kahoot and rebuilt for EDDU’s workshop and training context.
 
 This version is designed for:
 

@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="296" height="92" viewBox="0 0 296 92" fill="none">
+  <rect width="296" height="92" rx="24" fill="#0B0B0B"/>
+  <rect x="10" y="10" width="276" height="72" rx="18" fill="#F2DEC9"/>
+  <circle cx="38" cy="28" r="10" fill="#FF6200"/>
+  <circle cx="258" cy="28" r="10" fill="#FFD21E"/>
+  <circle cx="38" cy="64" r="10" fill="#E02828"/>
+  <circle cx="258" cy="64" r="10" fill="#00A651"/>
+  <text x="42" y="55" fill="#0B0B0B" font-family="Montserrat, Noto Sans Thai, sans-serif" font-size="36" font-weight="800" letter-spacing="-1.5">eddu</text>
+  <text x="195" y="55" fill="#FF6200" font-family="Montserrat, Noto Sans Thai, sans-serif" font-size="18" font-weight="700">.org</text>
+</svg>

@@ -1,4 +1,4 @@
-export type QuizMode = 'knowledge_check' | 'scenario_sprint' | 'team_pulse'
+export type QuizMode = 'knowledge_check'
 
 export type SessionStatus =
   | 'lobby'
@@ -15,12 +15,15 @@ export interface QuizChoice {
 export interface QuizQuestion {
   id: string
   prompt: string
-  choices: QuizChoice[]
+  choices: [QuizChoice, QuizChoice, QuizChoice, QuizChoice]
   correctChoiceId: string
   timeLimitSec: number
   explanation: string
   facilitatorPrompt: string
   themeTag: string
+  imagePath: string | null
+  imageUrl: string | null
+  imageAlt: string | null
 }
 
 export interface QuizSet {
@@ -45,7 +48,6 @@ export interface HostUser {
 export interface Participant {
   id: string
   displayName: string
-  teamName: string
   joinedAt: string
   score: number
   correctAnswers: number
@@ -83,16 +85,7 @@ export interface LiveSession {
 export interface PlayerRanking {
   participantId: string
   displayName: string
-  teamName: string
   score: number
-  correctAnswers: number
-  rank: number
-}
-
-export interface TeamRanking {
-  teamName: string
-  score: number
-  members: number
   correctAnswers: number
   rank: number
 }
@@ -109,6 +102,7 @@ export interface QuestionStats {
     choiceId: string
     text: string
     count: number
+    isCorrect: boolean
   }>
 }
 
@@ -120,7 +114,6 @@ export interface TopicStat {
 
 export interface SessionSummary {
   totalParticipants: number
-  totalTeams: number
   hardestQuestion: string | null
   strongestTopic: string | null
   weakestTopic: string | null
@@ -130,7 +123,6 @@ export interface HostSessionView {
   session: LiveSession
   quizSet: QuizSet
   rankings: PlayerRanking[]
-  teamRankings: TeamRanking[]
   questionStats: QuestionStats[]
   topicStats: TopicStat[]
   summary: SessionSummary
@@ -139,28 +131,11 @@ export interface HostSessionView {
 export interface PlayerQuestionView {
   id: string
   prompt: string
-  choices: QuizChoice[]
-  timeLimitSec: number
   questionNumber: number
   totalQuestions: number
   endsAt: string | null
   submittedChoiceId: string | null
-}
-
-export interface QuestionRevealView {
-  questionId: string
-  prompt: string
-  choices: QuizChoice[]
-  correctChoiceId: string
-  explanation: string
-  facilitatorPrompt: string
-  distribution: Array<{
-    choiceId: string
-    text: string
-    count: number
-    isCorrect: boolean
-  }>
-  yourChoiceId: string | null
+  choiceIds: [string, string, string, string]
 }
 
 export interface FinalSummaryView {
@@ -184,12 +159,9 @@ export interface PlayerSessionView {
   >
   participant: Participant
   currentQuestion: PlayerQuestionView | null
-  reveal: QuestionRevealView | null
   leaderboard: {
     topPlayers: PlayerRanking[]
-    topTeams: TeamRanking[]
     yourRank: number | null
-    yourTeamRank: number | null
   }
   finalSummary: FinalSummaryView | null
   playerCount: number

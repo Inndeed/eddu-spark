@@ -1,10 +1,13 @@
 import { useCallback, useEffect, useState } from 'react'
 import { Link, useLocation, useParams } from 'react-router-dom'
 
+import { ChoiceGlyph } from '../components/ChoiceGlyph'
 import { fetchPlayerSession, submitAnswer } from '../lib/api'
 import { useCountdown, useSessionChannel } from '../lib/live'
 import { getPlayerRecord, setPlayerRecord } from '../lib/storage'
 import type { PlayerSessionView } from '../lib/types'
+
+const answerClassNames = ['answer-red', 'answer-orange', 'answer-yellow', 'answer-green'] as const
 
 export function PlayerSessionPage() {
   const { joinCode } = useParams()
@@ -32,7 +35,6 @@ export function PlayerSessionPage() {
         joinCode,
         participantId,
         displayName: payload.participant.displayName,
-        teamName: payload.participant.teamName,
       })
       setError(null)
     } catch (loadError) {
@@ -56,6 +58,8 @@ export function PlayerSessionPage() {
     }
 
     setSubmittingChoiceId(choiceId)
+    setError(null)
+
     try {
       await submitAnswer(joinCode, participantId, choiceId)
       await loadSession()
@@ -68,11 +72,11 @@ export function PlayerSessionPage() {
 
   if (!participantId || !joinCode) {
     return (
-      <main className="app-shell player-shell">
-        <section className="player-join-panel">
-          <h1>ยังไม่มีข้อมูลผู้เล่น</h1>
+      <main className="player-live-shell">
+        <section className="player-full-panel">
+          <h1>ยังไม่พบผู้เล่น</h1>
           <Link className="button button-primary" to="/play">
-            กลับไป join ใหม่
+            Join ใหม่
           </Link>
         </section>
       </main>
@@ -81,174 +85,103 @@ export function PlayerSessionPage() {
 
   if (loading && !view) {
     return (
-      <main className="app-shell player-shell">
-        <section className="player-join-panel">
-          <h1>กำลังเชื่อม session...</h1>
+      <main className="player-live-shell">
+        <section className="player-full-panel">
+          <h1>กำลังเชื่อม...</h1>
         </section>
       </main>
     )
   }
 
   const submittedChoiceId = view?.currentQuestion?.submittedChoiceId ?? null
+  const isLiveQuestion = !!view?.currentQuestion && !submittedChoiceId
+  const isWaitingDuringQuestion = !!view?.currentQuestion && !!submittedChoiceId
 
   return (
-    <main className="app-shell player-shell">
-      <section className="player-session-shell">
-        <div className="player-topbar">
-          <div>
-            <span className="eyebrow">Live Session</span>
-            <h1>{view?.session.quizSetTitle}</h1>
+    <main className="player-live-shell">
+      {error ? <p className="error-banner">{error}</p> : null}
+
+      {view?.session.status === 'lobby' ? (
+        <section className="player-full-panel player-wait-panel">
+          <span className="eyebrow">Lobby</span>
+          <h1>{joinCode}</h1>
+          <p>{view.playerCount} players</p>
+        </section>
+      ) : null}
+
+      {isLiveQuestion ? (
+        <section className="player-answer-stage">
+          <div className="player-stage-meta">
+            <span>{countdown}s</span>
+            <span>
+              {view?.currentQuestion?.questionNumber}/{view?.currentQuestion?.totalQuestions}
+            </span>
           </div>
-          <div className="player-meta">
-            <span>{view?.participant.displayName}</span>
-            <span>{view?.participant.teamName}</span>
-            <span>{view?.playerCount ?? 0} players</span>
+          <div className="player-answer-grid">
+            {view?.currentQuestion?.choiceIds.map((choiceId, index) => (
+              <button
+                className={`player-answer-button ${answerClassNames[index]}`}
+                disabled={submittingChoiceId !== null}
+                key={choiceId}
+                onClick={() => handleSubmit(choiceId)}
+                type="button"
+              >
+                <ChoiceGlyph index={index} />
+              </button>
+            ))}
           </div>
-        </div>
+        </section>
+      ) : null}
 
-        {error ? <p className="error-text">{error}</p> : null}
+      {isWaitingDuringQuestion ? (
+        <section className="player-full-panel player-wait-panel">
+          <span className="eyebrow">Locked</span>
+          <h1>รอเฉลยบนจอหลัก</h1>
+          <div className="waiting-room-placeholder">
+            <div className="waiting-block" />
+            <div className="waiting-block waiting-block-wide" />
+          </div>
+        </section>
+      ) : null}
 
-        {view?.session.status === 'lobby' ? (
-          <section className="player-card">
-            <span className="eyebrow">Waiting Room</span>
-            <h2>host กำลังเตรียมเริ่มเกม</h2>
-            <p>เมื่อคำถามถูกเปิด หน้านี้จะอัปเดตอัตโนมัติ</p>
-          </section>
-        ) : null}
+      {view?.session.status === 'question_closed' ? (
+        <section className="player-full-panel player-wait-panel">
+          <span className="eyebrow">Next</span>
+          <h1>รอคำถามถัดไป</h1>
+          <div className="waiting-room-placeholder">
+            <div className="waiting-block" />
+            <div className="waiting-block waiting-block-wide" />
+          </div>
+        </section>
+      ) : null}
 
-        {view?.currentQuestion ? (
-          <section className="player-card live-question-card">
-            <div className="stage-header">
-              <div>
-                <span className="eyebrow">
-                  Question {view.currentQuestion.questionNumber} /{' '}
-                  {view.currentQuestion.totalQuestions}
-                </span>
-                <h2>{view.currentQuestion.prompt}</h2>
+      {view?.session.status === 'leaderboard' ? (
+        <section className="player-full-panel player-score-panel">
+          <span className="eyebrow">Rank</span>
+          <h1>#{view.leaderboard.yourRank ?? '-'}</h1>
+          <p>{view.participant.score} pts</p>
+          <div className="mini-score-list">
+            {view.leaderboard.topPlayers.slice(0, 3).map((player) => (
+              <div className="mini-score-row" key={player.participantId}>
+                <span>#{player.rank}</span>
+                <strong>{player.displayName}</strong>
+                <span>{player.score}</span>
               </div>
-              <div className="timer-badge">{countdown}s</div>
-            </div>
-            <div className="answer-grid">
-              {view.currentQuestion.choices.map((choice) => {
-                const isSubmitted = submittedChoiceId === choice.id
-                return (
-                  <button
-                    className={`answer-card ${isSubmitted ? 'answer-card-selected' : ''}`}
-                    disabled={!!submittedChoiceId || submittingChoiceId === choice.id}
-                    key={choice.id}
-                    onClick={() => handleSubmit(choice.id)}
-                    type="button"
-                  >
-                    <strong>{choice.text}</strong>
-                    {isSubmitted ? <span className="pill pill-success">Locked in</span> : null}
-                  </button>
-                )
-              })}
-            </div>
-          </section>
-        ) : null}
+            ))}
+          </div>
+        </section>
+      ) : null}
 
-        {view?.reveal ? (
-          <section className="player-card">
-            <span className="eyebrow">Reveal</span>
-            <h2>{view.reveal.prompt}</h2>
-            <p className="lead-text">{view.reveal.explanation}</p>
-            <div className="distribution-list">
-              {view.reveal.distribution.map((choice) => (
-                <div className="distribution-row" key={choice.choiceId}>
-                  <div className="distribution-label">
-                    <strong>{choice.text}</strong>
-                    {choice.isCorrect ? <span className="pill pill-success">Correct</span> : null}
-                    {view.reveal?.yourChoiceId === choice.choiceId ? (
-                      <span className="pill">Your answer</span>
-                    ) : null}
-                  </div>
-                  <div className="distribution-bar">
-                    <span
-                      style={{
-                        width: `${
-                          view.playerCount === 0 ? 0 : (choice.count / view.playerCount) * 100
-                        }%`,
-                      }}
-                    />
-                  </div>
-                  <span>{choice.count}</span>
-                </div>
-              ))}
-            </div>
-            <p className="prompt-note">{view.reveal.facilitatorPrompt}</p>
-          </section>
-        ) : null}
-
-        {view?.session.status === 'leaderboard' || view?.session.status === 'finished' ? (
-          <section className="player-card">
-            <div className="panel-header">
-              <span className="eyebrow">Leaderboard</span>
-              <h2>
-                คุณอยู่อันดับ #{view.leaderboard.yourRank ?? '-'} | ทีมอันดับ #
-                {view.leaderboard.yourTeamRank ?? '-'}
-              </h2>
-            </div>
-            <div className="rankings-grid">
-              <div>
-                <h3>Top Players</h3>
-                <div className="rank-list">
-                  {view.leaderboard.topPlayers.map((player) => (
-                    <div className="rank-row" key={player.participantId}>
-                      <span>#{player.rank}</span>
-                      <div>
-                        <strong>{player.displayName}</strong>
-                        <p>{player.teamName}</p>
-                      </div>
-                      <strong>{player.score}</strong>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              <div>
-                <h3>Top Teams</h3>
-                <div className="rank-list">
-                  {view.leaderboard.topTeams.map((team) => (
-                    <div className="rank-row" key={team.teamName}>
-                      <span>#{team.rank}</span>
-                      <div>
-                        <strong>{team.teamName}</strong>
-                        <p>{team.members} members</p>
-                      </div>
-                      <strong>{team.score}</strong>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
-          </section>
-        ) : null}
-
-        {view?.finalSummary ? (
-          <section className="player-card final-summary-card">
-            <span className="eyebrow">Session Summary</span>
-            <h2>สิ่งที่ทีมควรเอากลับไปคิดต่อ</h2>
-            <div className="summary-grid">
-              <article className="summary-card">
-                <strong>Hardest question</strong>
-                <p>{view.finalSummary.hardestQuestion ?? 'ยังไม่มีข้อมูล'}</p>
-              </article>
-              <article className="summary-card">
-                <strong>Strongest topic</strong>
-                <p>{view.finalSummary.strongestTopic ?? 'ยังไม่มีข้อมูล'}</p>
-              </article>
-              <article className="summary-card">
-                <strong>Weakest topic</strong>
-                <p>{view.finalSummary.weakestTopic ?? 'ยังไม่มีข้อมูล'}</p>
-              </article>
-            </div>
-            <Link className="button button-secondary" to="/play">
-              กลับไปหน้า join
-            </Link>
-          </section>
-        ) : null}
-      </section>
+      {view?.session.status === 'finished' ? (
+        <section className="player-full-panel player-score-panel">
+          <span className="eyebrow">Finish</span>
+          <h1>#{view.leaderboard.yourRank ?? '-'}</h1>
+          <p>{view.participant.score} pts</p>
+          <Link className="button button-secondary" to="/play">
+            เล่นใหม่
+          </Link>
+        </section>
+      ) : null}
     </main>
   )
 }

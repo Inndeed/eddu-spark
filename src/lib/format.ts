@@ -9,13 +9,10 @@ export const formatDateTime = (value: string) => dateTimeFormatter.format(new Da
 
 export const modeLabel = (mode: QuizMode) => {
   if (mode === 'knowledge_check') {
-    return 'Knowledge Check'
-  }
-  if (mode === 'scenario_sprint') {
-    return 'Scenario Sprint'
+    return 'Classic Quiz'
   }
 
-  return 'Team Pulse'
+  return 'Classic Quiz'
 }
 
 export const statusLabel = (status: SessionStatus) => {

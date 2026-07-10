@@ -8,16 +8,23 @@ import type {
   PlayerRanking,
   PlayerSessionView,
   QuestionStats,
+  QuizChoice,
   QuizQuestion,
   QuizSet,
   SessionSummary,
   Submission,
-  TeamRanking,
   TopicStat,
 } from '../src/lib/types.js'
 import { createServerSupabaseClient } from './supabase.js'
 
 const JOIN_CODE_ALPHABET = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'
+const MAX_PLAYERS_PER_SESSION = 100
+const QUESTION_IMAGE_BUCKET = 'question-images'
+const ALLOWED_IMAGE_TYPES = new Map<string, string>([
+  ['image/jpeg', 'jpg'],
+  ['image/png', 'png'],
+  ['image/webp', 'webp'],
+])
 
 interface QuizSetRow {
   id: string
@@ -41,6 +48,8 @@ interface QuizQuestionRow {
   explanation: string
   facilitator_prompt: string
   theme_tag: string
+  image_path?: string | null
+  image_alt?: string | null
 }
 
 interface LiveSessionRow {
@@ -82,11 +91,8 @@ interface SubmissionRow {
 }
 
 const nowIso = () => new Date().toISOString()
-
 const clone = <T>(value: T): T => JSON.parse(JSON.stringify(value)) as T
-
 const normalizeText = (value: string) => value.trim().replace(/\s+/g, ' ')
-
 const toId = () => randomUUID()
 
 const buildJoinCode = () =>
@@ -95,21 +101,26 @@ const buildJoinCode = () =>
     return JOIN_CODE_ALPHABET[index]
   }).join('')
 
-const createChoice = (text: string) => ({
+const createChoice = (text: string): QuizChoice => ({
   id: toId(),
   text,
 })
 
 const createQuestion = (
   prompt: string,
-  choices: string[],
+  choices: [string, string, string, string],
   correctChoiceIndex: number,
   timeLimitSec: number,
   explanation: string,
   facilitatorPrompt: string,
   themeTag: string,
 ): QuizQuestion => {
-  const mappedChoices = choices.map((choice) => createChoice(choice))
+  const mappedChoices = choices.map((choice) => createChoice(choice)) as [
+    QuizChoice,
+    QuizChoice,
+    QuizChoice,
+    QuizChoice,
+  ]
 
   return {
     id: toId(),
@@ -120,6 +131,9 @@ const createQuestion = (
     explanation,
     facilitatorPrompt,
     themeTag,
+    imagePath: null,
+    imageUrl: null,
+    imageAlt: null,
   }
 }
 
@@ -129,9 +143,8 @@ const seedQuizSets = (): QuizSet[] => {
   return [
     {
       id: toId(),
-      title: 'EDDU Spark Fundamentals',
-      description:
-        'เกม warm-up สำหรับเช็กความเข้าใจเรื่อง workshop design, learning activation, และ internal product thinking',
+      title: 'Eddu Quiz Demo',
+      description: 'ชุดเดโมสำหรับเล่นสดใน workshop',
       category: 'Internal Learning',
       language: 'th',
       mode: 'knowledge_check',
@@ -139,119 +152,87 @@ const seedQuizSets = (): QuizSet[] => {
       updatedAt: timestamp,
       questions: [
         createQuestion(
-          'ถ้าเราอยากให้ผู้เรียน “เอาไปใช้ต่อได้จริง” องค์ประกอบไหนสำคัญที่สุดใน 1-Day course',
+          'ใน workshop ที่ดี อะไรทำให้คนเอาไปใช้ต่อได้จริง',
           [
-            'ใส่เนื้อหาให้เยอะที่สุดในหนึ่งวัน',
-            'มี framework + workshop + next action ที่ชัด',
-            'ใช้ศัพท์เท่ ๆ เพื่อให้ดู expert',
-            'เพิ่ม slide animation ให้จำง่าย',
+            'เนื้อหาเยอะที่สุด',
+            'มี framework และ next action',
+            'ใช้ศัพท์ยากให้ดู expert',
+            'ใส่ animation เยอะ ๆ',
           ],
           1,
           20,
-          'การเรียนรู้ที่แปลเป็นการใช้งานจริงต้องมีทั้งโครงคิด กิจกรรม และสิ่งที่เอากลับไปทำต่อได้',
-          'ใน course ปัจจุบันของทีม มีจุดไหนที่ยังเป็น content-heavy แต่ activation ยังไม่พอ',
+          'การเรียนรู้ที่นำไปใช้ต่อได้ ต้องมีทั้งโครงคิดและสิ่งที่ลงมือทำต่อได้ทันที',
+          'ตอนนี้ class ไหนของเราควรเพิ่ม next action ให้ชัดขึ้น',
           'learning-design',
         ),
         createQuestion(
-          'สำหรับ SME audience สิ่งที่ควรหลีกเลี่ยงมากที่สุดเวลาออกแบบ content คืออะไร',
+          'ถ้ายอดขายตก แต่ลูกค้าเดิมยังกลับมาซื้ออยู่ สิ่งที่ควรเช็กก่อนคืออะไร',
           [
-            'เริ่มจาก problem จริงของเจ้าของธุรกิจ',
-            'พูด framework แบบ abstract โดยไม่มีตัวอย่างใช้จริง',
-            'ใช้ case ที่ใกล้เคียงบริบทธุรกิจไทย',
-            'ปิดท้ายด้วย checklist ที่ทำต่อได้',
+            'เปลี่ยนโลโก้ทันที',
+            'เร่งยิงแอดทุกช่อง',
+            'ดู funnel และข้อเสนอที่หน้าซื้อ',
+            'ลดราคาทุกสินค้า',
           ],
-          1,
+          2,
           18,
-          'SMEs ต้องการสิ่งที่ connect กับบริบทจริง ไม่ใช่ framework ลอย ๆ ที่ไม่รู้เอาไปใช้ตรงไหน',
-          'ทีมเราเคยมีเนื้อหาส่วนไหนที่ “ดูดีแต่ใช้ยาก” แล้วจะแก้ยังไง',
-          'audience-fit',
+          'เมื่อฐานลูกค้าเดิมยังตอบสนอง ปัญหามักอยู่ที่ conversion หรือข้อเสนอในจุดซื้อ',
+          'ทีมเราแยกได้ชัดพอหรือยังระหว่างปัญหา traffic กับปัญหา conversion',
+          'decision-making',
         ),
         createQuestion(
-          'ถ้าจะใช้ game layer ระหว่าง workshop เป้าหมายที่ดีที่สุดคืออะไร',
+          'ถ้าคนตอบผิดเยอะทั้งห้อง host ควรทำอะไรก่อน',
           [
-            'ทำให้คนแข่งกันอย่างเดียว',
-            'ช่วยให้ผู้สอนรู้ทันทีว่าจุดไหนคนยังไม่เข้าใจ',
-            'ยืดเวลา session ให้ดูแน่น',
-            'ใช้แทน workshop discussion ทั้งหมด',
+            'ข้ามไปข้อถัดไป',
+            'เฉลยทันทีโดยไม่ถามต่อ',
+            'หยุดสั้น ๆ แล้วชวนถอด misconception',
+            'ให้ติดลบเพื่อเร่งเกม',
           ],
-          1,
+          2,
           18,
-          'Game ที่ดีใน workshop คือเครื่องมือทำให้เห็น understanding gap และเปิดบทสนทนาต่อ ไม่ใช่จบที่ความสนุก',
-          'ถ้าเอา Spark ไปแทรกใน class จริง เราควรใช้มันช่วงไหนเพื่อสร้าง learning value สูงสุด',
-          'engagement',
+          'คำตอบผิดจำนวนมากคือสัญญาณการเรียนรู้ ไม่ใช่แค่คะแนนที่ตกลง',
+          'มีช่วงไหนในคลาสเราที่ควร debrief มากกว่าปล่อยผ่าน',
+          'facilitation',
         ),
         createQuestion(
-          'โจทย์ไหนสะท้อน “scenario sprint” ได้เหมาะที่สุดสำหรับ EDDU',
+          'ถ้าต้องเลือกคำถามหนึ่งแบบสำหรับ game layer ในคลาส ควรเลือกแบบไหน',
           [
-            'ท่องจำ definition ของ marketing 8 ข้อ',
-            'เลือก action ที่ควรทำก่อนเมื่อ SME ยอดขายตกแต่ลูกค้าเดิมยังมี',
-            'ถามสีที่ชอบใน slide deck',
-            'จับผิดคำสะกดภาษาอังกฤษ',
+            'โจทย์ให้ตัดสินใจจากสถานการณ์จริง',
+            'ท่องจำคำจำกัดความยาว ๆ',
+            'ถามเรื่องที่ยังไม่สอน',
+            'random trivia ไม่มีบริบท',
           ],
-          1,
+          0,
           22,
-          'Scenario sprint ควรพาผู้เรียนใช้ judgment กับ business situation จริง ไม่ใช่แค่ท่องจำหรือ trivia',
-          'ในแต่ละ course ของเรา มี scenario ไหนที่ควรเอามาแปลงเป็น decision game ได้บ้าง',
+          'โจทย์ที่ดีควรสะท้อนการตัดสินใจจริง เพื่อเปิด discussion ต่อได้',
+          'course ไหนของเราควรแปลงเป็น scenario question เพิ่ม',
           'scenario-thinking',
         ),
       ],
     },
-    {
-      id: toId(),
-      title: 'Facilitator Pulse Check',
-      description:
-        'เกมสำหรับทีมผู้นำ workshop เพื่อตรวจ readiness เรื่องการ facilitation, reflection, และ debrief',
-      category: 'Facilitation',
-      language: 'th',
-      mode: 'scenario_sprint',
-      createdAt: timestamp,
-      updatedAt: timestamp,
-      questions: [
-        createQuestion(
-          'เมื่อ participant ตอบผิดเยอะทั้งห้อง สิ่งที่ host ควรทำก่อนคืออะไร',
-          [
-            'ข้ามไปข้อถัดไปทันทีเพื่อรักษา pace',
-            'เฉลยเลยโดยไม่ถามอะไรเพิ่ม',
-            'pause สั้น ๆ แล้วชวนถอดว่า misconception อยู่ตรงไหน',
-            'ให้คะแนนติดลบเพื่อกระตุ้น',
-          ],
-          2,
-          20,
-          'คำตอบผิดจำนวนมากคือสัญญาณของ insight ไม่ใช่ failure ของห้องเรียน การ debrief คือจุดที่เปลี่ยนข้อมูลเป็นการเรียนรู้',
-          'ทีมเรามีวิธี debrief ที่สม่ำเสมอพอหรือยังเวลาคนส่วนใหญ่เข้าใจไม่ตรงกัน',
-          'facilitation',
-        ),
-        createQuestion(
-          'leaderboard ควรถูกใช้แบบไหนถึงจะไม่กดดันคนเกินไปในบริบท internal',
-          [
-            'เปิดรายชื่อเต็มทุกข้อโดยไม่มีทางเลือก',
-            'ใช้เป็นช่วง checkpoint และเน้น team momentum ด้วย',
-            'แสดงแต่คนที่ได้ศูนย์คะแนน',
-            'ซ่อนคะแนนทั้งหมดแล้วเหลือแต่ confetti',
-          ],
-          1,
-          18,
-          'ในบริบท internal เกมควรช่วยสร้างพลัง ไม่ใช่ทำให้คนไม่กล้าเล่น การใช้ leaderboard แบบเป็น checkpoint จะบาลานซ์กว่า',
-          'session แบบไหนควรเน้น team ranking มากกว่า individual ranking',
-          'psychological-safety',
-        ),
-        createQuestion(
-          'ถ้าอยากใช้ Spark เพื่อเก็บ signal หลังจบ module สิ่งที่ควรถามคืออะไร',
-          [
-            'คำถามที่วัดว่าใครจำ definition ได้แม่นที่สุดอย่างเดียว',
-            'คำถามที่บังคับให้เลือก action หรือ principle ที่จะนำไปใช้ต่อ',
-            'คำถามที่ random เพื่อให้สนุก',
-            'ถามเรื่องที่ยังไม่ได้สอนใน session',
-          ],
-          1,
-          20,
-          'ถ้าเป้าหมายคือ application คำถามต้องเชื่อมกลับไปที่การตัดสินใจหรือการนำ framework ไปใช้จริง',
-          'ตอนนี้ทีมเราวัดแค่ recall หรือวัด readiness to apply ด้วย',
-          'application',
-        ),
-      ],
-    },
   ]
+}
+
+const toQuestionTuple = (choices: QuizChoice[]) => {
+  return choices as [QuizChoice, QuizChoice, QuizChoice, QuizChoice]
+}
+
+const parseBase64File = (base64: string) => {
+  const match = base64.match(/^data:(.+);base64,(.+)$/)
+  if (!match) {
+    throw new Error('Invalid image payload')
+  }
+
+  const [, contentType, encoded] = match
+  const extension = ALLOWED_IMAGE_TYPES.get(contentType)
+  if (!extension) {
+    throw new Error('รองรับเฉพาะไฟล์ JPG, PNG, หรือ WEBP')
+  }
+
+  return {
+    contentType,
+    extension,
+    bytes: Buffer.from(encoded, 'base64'),
+  }
 }
 
 export class SessionStore {
@@ -260,6 +241,8 @@ export class SessionStore {
   }
 
   async init() {
+    await this.ensureQuestionImageBucket()
+
     const { count, error } = await this.supabase
       .from('quiz_sets')
       .select('id', { count: 'exact', head: true })
@@ -295,15 +278,14 @@ export class SessionStore {
         explanation: question.explanation,
         facilitator_prompt: question.facilitatorPrompt,
         theme_tag: question.themeTag,
+        image_path: question.imagePath,
+        image_alt: question.imageAlt,
         created_at: quizSet.createdAt,
         updated_at: quizSet.updatedAt,
       })),
     )
 
-    const { error: quizSetInsertError } = await this.supabase
-      .from('quiz_sets')
-      .insert(quizSetRows)
-
+    const { error: quizSetInsertError } = await this.supabase.from('quiz_sets').insert(quizSetRows)
     if (quizSetInsertError) {
       throw quizSetInsertError
     }
@@ -311,9 +293,32 @@ export class SessionStore {
     const { error: questionInsertError } = await this.supabase
       .from('quiz_questions')
       .insert(questionRows)
-
     if (questionInsertError) {
       throw questionInsertError
+    }
+  }
+
+  async uploadQuestionImage(base64File: string, altText: string) {
+    await this.ensureQuestionImageBucket()
+    const { bytes, contentType, extension } = parseBase64File(base64File)
+    const path = `questions/${toId()}.${extension}`
+
+    const { error } = await this.supabase.storage
+      .from(QUESTION_IMAGE_BUCKET)
+      .upload(path, bytes, {
+        contentType,
+        cacheControl: '3600',
+        upsert: false,
+      })
+
+    if (error) {
+      throw error
+    }
+
+    return {
+      imagePath: path,
+      imageUrl: this.getQuestionImageUrl(path),
+      imageAlt: normalizeText(altText) || null,
     }
   }
 
@@ -368,9 +373,7 @@ export class SessionStore {
   }
 
   async upsertQuizSet(
-    input: Omit<QuizSet, 'createdAt' | 'updatedAt'> & {
-      createdAt?: string
-    },
+    input: Omit<QuizSet, 'createdAt' | 'updatedAt'> & { createdAt?: string },
     createdBy?: string | null,
   ) {
     const title = normalizeText(input.title)
@@ -394,7 +397,7 @@ export class SessionStore {
       description: normalizeText(input.description),
       category: normalizeText(input.category) || 'Internal Learning',
       language: 'th' as const,
-      mode: input.mode,
+      mode: 'knowledge_check' as const,
       created_by: createdBy ?? null,
       created_at: existingQuizSet?.createdAt ?? input.createdAt ?? timestamp,
       updated_at: timestamp,
@@ -403,7 +406,6 @@ export class SessionStore {
     const { error: upsertError } = await this.supabase.from('quiz_sets').upsert(quizSetRow, {
       onConflict: 'id',
     })
-
     if (upsertError) {
       throw upsertError
     }
@@ -412,7 +414,6 @@ export class SessionStore {
       .from('quiz_questions')
       .delete()
       .eq('quiz_set_id', quizSetRow.id)
-
     if (deleteQuestionsError) {
       throw deleteQuestionsError
     }
@@ -428,6 +429,8 @@ export class SessionStore {
       explanation: question.explanation,
       facilitator_prompt: question.facilitatorPrompt,
       theme_tag: question.themeTag,
+      image_path: question.imagePath,
+      image_alt: question.imageAlt,
       created_at: timestamp,
       updated_at: timestamp,
     }))
@@ -435,7 +438,6 @@ export class SessionStore {
     const { error: insertQuestionsError } = await this.supabase
       .from('quiz_questions')
       .insert(questionRows)
-
     if (insertQuestionsError) {
       throw insertQuestionsError
     }
@@ -448,11 +450,7 @@ export class SessionStore {
     return clone(quizSet)
   }
 
-  async launchSession(
-    quizSetId: string,
-    showLeaderboardEveryRound: boolean,
-    createdBy?: string | null,
-  ) {
+  async launchSession(quizSetId: string, createdBy?: string | null) {
     const quizSet = await this.getQuizSet(quizSetId)
     if (!quizSet) {
       throw new Error('Quiz set not found')
@@ -470,7 +468,7 @@ export class SessionStore {
       quiz_set_title: quizSet.title,
       join_code: joinCode,
       status: 'lobby' as const,
-      show_leaderboard_every_round: showLeaderboardEveryRound,
+      show_leaderboard_every_round: false,
       scoring_mode: 'correct_plus_speed' as const,
       created_by: createdBy ?? null,
       created_at: timestamp,
@@ -523,7 +521,7 @@ export class SessionStore {
     return this.mapQuizSet(quizSetRow, (questionRows ?? []) as QuizQuestionRow[])
   }
 
-  async joinPlayer(joinCode: string, displayName: string, teamName: string) {
+  async joinPlayer(joinCode: string, displayName: string) {
     const session = await this.loadSessionByJoinCode(joinCode)
     if (!session) {
       throw new Error('Session not found')
@@ -533,46 +531,36 @@ export class SessionStore {
       throw new Error('Session has ended')
     }
 
-    const normalizedName = normalizeText(displayName)
-    const normalizedTeam = normalizeText(teamName)
+    if (session.participants.length >= MAX_PLAYERS_PER_SESSION) {
+      throw new Error('ห้องนี้เต็มแล้ว (สูงสุด 100 คน)')
+    }
 
-    if (!normalizedName || !normalizedTeam) {
-      throw new Error('Name and team are required')
+    const normalizedName = normalizeText(displayName)
+    if (!normalizedName) {
+      throw new Error('กรุณาใส่ชื่อก่อนเข้าเล่น')
     }
 
     const existingParticipant = session.participants.find(
-      (participant) =>
-        participant.displayName.toLowerCase() === normalizedName.toLowerCase() &&
-        participant.teamName.toLowerCase() === normalizedTeam.toLowerCase(),
+      (participant) => participant.displayName.toLowerCase() === normalizedName.toLowerCase(),
     )
-
     if (existingParticipant) {
-      return clone(existingParticipant)
+      throw new Error('ชื่อนี้ถูกใช้ไปแล้ว')
     }
 
     const participantRow = {
       id: toId(),
       session_id: session.id,
       display_name: normalizedName,
-      team_name: normalizedTeam,
+      team_name: '',
       joined_at: nowIso(),
       score: 0,
       correct_answers: 0,
     }
 
     const { error } = await this.supabase.from('session_participants').insert(participantRow)
-
     if (error) {
       if ('code' in error && error.code === '23505') {
-        const latestSession = await this.loadSessionByJoinCode(joinCode)
-        const participant = latestSession?.participants.find(
-          (item) =>
-            item.displayName.toLowerCase() === normalizedName.toLowerCase() &&
-            item.teamName.toLowerCase() === normalizedTeam.toLowerCase(),
-        )
-        if (participant) {
-          return clone(participant)
-        }
+        throw new Error('ชื่อนี้ถูกใช้ไปแล้ว')
       }
 
       throw error
@@ -581,11 +569,7 @@ export class SessionStore {
     return this.mapParticipant(participantRow)
   }
 
-  async submitAnswer(
-    joinCode: string,
-    participantId: string,
-    selectedChoiceId: string,
-  ) {
+  async submitAnswer(joinCode: string, participantId: string, selectedChoiceId: string) {
     const session = await this.loadSessionByJoinCode(joinCode)
     if (!session) {
       throw new Error('Session not found')
@@ -602,17 +586,14 @@ export class SessionStore {
 
     const quizSet = await this.getQuizSet(session.quizSetId)
     const question = quizSet?.questions[session.currentQuestionIndex]
-
     if (!question) {
       throw new Error('Question not found')
     }
 
     const existingSubmission = session.submissions.find(
       (submission) =>
-        submission.participantId === participantId &&
-        submission.questionId === question.id,
+        submission.participantId === participantId && submission.questionId === question.id,
     )
-
     if (existingSubmission) {
       throw new Error('Duplicate submission')
     }
@@ -639,7 +620,6 @@ export class SessionStore {
     const { error: insertSubmissionError } = await this.supabase
       .from('session_submissions')
       .insert(submissionRow)
-
     if (insertSubmissionError) {
       if ('code' in insertSubmissionError && insertSubmissionError.code === '23505') {
         throw new Error('Duplicate submission')
@@ -654,7 +634,6 @@ export class SessionStore {
         correct_answers: participant.correctAnswers + (isCorrect ? 1 : 0),
       })
       .eq('id', participant.id)
-
     if (updateParticipantError) {
       throw updateParticipantError
     }
@@ -698,11 +677,7 @@ export class SessionStore {
       throw new Error('Unknown action')
     }
 
-    const { error } = await this.supabase
-      .from('live_sessions')
-      .update(nextPatch)
-      .eq('id', session.id)
-
+    const { error } = await this.supabase.from('live_sessions').update(nextPatch).eq('id', session.id)
     if (error) {
       throw error
     }
@@ -756,7 +731,6 @@ export class SessionStore {
     }
 
     const rankings = this.buildRankings(session)
-    const teamRankings = this.buildTeamRankings(session)
     const questionStats = this.buildQuestionStats(session, quizSet)
     const topicStats = this.buildTopicStats(questionStats)
     const summary = this.buildSummary(session, questionStats, topicStats)
@@ -765,17 +739,13 @@ export class SessionStore {
       session,
       quizSet,
       rankings,
-      teamRankings,
       questionStats,
       topicStats,
       summary,
     })
   }
 
-  async buildPlayerView(
-    joinCode: string,
-    participantId: string,
-  ): Promise<PlayerSessionView> {
+  async buildPlayerView(joinCode: string, participantId: string): Promise<PlayerSessionView> {
     const session = await this.loadSessionByJoinCode(joinCode)
     if (!session) {
       throw new Error('Session not found')
@@ -792,11 +762,7 @@ export class SessionStore {
     }
 
     const rankings = this.buildRankings(session)
-    const teamRankings = this.buildTeamRankings(session)
-    const yourRank =
-      rankings.find((item) => item.participantId === participantId)?.rank ?? null
-    const yourTeamRank =
-      teamRankings.find((item) => item.teamName === participant.teamName)?.rank ?? null
+    const yourRank = rankings.find((item) => item.participantId === participantId)?.rank ?? null
 
     return clone({
       session: {
@@ -815,22 +781,30 @@ export class SessionStore {
         session.status === 'question_open'
           ? this.buildPlayerQuestionView(session, quizSet, participantId)
           : null,
-      reveal:
-        session.lastClosedQuestionIndex !== null && session.status !== 'question_open'
-          ? this.buildRevealView(session, quizSet, participantId)
-          : null,
       leaderboard: {
         topPlayers: rankings.slice(0, 8),
-        topTeams: teamRankings.slice(0, 5),
         yourRank,
-        yourTeamRank,
       },
-      finalSummary:
-        session.status === 'finished'
-          ? this.buildFinalSummary(session, quizSet)
-          : null,
+      finalSummary: session.status === 'finished' ? this.buildFinalSummary(session, quizSet) : null,
       playerCount: session.participants.length,
     })
+  }
+
+  private async ensureQuestionImageBucket() {
+    const { data, error } = await this.supabase.storage.getBucket(QUESTION_IMAGE_BUCKET)
+    if (!error && data) {
+      return
+    }
+
+    const { error: createError } = await this.supabase.storage.createBucket(QUESTION_IMAGE_BUCKET, {
+      public: true,
+      fileSizeLimit: '5MB',
+      allowedMimeTypes: [...ALLOWED_IMAGE_TYPES.keys()],
+    })
+
+    if (createError && !createError.message.toLowerCase().includes('already exists')) {
+      throw createError
+    }
   }
 
   private async sessionExistsForJoinCode(joinCode: string) {
@@ -927,21 +901,27 @@ export class SessionStore {
       description: quizSetRow.description,
       category: quizSetRow.category,
       language: quizSetRow.language,
-      mode: quizSetRow.mode,
+      mode: 'knowledge_check',
       createdAt: quizSetRow.created_at,
       updatedAt: quizSetRow.updated_at,
       questions: questionRows
         .sort((left, right) => left.position - right.position)
-        .map((questionRow) => ({
-          id: questionRow.id,
-          prompt: questionRow.prompt,
-          choices: questionRow.choices,
-          correctChoiceId: questionRow.correct_choice_id,
-          timeLimitSec: questionRow.time_limit_sec,
-          explanation: questionRow.explanation,
-          facilitatorPrompt: questionRow.facilitator_prompt,
-          themeTag: questionRow.theme_tag,
-        })),
+        .map((questionRow) => {
+          const imagePath = questionRow.image_path ?? null
+          return {
+            id: questionRow.id,
+            prompt: questionRow.prompt,
+            choices: toQuestionTuple(questionRow.choices),
+            correctChoiceId: questionRow.correct_choice_id,
+            timeLimitSec: questionRow.time_limit_sec,
+            explanation: questionRow.explanation,
+            facilitatorPrompt: questionRow.facilitator_prompt,
+            themeTag: questionRow.theme_tag,
+            imagePath,
+            imageUrl: imagePath ? this.getQuestionImageUrl(imagePath) : null,
+            imageAlt: questionRow.image_alt ?? null,
+          }
+        }),
     }
   }
 
@@ -973,7 +953,6 @@ export class SessionStore {
     return {
       id: row.id,
       displayName: row.display_name,
-      teamName: row.team_name,
       joinedAt: row.joined_at,
       score: row.score,
       correctAnswers: row.correct_answers,
@@ -998,19 +977,18 @@ export class SessionStore {
     const explanation = normalizeText(question.explanation)
     const facilitatorPrompt = normalizeText(question.facilitatorPrompt)
     const themeTag = normalizeText(question.themeTag) || 'general'
-    const choices = question.choices
-      .map((choice) => ({
-        id: choice.id || toId(),
-        text: normalizeText(choice.text),
-      }))
-      .filter((choice) => choice.text.length > 0)
+    const imageAlt = normalizeText(question.imageAlt ?? '')
+    const choices = question.choices.map((choice) => ({
+      id: choice.id || toId(),
+      text: normalizeText(choice.text),
+    }))
 
     if (!prompt) {
       throw new Error(`Question ${index + 1} is missing a prompt`)
     }
 
-    if (choices.length < 2) {
-      throw new Error(`Question ${index + 1} needs at least two choices`)
+    if (choices.length !== 4 || choices.some((choice) => !choice.text)) {
+      throw new Error(`Question ${index + 1} must have exactly four choices`)
     }
 
     const correctChoiceId = choices.some((choice) => choice.id === question.correctChoiceId)
@@ -1020,12 +998,15 @@ export class SessionStore {
     return {
       id: question.id || toId(),
       prompt,
-      choices,
+      choices: toQuestionTuple(choices),
       correctChoiceId,
       timeLimitSec: Math.max(10, Math.min(60, question.timeLimitSec || 20)),
       explanation,
       facilitatorPrompt,
       themeTag,
+      imagePath: question.imagePath ?? null,
+      imageUrl: question.imagePath ? this.getQuestionImageUrl(question.imagePath) : null,
+      imageAlt: imageAlt || null,
     }
   }
 
@@ -1034,9 +1015,7 @@ export class SessionStore {
       throw new Error('Session has already finished')
     }
 
-    const nextIndex =
-      session.currentQuestionIndex < 0 ? 0 : session.currentQuestionIndex + 1
-
+    const nextIndex = session.currentQuestionIndex < 0 ? 0 : session.currentQuestionIndex + 1
     if (nextIndex >= quizSet.questions.length) {
       return this.finishSession(session)
     }
@@ -1048,9 +1027,7 @@ export class SessionStore {
       status: 'question_open',
       current_question_index: nextIndex,
       question_started_at: new Date(startedAt).toISOString(),
-      question_ends_at: new Date(
-        startedAt + nextQuestion.timeLimitSec * 1000,
-      ).toISOString(),
+      question_ends_at: new Date(startedAt + nextQuestion.timeLimitSec * 1000).toISOString(),
       updated_at: nowIso(),
     }
   }
@@ -1072,10 +1049,7 @@ export class SessionStore {
       question_ends_at: null,
       last_closed_question_index:
         session.currentQuestionIndex >= 0
-          ? Math.max(
-              session.lastClosedQuestionIndex ?? 0,
-              session.currentQuestionIndex,
-            )
+          ? Math.max(session.lastClosedQuestionIndex ?? 0, session.currentQuestionIndex)
           : session.lastClosedQuestionIndex,
       updated_at: nowIso(),
     }
@@ -1097,50 +1071,13 @@ export class SessionStore {
       .map((participant, index) => ({
         participantId: participant.id,
         displayName: participant.displayName,
-        teamName: participant.teamName,
         score: participant.score,
         correctAnswers: participant.correctAnswers,
         rank: index + 1,
       }))
   }
 
-  private buildTeamRankings(session: LiveSession): TeamRanking[] {
-    const teamMap = new Map<
-      string,
-      { score: number; members: number; correctAnswers: number }
-    >()
-
-    for (const participant of session.participants) {
-      const current = teamMap.get(participant.teamName) ?? {
-        score: 0,
-        members: 0,
-        correctAnswers: 0,
-      }
-      current.score += participant.score
-      current.members += 1
-      current.correctAnswers += participant.correctAnswers
-      teamMap.set(participant.teamName, current)
-    }
-
-    return [...teamMap.entries()]
-      .map(([teamName, stats]) => ({ teamName, ...stats }))
-      .sort((left, right) => {
-        if (right.score !== left.score) {
-          return right.score - left.score
-        }
-
-        return right.correctAnswers - left.correctAnswers
-      })
-      .map((team, index) => ({
-        ...team,
-        rank: index + 1,
-      }))
-  }
-
-  private buildQuestionStats(
-    session: LiveSession,
-    quizSet: QuizSet,
-  ): QuestionStats[] {
+  private buildQuestionStats(session: LiveSession, quizSet: QuizSet): QuestionStats[] {
     return quizSet.questions.map((question) => {
       const submissions = session.submissions.filter(
         (submission) => submission.questionId === question.id,
@@ -1149,18 +1086,15 @@ export class SessionStore {
       const distribution = question.choices.map((choice) => ({
         choiceId: choice.id,
         text: choice.text,
-        count: submissions.filter(
-          (submission) => submission.selectedChoiceId === choice.id,
-        ).length,
+        count: submissions.filter((submission) => submission.selectedChoiceId === choice.id).length,
+        isCorrect: choice.id === question.correctChoiceId,
       }))
       const averagePoints =
         submissions.length === 0
           ? 0
           : Math.round(
-              submissions.reduce(
-                (total, submission) => total + submission.pointsAwarded,
-                0,
-              ) / submissions.length,
+              submissions.reduce((total, submission) => total + submission.pointsAwarded, 0) /
+                submissions.length,
             )
 
       return {
@@ -1170,9 +1104,7 @@ export class SessionStore {
         totalSubmissions: submissions.length,
         correctCount,
         accuracyRate:
-          submissions.length === 0
-            ? 0
-            : Number((correctCount / submissions.length).toFixed(2)),
+          submissions.length === 0 ? 0 : Number((correctCount / submissions.length).toFixed(2)),
         averagePoints,
         distribution,
       }
@@ -1183,10 +1115,7 @@ export class SessionStore {
     const topicMap = new Map<string, { totalQuestions: number; accuracySum: number }>()
 
     for (const stat of questionStats) {
-      const current = topicMap.get(stat.themeTag) ?? {
-        totalQuestions: 0,
-        accuracySum: 0,
-      }
+      const current = topicMap.get(stat.themeTag) ?? { totalQuestions: 0, accuracySum: 0 }
       current.totalQuestions += 1
       current.accuracySum += stat.accuracyRate
       topicMap.set(stat.themeTag, current)
@@ -1205,30 +1134,24 @@ export class SessionStore {
     topicStats: TopicStat[],
   ): SessionSummary {
     const hardestQuestion =
-      [...questionStats].sort((left, right) => left.accuracyRate - right.accuracyRate)[0]
-        ?.prompt ?? null
+      [...questionStats].sort((left, right) => left.accuracyRate - right.accuracyRate)[0]?.prompt ??
+      null
     const strongestTopic =
-      [...topicStats].sort((left, right) => right.accuracyRate - left.accuracyRate)[0]
-        ?.themeTag ?? null
+      [...topicStats].sort((left, right) => right.accuracyRate - left.accuracyRate)[0]?.themeTag ??
+      null
     const weakestTopic =
-      [...topicStats].sort((left, right) => left.accuracyRate - right.accuracyRate)[0]
-        ?.themeTag ?? null
+      [...topicStats].sort((left, right) => left.accuracyRate - right.accuracyRate)[0]?.themeTag ??
+      null
 
     return {
       totalParticipants: session.participants.length,
-      totalTeams: new Set(session.participants.map((participant) => participant.teamName))
-        .size,
       hardestQuestion,
       strongestTopic,
       weakestTopic,
     }
   }
 
-  private buildPlayerQuestionView(
-    session: LiveSession,
-    quizSet: QuizSet,
-    participantId: string,
-  ) {
+  private buildPlayerQuestionView(session: LiveSession, quizSet: QuizSet, participantId: string) {
     const question = quizSet.questions[session.currentQuestionIndex]
     if (!question) {
       return null
@@ -1236,62 +1159,21 @@ export class SessionStore {
 
     const existingSubmission = session.submissions.find(
       (submission) =>
-        submission.participantId === participantId &&
-        submission.questionId === question.id,
+        submission.participantId === participantId && submission.questionId === question.id,
     )
 
     return {
       id: question.id,
       prompt: question.prompt,
-      choices: question.choices,
-      timeLimitSec: question.timeLimitSec,
       questionNumber: session.currentQuestionIndex + 1,
       totalQuestions: quizSet.questions.length,
       endsAt: session.questionEndsAt,
       submittedChoiceId: existingSubmission?.selectedChoiceId ?? null,
+      choiceIds: question.choices.map((choice) => choice.id) as [string, string, string, string],
     }
   }
 
-  private buildRevealView(
-    session: LiveSession,
-    quizSet: QuizSet,
-    participantId: string,
-  ) {
-    const question = quizSet.questions[session.lastClosedQuestionIndex ?? -1]
-    if (!question) {
-      return null
-    }
-
-    const submissions = session.submissions.filter(
-      (submission) => submission.questionId === question.id,
-    )
-    const yourSubmission = submissions.find(
-      (submission) => submission.participantId === participantId,
-    )
-
-    return {
-      questionId: question.id,
-      prompt: question.prompt,
-      choices: question.choices,
-      correctChoiceId: question.correctChoiceId,
-      explanation: question.explanation,
-      facilitatorPrompt: question.facilitatorPrompt,
-      distribution: question.choices.map((choice) => ({
-        choiceId: choice.id,
-        text: choice.text,
-        count: submissions.filter(
-          (submission) => submission.selectedChoiceId === choice.id,
-        ).length,
-        isCorrect: choice.id === question.correctChoiceId,
-      })),
-      yourChoiceId: yourSubmission?.selectedChoiceId ?? null,
-    }
-  }
-
-  private buildFinalSummary(
-    session: LiveSession,
-    quizSet: QuizSet,
-  ): FinalSummaryView {
+  private buildFinalSummary(session: LiveSession, quizSet: QuizSet): FinalSummaryView {
     const questionStats = this.buildQuestionStats(session, quizSet)
     const topicStats = this.buildTopicStats(questionStats)
     const summary = this.buildSummary(session, questionStats, topicStats)
@@ -1301,5 +1183,13 @@ export class SessionStore {
       strongestTopic: summary.strongestTopic,
       weakestTopic: summary.weakestTopic,
     }
+  }
+
+  private getQuestionImageUrl(path: string) {
+    const {
+      data: { publicUrl },
+    } = this.supabase.storage.from(QUESTION_IMAGE_BUCKET).getPublicUrl(path)
+
+    return publicUrl
   }
 }

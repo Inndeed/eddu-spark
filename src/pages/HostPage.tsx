@@ -1,21 +1,20 @@
 import { useCallback, useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 
+import { BrandLogo } from '../components/BrandLogo'
 import {
   fetchAppHealth,
   fetchHostBootstrap,
   launchSession,
   saveQuizSet,
+  uploadQuestionImage,
   type AppHealthData,
   type HostBootstrapData,
 } from '../lib/api'
-import { formatDateTime, modeLabel, statusLabel } from '../lib/format'
-import {
-  signInHostWithPassword,
-  signOutHostSession,
-} from '../lib/supabase'
+import { formatDateTime, statusLabel } from '../lib/format'
+import { signInHostWithPassword, signOutHostSession } from '../lib/supabase'
 import { useHostSession } from '../lib/use-host-session'
-import type { QuizMode, QuizQuestion, QuizSet } from '../lib/types'
+import type { QuizQuestion, QuizSet } from '../lib/types'
 
 type QuizDraft = Omit<QuizSet, 'createdAt' | 'updatedAt'>
 
@@ -35,13 +34,16 @@ const createQuestion = (): QuizQuestion => {
     timeLimitSec: 20,
     explanation: '',
     facilitatorPrompt: '',
-    themeTag: 'learning-design',
+    themeTag: 'general',
+    imagePath: null,
+    imageUrl: null,
+    imageAlt: null,
   }
 }
 
 const createDraft = (): QuizDraft => ({
   id: crypto.randomUUID(),
-  title: '',
+  title: 'Eddu Quiz',
   description: '',
   category: 'Internal Learning',
   language: 'th',
@@ -55,9 +57,17 @@ const toDraft = (quizSet: QuizSet): QuizDraft => ({
   description: quizSet.description,
   category: quizSet.category,
   language: quizSet.language,
-  mode: quizSet.mode,
+  mode: 'knowledge_check',
   questions: quizSet.questions,
 })
+
+const readFileAsDataUrl = (file: File) =>
+  new Promise<string>((resolve, reject) => {
+    const reader = new FileReader()
+    reader.onload = () => resolve(String(reader.result ?? ''))
+    reader.onerror = () => reject(new Error('อ่านไฟล์ไม่สำเร็จ'))
+    reader.readAsDataURL(file)
+  })
 
 export function HostPage() {
   const navigate = useNavigate()
@@ -71,7 +81,7 @@ export function HostPage() {
   const [error, setError] = useState<string | null>(null)
   const [saving, setSaving] = useState(false)
   const [launchingId, setLaunchingId] = useState<string | null>(null)
-  const [showLeaderboardEveryRound, setShowLeaderboardEveryRound] = useState(true)
+  const [uploadingQuestionId, setUploadingQuestionId] = useState<string | null>(null)
 
   const liveSetupReady = configured && appHealth?.status !== 'setup_required'
 
@@ -100,9 +110,7 @@ export function HostPage() {
 
   useEffect(() => {
     void fetchAppHealth()
-      .then((payload) => {
-        setAppHealth(payload)
-      })
+      .then((payload) => setAppHealth(payload))
       .catch((healthError) => {
         setError(healthError instanceof Error ? healthError.message : 'Unable to reach server')
       })
@@ -129,13 +137,6 @@ export function HostPage() {
     }
   }
 
-  const handleTopLevelChange = <K extends keyof QuizDraft>(
-    key: K,
-    value: QuizDraft[K],
-  ) => {
-    setDraft((current) => ({ ...current, [key]: value }))
-  }
-
   const handleQuestionChange = <K extends keyof QuizQuestion>(
     questionId: string,
     key: K,
@@ -149,11 +150,7 @@ export function HostPage() {
     }))
   }
 
-  const handleChoiceChange = (
-    questionId: string,
-    choiceId: string,
-    text: string,
-  ) => {
+  const handleChoiceChange = (questionId: string, choiceId: string, text: string) => {
     setDraft((current) => ({
       ...current,
       questions: current.questions.map((question) =>
@@ -162,7 +159,7 @@ export function HostPage() {
               ...question,
               choices: question.choices.map((choice) =>
                 choice.id === choiceId ? { ...choice, text } : choice,
-              ),
+              ) as QuizQuestion['choices'],
             }
           : question,
       ),
@@ -178,10 +175,7 @@ export function HostPage() {
 
   const removeQuestion = (questionId: string) => {
     setDraft((current) => {
-      const nextQuestions = current.questions.filter(
-        (question) => question.id !== questionId,
-      )
-
+      const nextQuestions = current.questions.filter((question) => question.id !== questionId)
       return {
         ...current,
         questions: nextQuestions.length > 0 ? nextQuestions : [createQuestion()],
@@ -189,39 +183,35 @@ export function HostPage() {
     })
   }
 
-  const addChoice = (questionId: string) => {
-    setDraft((current) => ({
-      ...current,
-      questions: current.questions.map((question) =>
-        question.id === questionId
-          ? {
-              ...question,
-              choices: [...question.choices, createChoice()],
-            }
-          : question,
-      ),
-    }))
-  }
+  const handleQuestionImageUpload = async (questionId: string, file?: File | null) => {
+    if (!file) {
+      return
+    }
 
-  const removeChoice = (questionId: string, choiceId: string) => {
-    setDraft((current) => ({
-      ...current,
-      questions: current.questions.map((question) => {
-        if (question.id !== questionId || question.choices.length <= 2) {
-          return question
-        }
+    setUploadingQuestionId(questionId)
+    setError(null)
 
-        const nextChoices = question.choices.filter((choice) => choice.id !== choiceId)
-        return {
-          ...question,
-          choices: nextChoices,
-          correctChoiceId:
-            question.correctChoiceId === choiceId
-              ? nextChoices[0].id
-              : question.correctChoiceId,
-        }
-      }),
-    }))
+    try {
+      const encoded = await readFileAsDataUrl(file)
+      const uploaded = await uploadQuestionImage(encoded, file.name.replace(/\.[^.]+$/, ''))
+      setDraft((current) => ({
+        ...current,
+        questions: current.questions.map((question) =>
+          question.id === questionId
+            ? {
+                ...question,
+                imagePath: uploaded.imagePath,
+                imageUrl: uploaded.imageUrl,
+                imageAlt: uploaded.imageAlt,
+              }
+            : question,
+        ),
+      }))
+    } catch (uploadError) {
+      setError(uploadError instanceof Error ? uploadError.message : 'Upload failed')
+    } finally {
+      setUploadingQuestionId(null)
+    }
   }
 
   const handleSave = async () => {
@@ -244,7 +234,7 @@ export function HostPage() {
     setError(null)
 
     try {
-      const sessionPayload = await launchSession(quizSetId, showLeaderboardEveryRound)
+      const sessionPayload = await launchSession(quizSetId)
       navigate(`/host/live/${sessionPayload.joinCode}`)
     } catch (launchError) {
       setError(launchError instanceof Error ? launchError.message : 'Unable to launch')
@@ -254,24 +244,14 @@ export function HostPage() {
 
   if (!configured || appHealth?.status === 'setup_required') {
     return (
-      <main className="app-shell">
-        <section className="auth-panel auth-panel-ci">
-          <Link className="eyebrow-link" to="/">
-            ← กลับหน้าแรก
+      <main className="app-shell host-shell">
+        <section className="host-panel">
+          <BrandLogo compact />
+          <h1>Setup required</h1>
+          <p>ต้องใส่ env ของ Supabase และ APP_BASE_URL ก่อน</p>
+          <Link className="button button-secondary" to="/">
+            กลับ
           </Link>
-          <span className="eyebrow">Live Setup Required</span>
-          <h1>EDDU Spark ยังไม่ได้เชื่อม production backend</h1>
-          <p className="hero-text">
-            หน้านี้พร้อมสำหรับ Supabase + Railway แล้ว แต่เครื่องนี้ยังไม่มี env ที่จำเป็น
-            สำหรับ host auth และ live persistence
-          </p>
-          <div className="setup-note">
-            <strong>ต้องตั้งค่าอย่างน้อย:</strong>
-            <p>
-              `SUPABASE_URL`, `SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY`,
-              `VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY`, `APP_BASE_URL`
-            </p>
-          </div>
         </section>
       </main>
     )
@@ -279,9 +259,9 @@ export function HostPage() {
 
   if (!ready && !session) {
     return (
-      <main className="app-shell">
-        <section className="auth-panel auth-panel-ci">
-          <h1>กำลังโหลด host session...</h1>
+      <main className="app-shell host-shell">
+        <section className="host-panel">
+          <h1>กำลังโหลด...</h1>
         </section>
       </main>
     )
@@ -289,82 +269,49 @@ export function HostPage() {
 
   if (!session) {
     return (
-      <main className="app-shell">
-        <section className="auth-panel auth-panel-ci">
-          <Link className="eyebrow-link" to="/">
-            ← กลับหน้าแรก
-          </Link>
-          <span className="eyebrow">Host Access</span>
-          <h1>เข้าสู่ Host Studio</h1>
-          <p className="hero-text">
-            ใช้บัญชี host ที่ถูก invite ไว้ใน Supabase Auth เพื่อจัดการ quiz set และเปิด
-            live session
-          </p>
-
-          <form className="auth-form" onSubmit={handleLogin}>
+      <main className="app-shell host-shell">
+        <section className="host-panel host-login-panel">
+          <BrandLogo />
+          <form className="entry-form" onSubmit={handleLogin}>
             <label>
-              Host email
+              Email
               <input
-                value={email}
-                onChange={(event) => setEmail(event.target.value)}
                 placeholder="host@eddu.org"
                 type="email"
+                value={email}
+                onChange={(event) => setEmail(event.target.value)}
               />
             </label>
             <label>
               Password
               <input
+                placeholder="Password"
+                type="password"
                 value={password}
                 onChange={(event) => setPassword(event.target.value)}
-                placeholder="Your password"
-                type="password"
               />
             </label>
-            <button className="button button-primary" disabled={loading} type="submit">
-              {loading ? 'กำลังเข้าใช้งาน...' : 'เข้าสู่ระบบ'}
+            <button className="button button-primary button-block" disabled={loading} type="submit">
+              {loading ? 'กำลังเข้า...' : 'เข้าสู่ Host'}
             </button>
           </form>
-          {sessionError ? <p className="error-text">{sessionError}</p> : null}
-          {error ? <p className="error-text">{error}</p> : null}
+          {sessionError ? <p className="error-text error-text-centered">{sessionError}</p> : null}
+          {error ? <p className="error-text error-text-centered">{error}</p> : null}
         </section>
       </main>
     )
   }
 
   return (
-    <main className="app-shell app-shell-ci">
-      <section className="page-header page-header-ci">
-        <div>
-          <Link className="eyebrow-link" to="/">
-            ← กลับหน้าแรก
-          </Link>
-          <span className="eyebrow">Host Studio</span>
-          <h1>ออกแบบเกมและเปิด live session</h1>
-          <p className="hero-text">
-            Visual system ใหม่ยึดจาก CI เดียวกันทั้งหน้า studio, live console, และ player
-            flow
-          </p>
-        </div>
+    <main className="app-shell host-shell">
+      <section className="host-topbar">
+        <BrandLogo compact />
         <div className="header-actions">
-          <div className="host-chip">
+          <div className="host-badge">
             <strong>{bootstrap?.currentHost?.displayName || session.user.email}</strong>
             <span>{bootstrap?.currentHost?.role ?? 'host'}</span>
           </div>
-          <label className="toggle-chip toggle-chip-ci">
-            <input
-              checked={showLeaderboardEveryRound}
-              onChange={(event) => setShowLeaderboardEveryRound(event.target.checked)}
-              type="checkbox"
-            />
-            Show leaderboard every round
-          </label>
-          <button
-            className="button button-ghost"
-            onClick={() => {
-              void signOutHostSession()
-            }}
-            type="button"
-          >
+          <button className="button button-ghost" onClick={() => void signOutHostSession()} type="button">
             Logout
           </button>
         </div>
@@ -373,70 +320,45 @@ export function HostPage() {
       {error ? <p className="error-text">{error}</p> : null}
 
       <section className="studio-grid">
-        <div className="content-panel content-panel-ci">
+        <div className="host-panel host-editor-panel">
           <div className="panel-header">
-            <span className="eyebrow">Quiz Editor</span>
-            <h2>Build host-led internal sessions</h2>
+            <span className="eyebrow">Studio</span>
+            <h2>Quiz set</h2>
           </div>
 
-          <div className="field-grid">
+          <div className="field-grid compact-field-grid">
             <label>
               Title
               <input
                 value={draft.title}
-                onChange={(event) => handleTopLevelChange('title', event.target.value)}
+                onChange={(event) => setDraft((current) => ({ ...current, title: event.target.value }))}
               />
             </label>
             <label>
-              Category
-              <input
-                value={draft.category}
-                onChange={(event) => handleTopLevelChange('category', event.target.value)}
-              />
-            </label>
-            <label className="full-span">
               Description
-              <textarea
-                rows={3}
+              <input
                 value={draft.description}
                 onChange={(event) =>
-                  handleTopLevelChange('description', event.target.value)
+                  setDraft((current) => ({ ...current, description: event.target.value }))
                 }
               />
-            </label>
-            <label>
-              Mode
-              <select
-                value={draft.mode}
-                onChange={(event) =>
-                  handleTopLevelChange('mode', event.target.value as QuizMode)
-                }
-              >
-                <option value="knowledge_check">Knowledge Check</option>
-                <option value="scenario_sprint">Scenario Sprint</option>
-                <option value="team_pulse">Team Pulse</option>
-              </select>
             </label>
           </div>
 
           <div className="question-stack">
             {draft.questions.map((question, index) => (
-              <article className="question-card question-card-ci" key={question.id}>
+              <article className="question-card" key={question.id}>
                 <div className="question-header">
                   <div>
-                    <span className="eyebrow">Question {index + 1}</span>
+                    <span className="eyebrow">Q{index + 1}</span>
                     <h3>{question.prompt || 'New question'}</h3>
                   </div>
-                  <button
-                    className="mini-button"
-                    onClick={() => removeQuestion(question.id)}
-                    type="button"
-                  >
-                    ลบข้อ
+                  <button className="mini-button" onClick={() => removeQuestion(question.id)} type="button">
+                    ลบ
                   </button>
                 </div>
 
-                <label className="full-span">
+                <label>
                   Prompt
                   <textarea
                     rows={2}
@@ -447,9 +369,55 @@ export function HostPage() {
                   />
                 </label>
 
-                <div className="field-grid compact-grid">
+                <div className="question-image-block">
+                  {question.imageUrl ? (
+                    <img alt={question.imageAlt ?? `Question ${index + 1}`} src={question.imageUrl} />
+                  ) : (
+                    <div className="image-empty-state">No image</div>
+                  )}
+                  <div className="image-controls">
+                    <label className="button button-secondary button-inline file-button">
+                      {uploadingQuestionId === question.id ? 'Uploading...' : 'Upload image'}
+                      <input
+                        accept="image/png,image/jpeg,image/webp"
+                        hidden
+                        type="file"
+                        onChange={(event) =>
+                          void handleQuestionImageUpload(question.id, event.target.files?.[0] ?? null)
+                        }
+                      />
+                    </label>
+                    {question.imageUrl ? (
+                      <button
+                        className="button button-ghost button-inline"
+                        onClick={() => {
+                          handleQuestionChange(question.id, 'imagePath', null)
+                          handleQuestionChange(question.id, 'imageUrl', null)
+                          handleQuestionChange(question.id, 'imageAlt', null)
+                        }}
+                        type="button"
+                      >
+                        Remove
+                      </button>
+                    ) : null}
+                  </div>
+                </div>
+
+                <div className="field-grid compact-field-grid">
                   <label>
-                    Theme tag
+                    Time
+                    <input
+                      max={60}
+                      min={10}
+                      type="number"
+                      value={question.timeLimitSec}
+                      onChange={(event) =>
+                        handleQuestionChange(question.id, 'timeLimitSec', Number(event.target.value))
+                      }
+                    />
+                  </label>
+                  <label>
+                    Topic
                     <input
                       value={question.themeTag}
                       onChange={(event) =>
@@ -457,90 +425,49 @@ export function HostPage() {
                       }
                     />
                   </label>
-                  <label>
-                    Time limit (sec)
-                    <input
-                      max={60}
-                      min={10}
-                      type="number"
-                      value={question.timeLimitSec}
-                      onChange={(event) =>
-                        handleQuestionChange(
-                          question.id,
-                          'timeLimitSec',
-                          Number(event.target.value),
-                        )
-                      }
-                    />
-                  </label>
                 </div>
 
-                <div className="choices-grid">
+                <div className="choices-grid host-choices-grid">
                   {question.choices.map((choice, choiceIndex) => (
                     <div className="choice-row" key={choice.id}>
                       <label className="choice-radio">
                         <input
                           checked={question.correctChoiceId === choice.id}
                           name={`correct-${question.id}`}
-                          onChange={() =>
-                            handleQuestionChange(question.id, 'correctChoiceId', choice.id)
-                          }
+                          onChange={() => handleQuestionChange(question.id, 'correctChoiceId', choice.id)}
                           type="radio"
                         />
-                        Correct
+                        {choiceIndex + 1}
                       </label>
                       <input
-                        value={choice.text}
                         placeholder={`Choice ${choiceIndex + 1}`}
+                        value={choice.text}
                         onChange={(event) =>
                           handleChoiceChange(question.id, choice.id, event.target.value)
                         }
                       />
-                      <button
-                        className="mini-button"
-                        onClick={() => removeChoice(question.id, choice.id)}
-                        type="button"
-                      >
-                        ลบ
-                      </button>
                     </div>
                   ))}
                 </div>
 
-                <button
-                  className="button button-secondary button-inline"
-                  onClick={() => addChoice(question.id)}
-                  type="button"
-                >
-                  เพิ่มตัวเลือก
-                </button>
-
-                <label className="full-span">
-                  Explanation
+                <label>
+                  Explain
                   <textarea
                     rows={2}
                     value={question.explanation}
                     onChange={(event) =>
-                      handleQuestionChange(
-                        question.id,
-                        'explanation',
-                        event.target.value,
-                      )
+                      handleQuestionChange(question.id, 'explanation', event.target.value)
                     }
                   />
                 </label>
 
-                <label className="full-span">
-                  Facilitator prompt
+                <label>
+                  Debrief prompt
                   <textarea
                     rows={2}
                     value={question.facilitatorPrompt}
                     onChange={(event) =>
-                      handleQuestionChange(
-                        question.id,
-                        'facilitatorPrompt',
-                        event.target.value,
-                      )
+                      handleQuestionChange(question.id, 'facilitatorPrompt', event.target.value)
                     }
                   />
                 </label>
@@ -552,53 +479,35 @@ export function HostPage() {
             <button className="button button-secondary" onClick={addQuestion} type="button">
               เพิ่มคำถาม
             </button>
-            <button
-              className="button button-ghost"
-              onClick={() => setDraft(createDraft())}
-              type="button"
-            >
-              New quiz set
+            <button className="button button-ghost" onClick={() => setDraft(createDraft())} type="button">
+              New
             </button>
-            <button
-              className="button button-primary"
-              disabled={saving}
-              onClick={handleSave}
-              type="button"
-            >
-              {saving ? 'กำลังบันทึก...' : 'บันทึก quiz set'}
+            <button className="button button-primary" disabled={saving} onClick={handleSave} type="button">
+              {saving ? 'Saving...' : 'Save'}
             </button>
           </div>
         </div>
 
-        <div className="content-panel content-panel-ci">
+        <div className="host-panel host-library-panel">
           <div className="panel-header">
             <span className="eyebrow">Library</span>
-            <h2>Quiz sets และ sessions ล่าสุด</h2>
+            <h2>Quiz</h2>
           </div>
 
-          {loading && !bootstrap ? <p>กำลังโหลด host studio...</p> : null}
+          {loading && !bootstrap ? <p>กำลังโหลด...</p> : null}
 
           <div className="card-list">
             {bootstrap?.quizSets.map((quizSet) => (
-              <article className="library-card library-card-ci" key={quizSet.id}>
+              <article className="library-card" key={quizSet.id}>
                 <div className="library-card-top">
                   <div>
-                    <span className="badge badge-ci">{modeLabel(quizSet.mode)}</span>
                     <h3>{quizSet.title}</h3>
+                    <p>{quizSet.questions.length} questions</p>
                   </div>
-                  <span className="pill pill-ci">{quizSet.questions.length} questions</span>
-                </div>
-                <p>{quizSet.description}</p>
-                <div className="library-meta">
-                  <span>{quizSet.category}</span>
-                  <span>Updated {formatDateTime(quizSet.updatedAt)}</span>
+                  <span className="pill">{formatDateTime(quizSet.updatedAt)}</span>
                 </div>
                 <div className="library-actions">
-                  <button
-                    className="button button-secondary button-inline"
-                    onClick={() => setDraft(toDraft(quizSet))}
-                    type="button"
-                  >
+                  <button className="button button-secondary button-inline" onClick={() => setDraft(toDraft(quizSet))} type="button">
                     Edit
                   </button>
                   <button
@@ -607,7 +516,7 @@ export function HostPage() {
                     onClick={() => handleLaunch(quizSet.id)}
                     type="button"
                   >
-                    {launchingId === quizSet.id ? 'Opening...' : 'Launch live'}
+                    {launchingId === quizSet.id ? 'Opening...' : 'Launch'}
                   </button>
                 </div>
               </article>
@@ -615,31 +524,26 @@ export function HostPage() {
           </div>
 
           <div className="panel-header with-spacing">
-            <span className="eyebrow">Recent Sessions</span>
-            <h2>Session snapshots</h2>
+            <span className="eyebrow">Recent</span>
+            <h2>Sessions</h2>
           </div>
 
           <div className="card-list">
             {bootstrap?.recentSessions.map((sessionSummary) => (
-              <article className="session-card session-card-ci" key={sessionSummary.id}>
+              <article className="library-card" key={sessionSummary.id}>
                 <div className="library-card-top">
                   <div>
-                    <span className="badge badge-soft">
-                      {statusLabel(sessionSummary.status)}
-                    </span>
                     <h3>{sessionSummary.quizSetTitle}</h3>
+                    <p>{statusLabel(sessionSummary.status)}</p>
                   </div>
-                  <span className="join-code join-code-ci">{sessionSummary.joinCode}</span>
+                  <span className="join-pill">{sessionSummary.joinCode}</span>
                 </div>
                 <div className="library-meta">
                   <span>{sessionSummary.participantCount} players</span>
                   <span>{formatDateTime(sessionSummary.updatedAt)}</span>
                 </div>
-                <Link
-                  className="button button-secondary button-inline"
-                  to={`/host/live/${sessionSummary.joinCode}`}
-                >
-                  Open console
+                <Link className="button button-secondary button-inline" to={`/host/live/${sessionSummary.joinCode}`}>
+                  Open
                 </Link>
               </article>
             ))}

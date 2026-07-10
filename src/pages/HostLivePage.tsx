@@ -1,7 +1,12 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
+import QRCode from 'qrcode'
 
+import { BrandLogo } from '../components/BrandLogo'
+import { ChoiceGlyph } from '../components/ChoiceGlyph'
+import { SoundToggle } from '../components/SoundToggle'
 import { fetchAppHealth, fetchHostSession, sendHostAction } from '../lib/api'
+import { useQuizAudio } from '../lib/audio'
 import { formatDateTime, percentLabel, statusLabel } from '../lib/format'
 import { useCountdown, useSessionChannel } from '../lib/live'
 import { signOutHostSession } from '../lib/supabase'
@@ -9,14 +14,18 @@ import { useHostSession } from '../lib/use-host-session'
 import type { AppHealthData } from '../lib/api'
 import type { HostSessionView } from '../lib/types'
 
+const answerClassNames = ['answer-red', 'answer-orange', 'answer-yellow', 'answer-green'] as const
+
 export function HostLivePage() {
   const { joinCode } = useParams()
   const { configured, session, ready } = useHostSession()
+  const { muted, toggleMuted } = useQuizAudio(true)
   const [appHealth, setAppHealth] = useState<AppHealthData | null>(null)
   const [view, setView] = useState<HostSessionView | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [workingAction, setWorkingAction] = useState<string | null>(null)
+  const [qrCodeUrl, setQrCodeUrl] = useState<string | null>(null)
 
   const loadSession = useCallback(async () => {
     if (!joinCode || !session) {
@@ -37,9 +46,7 @@ export function HostLivePage() {
 
   useEffect(() => {
     void fetchAppHealth()
-      .then((payload) => {
-        setAppHealth(payload)
-      })
+      .then((payload) => setAppHealth(payload))
       .catch((healthError) => {
         setError(healthError instanceof Error ? healthError.message : 'Unable to reach server')
       })
@@ -54,6 +61,27 @@ export function HostLivePage() {
   }, [appHealth?.status, joinCode, loadSession, session])
 
   useSessionChannel(joinCode, loadSession)
+
+  const joinUrl = useMemo(() => {
+    const baseUrl = appHealth?.appBaseUrl || window.location.origin
+    return joinCode ? `${baseUrl}/play/join/${joinCode}` : ''
+  }, [appHealth?.appBaseUrl, joinCode])
+
+  useEffect(() => {
+    if (!joinUrl) {
+      setQrCodeUrl(null)
+      return
+    }
+
+    void QRCode.toDataURL(joinUrl, {
+      margin: 1,
+      width: 280,
+      color: {
+        dark: '#0B0B0B',
+        light: '#F2DEC9',
+      },
+    }).then(setQrCodeUrl)
+  }, [joinUrl])
 
   const countdown = useCountdown(view?.session.questionEndsAt ?? null)
 
@@ -75,12 +103,11 @@ export function HostLivePage() {
 
   if (!configured || appHealth?.status === 'setup_required') {
     return (
-      <main className="app-shell">
-        <section className="auth-panel auth-panel-ci">
-          <h1>Live console ยังไม่พร้อมใช้งาน</h1>
-          <p className="hero-text">ต้องเชื่อม Supabase + Railway env ให้ครบก่อนเปิด session จริง</p>
+      <main className="app-shell host-live-shell">
+        <section className="host-panel">
+          <h1>Live console ยังไม่พร้อม</h1>
           <Link className="button button-primary" to="/host">
-            กลับไปหน้า host
+            กลับ
           </Link>
         </section>
       </main>
@@ -89,9 +116,9 @@ export function HostLivePage() {
 
   if (!ready) {
     return (
-      <main className="app-shell">
-        <section className="auth-panel auth-panel-ci">
-          <h1>กำลังโหลด host session...</h1>
+      <main className="app-shell host-live-shell">
+        <section className="host-panel">
+          <h1>กำลังโหลด...</h1>
         </section>
       </main>
     )
@@ -99,11 +126,11 @@ export function HostLivePage() {
 
   if (!session) {
     return (
-      <main className="app-shell">
-        <section className="auth-panel auth-panel-ci">
-          <h1>Host session ไม่พร้อมใช้งาน</h1>
+      <main className="app-shell host-live-shell">
+        <section className="host-panel">
+          <h1>Host session ไม่พร้อม</h1>
           <Link className="button button-primary" to="/host">
-            กลับไป login ใหม่
+            Login ใหม่
           </Link>
         </section>
       </main>
@@ -112,9 +139,9 @@ export function HostLivePage() {
 
   if (loading && !view) {
     return (
-      <main className="app-shell">
-        <section className="auth-panel auth-panel-ci">
-          <h1>กำลังโหลด live console...</h1>
+      <main className="app-shell host-live-shell">
+        <section className="host-panel">
+          <h1>กำลังโหลด live...</h1>
         </section>
       </main>
     )
@@ -137,149 +164,174 @@ export function HostLivePage() {
     view.session.currentQuestionIndex >= 0
 
   return (
-    <main className="app-shell app-shell-ci">
-      <section className="page-header page-header-ci">
-        <div>
-          <Link className="eyebrow-link" to="/host">
-            ← กลับ Host Studio
-          </Link>
-          <span className="eyebrow">Host Live Console</span>
-          <h1>{view?.session.quizSetTitle}</h1>
-        </div>
+    <main className="app-shell host-live-shell">
+      <section className="host-topbar">
+        <BrandLogo compact />
         <div className="header-actions">
-          <div className="join-code-panel join-code-panel-ci">
-            <span>Join code</span>
-            <strong>{view?.session.joinCode}</strong>
-          </div>
+          <SoundToggle muted={muted} onToggle={toggleMuted} />
           <button className="button button-ghost" onClick={() => void signOutHostSession()} type="button">
             Logout
           </button>
-          <Link className="button button-secondary" to="/play">
-            เปิดหน้า join
-          </Link>
         </div>
       </section>
 
       {error ? <p className="error-text">{error}</p> : null}
 
-      <section className="console-grid">
-        <div className="content-panel content-panel-ci">
-          <div className="status-strip status-strip-ci">
-            <span className="badge badge-ci">{view ? statusLabel(view.session.status) : '-'}</span>
-            <span>{view?.session.participants.length ?? 0} players</span>
-            <span>{view?.teamRankings.length ?? 0} teams</span>
-            <span>Started {view ? formatDateTime(view.session.createdAt) : '-'}</span>
+      <section className="live-grid">
+        <div className="live-stage-panel">
+          <div className="live-stage-topbar">
+            <div>
+              <span className="eyebrow">{view ? statusLabel(view.session.status) : '-'}</span>
+              <h1>{view?.session.quizSetTitle}</h1>
+            </div>
+            <div className="live-meta-strip">
+              <span>{view?.session.participants.length ?? 0} players</span>
+              <span>{view ? formatDateTime(view.session.createdAt) : '-'}</span>
+            </div>
           </div>
 
-          <div className="live-stage live-stage-ci">
-            <div className="stage-header">
+          <div className="kahoot-stage">
+            <div className="kahoot-stage-header">
               <div>
-                <span className="eyebrow">Live Stage</span>
+                <span className="eyebrow">Question</span>
                 <h2>
                   {currentQuestion
-                    ? `ข้อ ${view!.session.currentQuestionIndex + 1} / ${view!.quizSet.questions.length}`
-                    : 'พร้อมเริ่ม session'}
+                    ? `${view!.session.currentQuestionIndex + 1} / ${view!.quizSet.questions.length}`
+                    : 'พร้อมเริ่ม'}
                 </h2>
               </div>
               {view?.session.status === 'question_open' ? (
-                <div className="timer-badge timer-badge-ci">{countdown}s</div>
+                <div className="timer-badge timer-badge-large">{countdown}s</div>
               ) : null}
             </div>
 
             {currentQuestion ? (
-              <>
-                <p className="lead-text lead-text-contrast">{currentQuestion.prompt}</p>
-                <div className="answer-grid">
+              <div className="host-question-stage">
+                <div className="stage-image-frame">
+                  {currentQuestion.imageUrl ? (
+                    <img alt={currentQuestion.imageAlt ?? currentQuestion.prompt} src={currentQuestion.imageUrl} />
+                  ) : (
+                    <div className="stage-image-empty">No image</div>
+                  )}
+                </div>
+                <div className="stage-question-copy">
+                  <p>{currentQuestion.prompt}</p>
+                </div>
+                <div className="host-answer-grid">
                   {currentQuestion.choices.map((choice, index) => (
-                    <div className="answer-card answer-card-static answer-card-ci" key={choice.id}>
-                      <span className="choice-index">{index + 1}</span>
+                    <div className={`host-answer-card ${answerClassNames[index]}`} key={choice.id}>
+                      <div className="host-answer-card-head">
+                        <ChoiceGlyph index={index} />
+                        {view?.session.status !== 'question_open' && currentQuestion.correctChoiceId === choice.id ? (
+                          <span className="pill pill-success">Correct</span>
+                        ) : null}
+                      </div>
                       <strong>{choice.text}</strong>
-                      {view?.session.status !== 'question_open' &&
-                      currentQuestion.correctChoiceId === choice.id ? (
-                        <span className="pill pill-success">Correct</span>
-                      ) : null}
                     </div>
                   ))}
                 </div>
-              </>
+              </div>
             ) : (
-              <p className="lead-text lead-text-contrast">
-                session นี้กำลังรอผู้เล่นและพร้อมเปิดคำถามข้อแรกเมื่อ host ต้องการ
-              </p>
+              <div className="host-lobby-stage">
+                <h2>รอผู้เล่นเข้าห้อง</h2>
+                <p>กดเปิดข้อแรกเมื่อพร้อม</p>
+              </div>
             )}
+          </div>
 
-            <div className="action-row">
-              {view?.session.status === 'lobby' ? (
+          <div className="action-row action-row-spread">
+            {view?.session.status === 'lobby' ? (
+              <button
+                className="button button-primary"
+                disabled={workingAction === 'advance'}
+                onClick={() => handleAction('advance')}
+                type="button"
+              >
+                เปิดข้อแรก
+              </button>
+            ) : null}
+
+            {view?.session.status === 'question_open' ? (
+              <button
+                className="button button-primary"
+                disabled={workingAction === 'close_question'}
+                onClick={() => handleAction('close_question')}
+                type="button"
+              >
+                ปิดคำถาม
+              </button>
+            ) : null}
+
+            {view?.session.status === 'question_closed' ? (
+              <>
                 <button
-                  className="button button-primary"
-                  disabled={workingAction === 'advance'}
-                  onClick={() => handleAction('advance')}
+                  className="button button-secondary"
+                  disabled={workingAction === 'show_leaderboard'}
+                  onClick={() => handleAction('show_leaderboard')}
                   type="button"
                 >
-                  เปิดคำถามข้อแรก
+                  Leaderboard
                 </button>
-              ) : null}
-
-              {view?.session.status === 'question_open' ? (
-                <button
-                  className="button button-primary"
-                  disabled={workingAction === 'close_question'}
-                  onClick={() => handleAction('close_question')}
-                  type="button"
-                >
-                  ปิดคำถามตอนนี้
-                </button>
-              ) : null}
-
-              {view?.session.status === 'question_closed' ? (
-                <>
-                  <button
-                    className="button button-secondary"
-                    disabled={workingAction === 'show_leaderboard'}
-                    onClick={() => handleAction('show_leaderboard')}
-                    type="button"
-                  >
-                    Show leaderboard
-                  </button>
-                  <button
-                    className="button button-primary"
-                    disabled={workingAction === 'advance'}
-                    onClick={() => handleAction(isFinalQuestion ? 'finish' : 'advance')}
-                    type="button"
-                  >
-                    {isFinalQuestion ? 'จบ session' : 'ไปข้อถัดไป'}
-                  </button>
-                </>
-              ) : null}
-
-              {view?.session.status === 'leaderboard' ? (
                 <button
                   className="button button-primary"
                   disabled={workingAction === 'advance'}
                   onClick={() => handleAction(isFinalQuestion ? 'finish' : 'advance')}
                   type="button"
                 >
-                  {isFinalQuestion ? 'จบ session' : 'ไปข้อถัดไป'}
+                  {isFinalQuestion ? 'จบเกม' : 'ข้อถัดไป'}
                 </button>
-              ) : null}
-            </div>
+              </>
+            ) : null}
+
+            {view?.session.status === 'leaderboard' ? (
+              <button
+                className="button button-primary"
+                disabled={workingAction === 'advance'}
+                onClick={() => handleAction(isFinalQuestion ? 'finish' : 'advance')}
+                type="button"
+              >
+                {isFinalQuestion ? 'จบเกม' : 'ข้อถัดไป'}
+              </button>
+            ) : null}
           </div>
+        </div>
+
+        <div className="live-side-panel">
+          <section className="join-qr-panel">
+            <span className="eyebrow">Join</span>
+            <div className="join-code-display">{view?.session.joinCode}</div>
+            {qrCodeUrl ? <img alt="QR code for joining the room" src={qrCodeUrl} /> : null}
+            <p>{joinUrl.replace(/^https?:\/\//, '')}</p>
+          </section>
+
+          <section className="host-panel side-panel-card">
+            <div className="panel-header">
+              <span className="eyebrow">Leaderboard</span>
+              <h2>Top players</h2>
+            </div>
+            <div className="rank-list">
+              {view?.rankings.slice(0, 8).map((ranking) => (
+                <div className="rank-row" key={ranking.participantId}>
+                  <span>#{ranking.rank}</span>
+                  <strong>{ranking.displayName}</strong>
+                  <span>{ranking.score}</span>
+                </div>
+              ))}
+            </div>
+          </section>
 
           {lastQuestion && lastQuestionStats ? (
-            <div className="reveal-panel reveal-panel-ci">
+            <section className="host-panel side-panel-card">
               <div className="panel-header">
-                <span className="eyebrow">Reveal & Debrief</span>
-                <h2>หลังจบคำถามข้อก่อนหน้า</h2>
+                <span className="eyebrow">Reveal</span>
+                <h2>{lastQuestion.prompt}</h2>
               </div>
-              <p className="lead-text">{lastQuestion.explanation}</p>
               <div className="distribution-list">
                 {lastQuestionStats.distribution.map((item) => (
                   <div className="distribution-row" key={item.choiceId}>
                     <div className="distribution-label">
                       <strong>{item.text}</strong>
-                      {lastQuestion.correctChoiceId === item.choiceId ? (
-                        <span className="pill pill-success">Correct</span>
-                      ) : null}
+                      {item.isCorrect ? <span className="pill pill-success">Correct</span> : null}
                     </div>
                     <div className="distribution-bar">
                       <span
@@ -292,84 +344,39 @@ export function HostLivePage() {
                         }}
                       />
                     </div>
-                    <span>{item.count}</span>
+                    <span>{percentLabel(item.count / Math.max(1, lastQuestionStats.totalSubmissions))}</span>
                   </div>
                 ))}
               </div>
-              <p className="prompt-note">
-                Facilitator prompt: {lastQuestion.facilitatorPrompt || 'ไม่มี prompt เพิ่ม'}
-              </p>
-            </div>
+              <p className="side-note">{lastQuestion.explanation}</p>
+              <p className="side-note side-note-highlight">{lastQuestion.facilitatorPrompt}</p>
+            </section>
           ) : null}
-        </div>
 
-        <div className="content-panel content-panel-ci">
-          <div className="panel-header">
-            <span className="eyebrow">Scoreboard</span>
-            <h2>Momentum ของผู้เล่นและทีม</h2>
-          </div>
-
-          <div className="rankings-grid rankings-grid-compact">
-            <div>
-              <h3>Top Players</h3>
-              <div className="rank-list">
-                {view?.rankings.slice(0, 8).map((ranking) => (
-                  <div className="rank-row rank-row-ci" key={ranking.participantId}>
-                    <span>#{ranking.rank}</span>
-                    <div>
-                      <strong>{ranking.displayName}</strong>
-                      <p>{ranking.teamName}</p>
-                    </div>
-                    <strong>{ranking.score}</strong>
-                  </div>
-                ))}
-              </div>
+          <section className="host-panel side-panel-card">
+            <div className="panel-header">
+              <span className="eyebrow">Summary</span>
+              <h2>Session</h2>
             </div>
-
-            <div>
-              <h3>Top Teams</h3>
-              <div className="rank-list">
-                {view?.teamRankings.slice(0, 5).map((ranking) => (
-                  <div className="rank-row rank-row-ci" key={ranking.teamName}>
-                    <span>#{ranking.rank}</span>
-                    <div>
-                      <strong>{ranking.teamName}</strong>
-                      <p>{ranking.members} members</p>
-                    </div>
-                    <strong>{ranking.score}</strong>
-                  </div>
-                ))}
-              </div>
+            <div className="summary-grid summary-grid-tight">
+              <article className="summary-card">
+                <strong>Players</strong>
+                <p>{view?.summary.totalParticipants ?? 0}</p>
+              </article>
+              <article className="summary-card">
+                <strong>Hardest</strong>
+                <p>{view?.summary.hardestQuestion ?? '-'}</p>
+              </article>
+              <article className="summary-card">
+                <strong>Strongest</strong>
+                <p>{view?.summary.strongestTopic ?? '-'}</p>
+              </article>
+              <article className="summary-card">
+                <strong>Weakest</strong>
+                <p>{view?.summary.weakestTopic ?? '-'}</p>
+              </article>
             </div>
-          </div>
-
-          <div className="summary-grid">
-            <article className="summary-card summary-card-ci">
-              <span className="eyebrow">Hardest Question</span>
-              <strong>{view?.summary.hardestQuestion ?? 'ยังไม่มีข้อมูล'}</strong>
-            </article>
-            <article className="summary-card summary-card-ci">
-              <span className="eyebrow">Strongest Topic</span>
-              <strong>{view?.summary.strongestTopic ?? 'ยังไม่มีข้อมูล'}</strong>
-            </article>
-            <article className="summary-card summary-card-ci">
-              <span className="eyebrow">Weakest Topic</span>
-              <strong>{view?.summary.weakestTopic ?? 'ยังไม่มีข้อมูล'}</strong>
-            </article>
-          </div>
-
-          <div className="insight-table insight-table-ci">
-            <div className="table-head">
-              <span>Theme</span>
-              <span>Accuracy</span>
-            </div>
-            {view?.topicStats.map((topic) => (
-              <div className="table-row" key={topic.themeTag}>
-                <span>{topic.themeTag}</span>
-                <strong>{percentLabel(topic.accuracyRate)}</strong>
-              </div>
-            ))}
-          </div>
+          </section>
         </div>
       </section>
     </main>

@@ -34,7 +34,7 @@ type AuthedRequest = express.Request & {
 }
 
 const app = express()
-app.use(express.json({ limit: '1mb' }))
+app.use(express.json({ limit: '8mb' }))
 
 const server = createServer(app)
 const wss = new WebSocketServer({ server, path: '/ws' })
@@ -71,11 +71,15 @@ const handleError = (response: express.Response, error: unknown) => {
   const status =
     message === 'Duplicate submission'
       ? 409
+      : message.includes('เต็ม') || message.includes('ถูกใช้ไปแล้ว')
+        ? 409
       : message.includes('not found')
         ? 404
         : message.includes('required') ||
             message.includes('Unknown') ||
-            message.includes('Invalid')
+            message.includes('Invalid') ||
+            message.includes('กรุณา') ||
+            message.includes('รองรับเฉพาะ')
           ? 400
           : 500
   response.status(status).json({ error: message })
@@ -189,6 +193,23 @@ app.post('/api/quiz-sets', requireHostAuth, async (request, response) => {
   }
 })
 
+app.post('/api/quiz-assets/questions', requireHostAuth, async (request, response) => {
+  if (!hasSupabaseServerConfig()) {
+    setupRequired(response)
+    return
+  }
+
+  try {
+    const payload = await store.uploadQuestionImage(
+      String(request.body?.file ?? ''),
+      String(request.body?.alt ?? ''),
+    )
+    response.json(payload)
+  } catch (error) {
+    handleError(response, error)
+  }
+})
+
 app.post('/api/sessions', requireHostAuth, async (request, response) => {
   if (!hasSupabaseServerConfig()) {
     setupRequired(response)
@@ -198,14 +219,7 @@ app.post('/api/sessions', requireHostAuth, async (request, response) => {
   try {
     const authedRequest = request as AuthedRequest
     const quizSetId = String(request.body?.quizSetId ?? '')
-    const showLeaderboardEveryRound = Boolean(
-      request.body?.showLeaderboardEveryRound,
-    )
-    const session = await store.launchSession(
-      quizSetId,
-      showLeaderboardEveryRound,
-      authedRequest.hostUser?.id ?? null,
-    )
+    const session = await store.launchSession(quizSetId, authedRequest.hostUser?.id ?? null)
     response.json(session)
   } catch (error) {
     handleError(response, error)
@@ -257,8 +271,7 @@ app.post('/api/play/join', async (request, response) => {
   try {
     const joinCode = String(request.body?.joinCode ?? '').toUpperCase()
     const displayName = String(request.body?.displayName ?? '')
-    const teamName = String(request.body?.teamName ?? '')
-    const participant = await store.joinPlayer(joinCode, displayName, teamName)
+    const participant = await store.joinPlayer(joinCode, displayName)
     broadcastSession(joinCode)
     response.json({ participantId: participant.id, joinCode })
   } catch (error) {
@@ -356,7 +369,7 @@ const start = async () => {
   }
 
   server.listen(PORT, () => {
-    console.log(`EDDU Spark server listening on http://localhost:${PORT}`)
+    console.log(`Eddu Quiz server listening on http://localhost:${PORT}`)
   })
 }
 

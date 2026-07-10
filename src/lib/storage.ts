@@ -1,10 +1,9 @@
-const PLAYER_RECORDS_KEY = 'eddu.spark.player-records'
+const PLAYER_RECORDS_KEY = 'eddu.quiz.player-records'
 
 export interface PlayerRecord {
   joinCode: string
   participantId: string
   displayName: string
-  teamName: string
 }
 
 export const getPlayerRecord = (joinCode: string) => {
