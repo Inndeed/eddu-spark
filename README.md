@@ -1,0 +1,123 @@
+# EDDU Spark
+
+EDDU Spark is a browser-based internal live quiz game inspired by Kahoot and rebuilt for EDDU’s workshop and training context.
+
+This version is designed for:
+
+- full CI-driven visual styling from `CI/20260710-113406.jpeg`
+- host login via Supabase Auth
+- public player join via live session code
+- Supabase-backed persistence
+- Railway deployment for the long-running Node + WebSocket service
+- Vercel kept as a secondary deployment or ops helper path, not the primary host
+
+## Stack
+
+- React 19 + TypeScript + Vite
+- Express + WebSocket
+- Supabase Auth + Postgres
+- Railway deploy target
+
+## Local development
+
+1. Copy the environment template:
+
+```bash
+cp .env.example .env
+```
+
+2. Fill in these values:
+
+```bash
+SUPABASE_URL=
+SUPABASE_ANON_KEY=
+SUPABASE_SERVICE_ROLE_KEY=
+VITE_SUPABASE_URL=
+VITE_SUPABASE_ANON_KEY=
+APP_BASE_URL=
+```
+
+3. Install and run:
+
+```bash
+npm install
+npm run dev
+```
+
+This starts:
+
+- Vite client at `http://localhost:5173`
+- API/WebSocket server at `http://localhost:8787`
+
+If Supabase env vars are missing, the UI will show a setup-required state instead of pretending the app is fully live.
+
+## Supabase setup
+
+1. Create a Supabase project.
+2. Open the SQL editor and run:
+
+```sql
+-- use the file below
+supabase/schema.sql
+```
+
+3. Create at least one host user:
+
+```bash
+npm run host:create -- --email host@example.com --password your-password --name "Host Name" --role admin
+```
+
+This command:
+
+- creates the auth user if needed
+- upserts the matching row into `public.host_users`
+
+4. Start the app. On first server boot with a clean database, the seed quiz sets are inserted automatically.
+
+## Railway deployment
+
+The repo already includes `railway.json` for config-as-code deployment.
+
+Recommended deploy flow:
+
+1. Push this repo to GitHub.
+2. Create a new Railway project and deploy from the GitHub repo.
+3. Set the service variables from `.env.example`.
+4. Generate the public Railway domain.
+5. Set `APP_BASE_URL` to that generated Railway URL.
+6. Trigger a redeploy after env vars are saved.
+
+The production service uses:
+
+- `npm run build` during build
+- `npm run start` as the start command
+- `/api/health` as the health check path
+
+## Vercel note
+
+Vercel is useful here as a secondary helper for previews or future refactors, but the intended v1 production shape remains Railway-first because the app depends on a long-running live session engine plus WebSocket fanout.
+
+## Core product flow
+
+1. Go to `/host`
+2. Sign in with a Supabase-backed host account
+3. Create or edit a quiz set
+4. Launch a live session to get a 6-character join code
+5. Share `/play` with participants
+6. Run the game from the live console
+
+## Important files
+
+- `server/index.ts`: Express API + WebSocket server + host auth gate
+- `server/session-store.ts`: live-session engine backed by Supabase
+- `server/supabase.ts`: server-side Supabase client helpers
+- `src/lib/supabase.ts`: browser auth client
+- `supabase/schema.sql`: required database schema
+- `railway.json`: deployment config
+
+## Notes
+
+- Host APIs require a valid Supabase session plus a matching active row in `public.host_users`.
+- Player flow remains account-free and uses `join code + name + team`.
+- The Node server remains the authoritative source for timers, scoring, and session progression.
+- This build is prepared for internet deployment, but it still requires real Supabase and Railway credentials before it can be launched publicly.
