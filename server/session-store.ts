@@ -93,6 +93,8 @@ interface SubmissionRow {
 const nowIso = () => new Date().toISOString()
 const clone = <T>(value: T): T => JSON.parse(JSON.stringify(value)) as T
 const normalizeText = (value: string) => value.trim().replace(/\s+/g, ' ')
+const normalizeImageReference = (value: string | null | undefined) => value?.trim() || null
+const isExternalImageUrl = (value: string) => /^https?:\/\//i.test(value)
 const toId = () => randomUUID()
 
 const buildJoinCode = () =>
@@ -978,6 +980,7 @@ export class SessionStore {
     const facilitatorPrompt = normalizeText(question.facilitatorPrompt)
     const themeTag = normalizeText(question.themeTag) || 'general'
     const imageAlt = normalizeText(question.imageAlt ?? '')
+    const imagePath = normalizeImageReference(question.imagePath)
     const choices = question.choices.map((choice) => ({
       id: choice.id || toId(),
       text: normalizeText(choice.text),
@@ -989,6 +992,10 @@ export class SessionStore {
 
     if (choices.length !== 4 || choices.some((choice) => !choice.text)) {
       throw new Error(`Question ${index + 1} must have exactly four choices`)
+    }
+
+    if (imagePath && imagePath.includes('://') && !isExternalImageUrl(imagePath)) {
+      throw new Error(`Question ${index + 1} has an invalid image URL`)
     }
 
     const correctChoiceId = choices.some((choice) => choice.id === question.correctChoiceId)
@@ -1004,8 +1011,8 @@ export class SessionStore {
       explanation,
       facilitatorPrompt,
       themeTag,
-      imagePath: question.imagePath ?? null,
-      imageUrl: question.imagePath ? this.getQuestionImageUrl(question.imagePath) : null,
+      imagePath,
+      imageUrl: imagePath ? this.getQuestionImageUrl(imagePath) : null,
       imageAlt: imageAlt || null,
     }
   }
@@ -1186,6 +1193,10 @@ export class SessionStore {
   }
 
   private getQuestionImageUrl(path: string) {
+    if (isExternalImageUrl(path)) {
+      return path
+    }
+
     const {
       data: { publicUrl },
     } = this.supabase.storage.from(QUESTION_IMAGE_BUCKET).getPublicUrl(path)

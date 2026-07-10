@@ -69,6 +69,8 @@ const readFileAsDataUrl = (file: File) =>
     reader.readAsDataURL(file)
   })
 
+const isExternalImageUrl = (value: string) => /^https?:\/\//i.test(value.trim())
+
 export function HostPage() {
   const navigate = useNavigate()
   const { configured, session, ready, error: sessionError } = useHostSession()
@@ -82,6 +84,7 @@ export function HostPage() {
   const [saving, setSaving] = useState(false)
   const [launchingId, setLaunchingId] = useState<string | null>(null)
   const [uploadingQuestionId, setUploadingQuestionId] = useState<string | null>(null)
+  const [manualImageUrls, setManualImageUrls] = useState<Record<string, string>>({})
 
   const liveSetupReady = configured && appHealth?.status !== 'setup_required'
 
@@ -207,6 +210,7 @@ export function HostPage() {
             : question,
         ),
       }))
+      setManualImageUrls((current) => ({ ...current, [questionId]: '' }))
     } catch (uploadError) {
       setError(uploadError instanceof Error ? uploadError.message : 'Upload failed')
     } finally {
@@ -214,7 +218,35 @@ export function HostPage() {
     }
   }
 
+  const handleQuestionImageUrlChange = (questionId: string, value: string) => {
+    setManualImageUrls((current) => ({ ...current, [questionId]: value }))
+    const trimmed = value.trim()
+
+    if (!trimmed) {
+      handleQuestionChange(questionId, 'imagePath', null)
+      handleQuestionChange(questionId, 'imageUrl', null)
+      return
+    }
+
+    if (!isExternalImageUrl(trimmed)) {
+      return
+    }
+
+    handleQuestionChange(questionId, 'imagePath', trimmed)
+    handleQuestionChange(questionId, 'imageUrl', trimmed)
+  }
+
   const handleSave = async () => {
+    const invalidImageUrl = draft.questions.find((question) => {
+      const manualValue = manualImageUrls[question.id]
+      return manualValue && manualValue.trim() && !isExternalImageUrl(manualValue)
+    })
+
+    if (invalidImageUrl) {
+      setError('Image URL ต้องขึ้นต้นด้วย http:// หรือ https://')
+      return
+    }
+
     setSaving(true)
     setError(null)
 
@@ -394,6 +426,7 @@ export function HostPage() {
                           handleQuestionChange(question.id, 'imagePath', null)
                           handleQuestionChange(question.id, 'imageUrl', null)
                           handleQuestionChange(question.id, 'imageAlt', null)
+                          setManualImageUrls((current) => ({ ...current, [question.id]: '' }))
                         }}
                         type="button"
                       >
@@ -401,6 +434,21 @@ export function HostPage() {
                       </button>
                     ) : null}
                   </div>
+                  <label>
+                    Image URL
+                    <input
+                      placeholder="https://..."
+                      value={
+                        manualImageUrls[question.id] ??
+                        (question.imagePath && isExternalImageUrl(question.imagePath)
+                          ? question.imagePath
+                          : '')
+                      }
+                      onChange={(event) =>
+                        handleQuestionImageUrlChange(question.id, event.target.value)
+                      }
+                    />
+                  </label>
                 </div>
 
                 <div className="field-grid compact-field-grid">
