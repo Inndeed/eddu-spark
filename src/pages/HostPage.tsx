@@ -321,9 +321,9 @@ export function HostPage() {
 
   if (!session) {
     return (
-      <main className="app-shell host-shell">
+      <main className="app-shell host-shell host-shell-auth">
         <section className="host-panel host-login-panel">
-          <BrandLogo />
+          <BrandLogo compact />
           <form className="entry-form" onSubmit={handleLogin}>
             <label>
               Email

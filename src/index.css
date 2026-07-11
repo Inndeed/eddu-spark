@@ -407,6 +407,12 @@ label {
   gap: 18px;
 }
 
+.host-shell-auth {
+  min-height: calc(100vh - 36px);
+  align-content: center;
+  justify-items: center;
+}
+
 .host-topbar {
   display: flex;
   align-items: center;
@@ -476,6 +482,11 @@ label {
   min-height: calc(100vh - 36px);
   display: grid;
   place-items: center;
+}
+
+.host-shell-auth .host-login-panel {
+  min-height: auto;
+  width: min(520px, 100%);
 }
 
 .host-login-panel,
