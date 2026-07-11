@@ -76,6 +76,15 @@ export const saveQuizSet = async (
     await getRequiredHostToken(),
   )
 
+export const deleteQuizSet = async (quizSetId: string) =>
+  request<{ success: true }>(
+    `/api/quiz-sets/${quizSetId}`,
+    {
+      method: 'DELETE',
+    },
+    await getRequiredHostToken(),
+  )
+
 export const launchSession = async (
   quizSetId: string,
 ) =>

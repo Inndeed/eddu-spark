@@ -417,6 +417,35 @@ export class SessionStore {
     return clone(quizSet)
   }
 
+  async deleteQuizSet(quizSetId: string) {
+    const quizSet = await this.getQuizSet(quizSetId)
+    if (!quizSet) {
+      throw new Error('Quiz set not found')
+    }
+
+    const { count, error: countError } = await this.supabase
+      .from('live_sessions')
+      .select('id', { count: 'exact', head: true })
+      .eq('quiz_set_id', quizSetId)
+
+    if (countError) {
+      throw countError
+    }
+
+    if ((count ?? 0) > 0) {
+      throw new Error('ลบ Quiz นี้ไม่ได้ เพราะมี session ที่เคยใช้งานแล้ว')
+    }
+
+    const { error: deleteError } = await this.supabase
+      .from('quiz_sets')
+      .delete()
+      .eq('id', quizSetId)
+
+    if (deleteError) {
+      throw deleteError
+    }
+  }
+
   async launchSession(quizSetId: string, createdBy?: string | null) {
     const quizSet = await this.getQuizSet(quizSetId)
     if (!quizSet) {

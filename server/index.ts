@@ -192,6 +192,20 @@ app.post('/api/quiz-sets', requireHostAuth, async (request, response) => {
   }
 })
 
+app.delete('/api/quiz-sets/:quizSetId', requireHostAuth, async (request, response) => {
+  if (!hasSupabaseServerConfig()) {
+    setupRequired(response)
+    return
+  }
+
+  try {
+    await store.deleteQuizSet(String(request.params.quizSetId))
+    response.json({ success: true as const })
+  } catch (error) {
+    handleError(response, error)
+  }
+})
+
 app.post('/api/quiz-assets/questions', requireHostAuth, async (request, response) => {
   if (!hasSupabaseServerConfig()) {
     setupRequired(response)

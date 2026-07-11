@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom'
 
 import { BrandLogo } from '../components/BrandLogo'
 import {
+  deleteQuizSet,
   fetchAppHealth,
   fetchHostBootstrap,
   launchSession,
@@ -82,6 +83,7 @@ export function HostPage() {
   const [draft, setDraft] = useState<QuizDraft>(() => createDraft())
   const [error, setError] = useState<string | null>(null)
   const [saving, setSaving] = useState(false)
+  const [deleting, setDeleting] = useState(false)
   const [launchingId, setLaunchingId] = useState<string | null>(null)
   const [uploadingQuestionId, setUploadingQuestionId] = useState<string | null>(null)
   const [manualImageUrls, setManualImageUrls] = useState<Record<string, string>>({})
@@ -291,6 +293,34 @@ export function HostPage() {
     } catch (launchError) {
       setError(launchError instanceof Error ? launchError.message : 'Unable to launch')
       setLaunchingId(null)
+    }
+  }
+
+  const isExistingQuiz = Boolean(bootstrap?.quizSets.some((quizSet) => quizSet.id === draft.id))
+
+  const handleDeleteQuiz = async () => {
+    if (!isExistingQuiz) {
+      return
+    }
+
+    const confirmed = window.confirm(`ลบ Quiz "${draft.title || 'Untitled'}" ?`)
+    if (!confirmed) {
+      return
+    }
+
+    setDeleting(true)
+    setError(null)
+
+    try {
+      await deleteQuizSet(draft.id)
+      setDraft(createDraft())
+      setManualImageUrls({})
+      setIsEditorOpen(false)
+      await loadBootstrap()
+    } catch (deleteError) {
+      setError(deleteError instanceof Error ? deleteError.message : 'Unable to delete quiz')
+    } finally {
+      setDeleting(false)
     }
   }
 
@@ -555,6 +585,16 @@ export function HostPage() {
             <button className="button button-secondary" onClick={addQuestion} type="button">
               เพิ่มคำถาม
             </button>
+            {isExistingQuiz ? (
+              <button
+                className="button button-danger"
+                disabled={deleting}
+                onClick={() => void handleDeleteQuiz()}
+                type="button"
+              >
+                {deleting ? 'Deleting...' : 'ลบ Quiz'}
+              </button>
+            ) : null}
             <button className="button button-ghost" onClick={() => setIsEditorOpen(false)} type="button">
               กลับไป Library
             </button>
