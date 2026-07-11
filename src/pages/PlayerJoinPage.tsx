@@ -6,10 +6,12 @@ import { BrandLogo } from '../components/BrandLogo'
 export function PlayerJoinPage() {
   const navigate = useNavigate()
   const [joinCode, setJoinCode] = useState('')
+  const normalizedCode = joinCode.trim().toUpperCase().slice(0, 6)
+  const codeCells = Array.from({ length: 6 }, (_, index) => normalizedCode[index] ?? '')
 
   const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault()
-    const nextCode = joinCode.trim().toUpperCase()
+    const nextCode = normalizedCode
     if (!nextCode) {
       return
     }
@@ -19,17 +21,28 @@ export function PlayerJoinPage() {
 
   return (
     <main className="app-shell player-entry-shell">
-      <section className="entry-card">
+      <section className="entry-card entry-card-player">
         <BrandLogo compact />
+        <div className="entry-heading">
+          <span className="eyebrow">Join</span>
+          <h1 className="entry-title">Code</h1>
+        </div>
+        <div className="entry-pin-preview" aria-hidden="true">
+          {codeCells.map((cell, index) => (
+            <span className={`entry-pin-cell ${cell ? 'is-filled' : ''}`.trim()} key={index}>
+              {cell || '•'}
+            </span>
+          ))}
+        </div>
         <form className="entry-form" onSubmit={handleSubmit}>
           <label>
-            Code
             <input
+              aria-label="Join code"
               autoFocus
               inputMode="text"
               maxLength={6}
               placeholder="A1B2C3"
-              value={joinCode}
+              value={normalizedCode}
               onChange={(event) => setJoinCode(event.target.value.toUpperCase())}
             />
           </label>

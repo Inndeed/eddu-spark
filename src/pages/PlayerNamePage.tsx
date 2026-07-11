@@ -7,10 +7,12 @@ import { getPlayerRecord, setPlayerRecord } from '../lib/storage'
 export function PlayerNamePage() {
   const navigate = useNavigate()
   const { joinCode = '' } = useParams()
+  const normalizedJoinCode = joinCode.toUpperCase()
   const remembered = useMemo(() => getPlayerRecord('recent') ?? null, [])
   const [displayName, setDisplayName] = useState(remembered?.displayName ?? '')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const codeCells = Array.from({ length: 6 }, (_, index) => normalizedJoinCode[index] ?? '')
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault()
@@ -18,7 +20,7 @@ export function PlayerNamePage() {
     setError(null)
 
     try {
-      const payload = await joinSession(joinCode.toUpperCase(), displayName)
+      const payload = await joinSession(normalizedJoinCode, displayName)
       setPlayerRecord({
         joinCode: payload.joinCode,
         participantId: payload.participantId,
@@ -38,12 +40,25 @@ export function PlayerNamePage() {
 
   return (
     <main className="app-shell player-entry-shell">
-      <section className="entry-card">
-        <span className="entry-code">{joinCode}</span>
+      <section className="entry-card entry-card-player">
+        <div className="entry-heading">
+          <span className="eyebrow">Room</span>
+          <div className="entry-pin-preview entry-pin-preview-tight" aria-hidden="true">
+            {codeCells.map((cell, index) => (
+              <span className={`entry-pin-cell ${cell ? 'is-filled' : ''}`.trim()} key={index}>
+                {cell || '•'}
+              </span>
+            ))}
+          </div>
+        </div>
         <form className="entry-form" onSubmit={handleSubmit}>
+          <div className="entry-player-badge">
+            <span className="eyebrow">Name</span>
+            <h1 className="entry-title">Ready</h1>
+          </div>
           <label>
-            Name
             <input
+              aria-label="Display name"
               autoFocus
               placeholder="Mika"
               value={displayName}
