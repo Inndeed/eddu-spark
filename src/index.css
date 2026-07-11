@@ -851,6 +851,21 @@ label {
   gap: 18px;
 }
 
+.host-live-shell-state {
+  min-height: calc(100vh - 36px);
+  align-content: center;
+  justify-items: center;
+}
+
+.host-state-panel {
+  width: min(520px, 100%);
+  min-height: auto;
+  display: grid;
+  justify-items: center;
+  gap: 18px;
+  text-align: center;
+}
+
 .live-grid {
   grid-template-columns: 1fr;
   align-items: start;

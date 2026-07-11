@@ -101,50 +101,37 @@ export function HostLivePage() {
     }
   }
 
-  if (!configured || appHealth?.status === 'setup_required') {
-    return (
-      <main className="app-shell host-live-shell">
-        <section className="host-panel">
-          <h1>Live console ยังไม่พร้อม</h1>
+  const renderHostLiveState = (title: string, actionLabel?: string) => (
+    <main className="app-shell host-live-shell host-live-shell-state">
+      <section className="host-panel host-state-panel">
+        <BrandLogo compact to="/host" />
+        <div className="auth-loading-state">
+          <span className="eyebrow">Host Live</span>
+          <h1>{title}</h1>
+        </div>
+        {actionLabel ? (
           <Link className="button button-primary" to="/host">
-            กลับ
+            {actionLabel}
           </Link>
-        </section>
-      </main>
-    )
+        ) : null}
+      </section>
+    </main>
+  )
+
+  if (!configured || appHealth?.status === 'setup_required') {
+    return renderHostLiveState('Live console ยังไม่พร้อม', 'กลับ')
   }
 
   if (!ready) {
-    return (
-      <main className="app-shell host-live-shell">
-        <section className="host-panel">
-          <h1>กำลังโหลด...</h1>
-        </section>
-      </main>
-    )
+    return renderHostLiveState('กำลังโหลด...')
   }
 
   if (!session) {
-    return (
-      <main className="app-shell host-live-shell">
-        <section className="host-panel">
-          <h1>Host session ไม่พร้อม</h1>
-          <Link className="button button-primary" to="/host">
-            Login ใหม่
-          </Link>
-        </section>
-      </main>
-    )
+    return renderHostLiveState('Host session ไม่พร้อม', 'Login ใหม่')
   }
 
   if (loading && !view) {
-    return (
-      <main className="app-shell host-live-shell">
-        <section className="host-panel">
-          <h1>กำลังโหลด live...</h1>
-        </section>
-      </main>
-    )
+    return renderHostLiveState('กำลังโหลด live...')
   }
 
   const sessionStatus = view?.session.status ?? 'lobby'
