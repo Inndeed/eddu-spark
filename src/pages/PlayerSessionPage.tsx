@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { Link, useLocation, useParams } from 'react-router-dom'
 
+import { BrandLogo } from '../components/BrandLogo'
 import { ChoiceGlyph } from '../components/ChoiceGlyph'
 import { fetchPlayerSession, submitAnswer } from '../lib/api'
 import { useSessionChannel } from '../lib/live'
@@ -20,6 +21,7 @@ export function PlayerSessionPage() {
   const [view, setView] = useState<PlayerSessionView | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [knownQuestionTotal, setKnownQuestionTotal] = useState(0)
   const [submittingChoiceId, setSubmittingChoiceId] = useState<string | null>(null)
   const [optimisticSubmission, setOptimisticSubmission] = useState<{
     questionId: string
@@ -40,6 +42,9 @@ export function PlayerSessionPage() {
     try {
       const payload = await fetchPlayerSession(joinCode, participantId)
       setView(payload)
+      if (payload.currentQuestion?.totalQuestions) {
+        setKnownQuestionTotal(payload.currentQuestion.totalQuestions)
+      }
       setOptimisticSubmission((current) => {
         if (!current || !payload.currentQuestion) {
           return null
@@ -161,6 +166,15 @@ export function PlayerSessionPage() {
   const selectedChoiceIndex = selectedChoiceId
     ? view?.currentQuestion?.choiceIds.findIndex((choiceId) => choiceId === selectedChoiceId) ?? -1
     : -1
+  const codeCells = Array.from({ length: 6 }, (_, index) => joinCode[index] ?? '')
+  const totalQuestions = knownQuestionTotal
+  const completedQuestions =
+    view?.session.status === 'finished'
+      ? totalQuestions
+      : view?.session.status === 'question_open'
+        ? Math.max((view.currentQuestion?.questionNumber ?? 1) - 1, 0)
+        : Math.max((view?.session.lastClosedQuestionIndex ?? -1) + 1, 0)
+  const remainingQuestions = Math.max(totalQuestions - completedQuestions, 0)
   const isLiveQuestion =
     view?.session.status === 'question_open' &&
     !!view?.currentQuestion &&
@@ -177,9 +191,24 @@ export function PlayerSessionPage() {
 
       {view?.session.status === 'lobby' ? (
         <section className="player-full-panel player-wait-panel">
-          <span className="eyebrow">Join</span>
-          <h1>{joinCode}</h1>
+          <BrandLogo compact className="player-brand-mark" />
+          <div className="entry-pin-preview entry-pin-preview-tight" aria-hidden="true">
+            {codeCells.map((cell, index) => (
+              <span className="entry-pin-cell is-filled" key={index}>
+                {cell}
+              </span>
+            ))}
+          </div>
+          <div className="player-identity-badge">
+            <span className="eyebrow">Player</span>
+            <h1>{view.participant.displayName}</h1>
+          </div>
           <p>{view.playerCount} คน</p>
+          <div className="player-status-glyphs" aria-hidden="true">
+            {answerClassNames.map((_, index) => (
+              <ChoiceGlyph className="choice-glyph-small" index={index} key={index} />
+            ))}
+          </div>
         </section>
       ) : null}
 
@@ -215,6 +244,14 @@ export function PlayerSessionPage() {
               <ChoiceGlyph index={selectedChoiceIndex} />
             </div>
           ) : null}
+          {totalQuestions > 0 ? (
+            <div className="question-progress-dots" aria-label={`completed ${completedQuestions} of ${totalQuestions}`}>
+              {Array.from({ length: totalQuestions }, (_, index) => (
+                <span className={index < completedQuestions ? 'is-complete' : ''} key={index} />
+              ))}
+            </div>
+          ) : null}
+          <p>{remainingQuestions > 0 ? `เหลือ ${remainingQuestions} ข้อ` : 'ข้อสุดท้าย'}</p>
           <div className="waiting-room-placeholder">
             <div className="waiting-block" />
             <div className="waiting-block waiting-block-wide" />
@@ -226,6 +263,14 @@ export function PlayerSessionPage() {
         <section className="player-full-panel player-wait-panel">
           <span className="eyebrow">Next</span>
           <h1>รอคำถามถัดไป</h1>
+          {totalQuestions > 0 ? (
+            <div className="question-progress-dots" aria-label={`completed ${completedQuestions} of ${totalQuestions}`}>
+              {Array.from({ length: totalQuestions }, (_, index) => (
+                <span className={index < completedQuestions ? 'is-complete' : ''} key={index} />
+              ))}
+            </div>
+          ) : null}
+          <p>{remainingQuestions > 0 ? `เหลือ ${remainingQuestions} ข้อ` : 'กำลังสรุปผล'}</p>
           <div className="waiting-room-placeholder">
             <div className="waiting-block" />
             <div className="waiting-block waiting-block-wide" />
@@ -236,10 +281,12 @@ export function PlayerSessionPage() {
       {view?.session.status === 'leaderboard' ? (
         <section className="player-full-panel player-score-panel">
           <span className="eyebrow">Rank</span>
-          <h1>#{view.leaderboard.yourRank ?? '-'}</h1>
-          <p>{view.participant.score} pts</p>
+          <div className="player-rank-hero">
+            <h1>#{view.leaderboard.yourRank ?? '-'}</h1>
+            <p>{view.participant.score} pts</p>
+          </div>
           <div className="mini-score-list">
-            {view.leaderboard.topPlayers.slice(0, 3).map((player, index) => (
+            {view.leaderboard.topPlayers.slice(0, 5).map((player, index) => (
               <div
                 className="mini-score-row mini-score-row-enter"
                 key={player.participantId}
@@ -257,8 +304,10 @@ export function PlayerSessionPage() {
       {view?.session.status === 'finished' ? (
         <section className="player-full-panel player-score-panel">
           <span className="eyebrow">Finish</span>
-          <h1>#{view.leaderboard.yourRank ?? '-'}</h1>
-          <p>{view.participant.score} pts</p>
+          <div className="player-rank-hero">
+            <h1>#{view.leaderboard.yourRank ?? '-'}</h1>
+            <p>{view.participant.score} pts</p>
+          </div>
           <Link className="button button-secondary" to="/play">
             เล่นใหม่
           </Link>

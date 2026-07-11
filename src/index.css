@@ -1352,6 +1352,16 @@ label {
   text-align: center;
 }
 
+.player-brand-mark {
+  opacity: 0.94;
+}
+
+.player-identity-badge,
+.player-rank-hero {
+  display: grid;
+  gap: 8px;
+}
+
 .player-wait-panel {
   align-content: center;
 }
@@ -1372,6 +1382,13 @@ label {
 
 .player-score-panel p {
   font-size: 1.15rem;
+}
+
+.player-status-glyphs {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
 }
 
 .waiting-room-placeholder {
@@ -1403,6 +1420,27 @@ label {
   max-width: 420px;
 }
 
+.question-progress-dots {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+}
+
+.question-progress-dots span {
+  width: 14px;
+  height: 14px;
+  border-radius: 999px;
+  background: rgba(255, 247, 232, 0.16);
+  border: 1px solid rgba(255, 247, 232, 0.08);
+}
+
+.question-progress-dots span.is-complete {
+  background: linear-gradient(135deg, var(--orange), var(--yellow));
+  border-color: rgba(255, 224, 94, 0.28);
+}
+
 .mini-score-list {
   width: min(440px, 100%);
   display: grid;
@@ -1419,11 +1457,20 @@ label {
   background: rgba(255, 255, 255, 0.05);
 }
 
+.mini-score-row strong {
+  text-align: left;
+}
+
 .choice-glyph {
   width: min(16vw, 88px);
   height: min(16vw, 88px);
   display: grid;
   place-items: center;
+}
+
+.choice-glyph-small {
+  width: 42px;
+  height: 42px;
 }
 
 .shape-core {
