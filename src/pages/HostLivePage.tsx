@@ -181,6 +181,12 @@ export function HostLivePage() {
     !!view &&
     view.session.currentQuestionIndex >= view.quizSet.questions.length - 1 &&
     view.session.currentQuestionIndex >= 0
+  const countdownRatio = currentQuestion
+    ? Math.max(0, Math.min(1, countdown / Math.max(1, currentQuestion.timeLimitSec)))
+    : 0
+  const winner = topFive[0] ?? null
+  const correctRevealChoice =
+    closedQuestion?.choices.find((choice) => choice.id === closedQuestion.correctChoiceId) ?? null
 
   return (
     <main className="app-shell host-live-shell">
@@ -273,6 +279,9 @@ export function HostLivePage() {
                   </div>
                 </div>
               </div>
+              <div className={`stage-tension-bar ${isTimerUrgent ? 'is-urgent' : ''}`.trim()} aria-hidden="true">
+                <span style={{ width: `${countdownRatio * 100}%` }} />
+              </div>
 
               <div
                 className={`host-question-stage ${currentQuestion.imageUrl ? '' : 'host-question-stage-no-image'}`.trim()}
@@ -329,6 +338,17 @@ export function HostLivePage() {
                   เหลือ {remainingQuestions} ข้อ
                 </div>
               </div>
+              {correctRevealChoice ? (
+                <div className="reveal-spotlight stage-animate-in">
+                  <div className={`reveal-spotlight-glyph ${answerClassNames[closedQuestion.choices.findIndex((choice) => choice.id === correctRevealChoice.id)]}`}>
+                    <ChoiceGlyph index={closedQuestion.choices.findIndex((choice) => choice.id === correctRevealChoice.id)} />
+                  </div>
+                  <div className="reveal-spotlight-copy">
+                    <span className="eyebrow">Correct</span>
+                    <strong>{correctRevealChoice.text}</strong>
+                  </div>
+                </div>
+              ) : null}
 
               <div className={`host-question-stage ${closedQuestion.imageUrl ? '' : 'host-question-stage-no-image'}`.trim()}>
                 {closedQuestion.imageUrl ? (
@@ -481,6 +501,16 @@ export function HostLivePage() {
                   เหลือ {remainingQuestions} ข้อ
                 </div>
               </div>
+              {winner ? (
+                <div className="leaderboard-winner-banner">
+                  <span className="eyebrow">Leading</span>
+                  <strong>{winner.displayName}</strong>
+                  <div className="leaderboard-meta">
+                    <span>{winner.score} pts</span>
+                    {winner.currentStreak >= 2 ? <span className="pill pill-streak">Hot {winner.currentStreak}</span> : null}
+                  </div>
+                </div>
+              ) : null}
 
               <div className="leaderboard-stage-grid">
                 {topFive.length > 0 ? (

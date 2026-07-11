@@ -118,7 +118,7 @@ export function PlayerSessionPage() {
           : current,
       )
       lockTimeoutRef.current = null
-    }, 180)
+    }, 260)
 
     try {
       await submitAnswer(joinCode, participantId, choiceId)
@@ -214,6 +214,13 @@ export function PlayerSessionPage() {
 
       {isLiveQuestion ? (
         <section className={`player-answer-stage ${selectedPreviewChoiceId ? 'is-locking' : ''}`.trim()}>
+          {selectedChoiceIndex >= 0 && selectedPreviewChoiceId ? (
+            <div className="player-lock-overlay" aria-hidden="true">
+              <div className={`player-lock-burst ${answerClassNames[selectedChoiceIndex]}`}>
+                <ChoiceGlyph index={selectedChoiceIndex} />
+              </div>
+            </div>
+          ) : null}
           <div className={`player-answer-grid ${selectedPreviewChoiceId ? 'is-locked' : ''}`.trim()}>
             {view?.currentQuestion?.choiceIds.map((choiceId, index) => (
               <button
