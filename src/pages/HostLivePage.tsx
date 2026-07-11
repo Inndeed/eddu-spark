@@ -7,7 +7,7 @@ import { ChoiceGlyph } from '../components/ChoiceGlyph'
 import { SoundToggle } from '../components/SoundToggle'
 import { fetchAppHealth, fetchHostSession, sendHostAction } from '../lib/api'
 import { useQuizAudio } from '../lib/audio'
-import { formatDateTime, percentLabel, statusLabel } from '../lib/format'
+import { percentLabel } from '../lib/format'
 import { useCountdown, useSessionChannel } from '../lib/live'
 import { signOutHostSession } from '../lib/supabase'
 import { useHostSession } from '../lib/use-host-session'
@@ -204,17 +204,6 @@ export function HostLivePage() {
 
       <section className="live-grid live-grid-single">
         <div className="live-stage-panel live-stage-panel-full">
-          <div className="live-stage-topbar">
-            <div>
-              <span className="eyebrow">{statusLabel(sessionStatus)}</span>
-              <h1>{view?.session.quizSetTitle}</h1>
-            </div>
-            <div className="live-meta-strip">
-              <span>{view?.session.participants.length ?? 0} คน</span>
-              <span>{view ? formatDateTime(view.session.createdAt) : '-'}</span>
-            </div>
-          </div>
-
           {showLobby ? (
             <div className="kahoot-stage lobby-stage stage-animate-in">
               <div className="lobby-hero">

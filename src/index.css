@@ -860,25 +860,12 @@ label {
   min-height: calc(100vh - 120px);
 }
 
-.live-stage-topbar,
 .kahoot-stage-header,
-.live-meta-strip,
 .action-row {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 12px;
-}
-
-.live-stage-topbar h1 {
-  margin-top: 0.45rem;
-  font-size: clamp(2rem, 4vw, 3.2rem);
-  line-height: 0.96;
-}
-
-.live-meta-strip {
-  flex-wrap: wrap;
-  color: var(--text-soft);
 }
 
 .kahoot-stage {
@@ -1779,7 +1766,6 @@ label {
   }
 
   .host-topbar,
-  .live-stage-topbar,
   .kahoot-stage-header,
   .library-card-top,
   .library-actions,
