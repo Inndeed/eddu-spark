@@ -489,6 +489,18 @@ label {
   width: min(520px, 100%);
 }
 
+.host-login-panel-loading {
+  justify-items: center;
+  text-align: center;
+  gap: 18px;
+}
+
+.auth-loading-state {
+  display: grid;
+  gap: 10px;
+  justify-items: center;
+}
+
 .host-login-panel,
 .entry-card {
   width: min(520px, 100%);

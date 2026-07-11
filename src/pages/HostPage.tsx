@@ -311,9 +311,13 @@ export function HostPage() {
 
   if (!ready && !session) {
     return (
-      <main className="app-shell host-shell">
-        <section className="host-panel">
-          <h1>กำลังโหลด...</h1>
+      <main className="app-shell host-shell host-shell-auth">
+        <section className="host-panel host-login-panel host-login-panel-loading">
+          <BrandLogo compact />
+          <div className="auth-loading-state">
+            <span className="eyebrow">Host</span>
+            <h1>กำลังตรวจสิทธิ์...</h1>
+          </div>
         </section>
       </main>
     )
