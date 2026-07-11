@@ -276,6 +276,10 @@ label {
   width: 132px;
 }
 
+.brand-logo-compact {
+  gap: 0;
+}
+
 .brand-logo-compact .brand-copy {
   gap: 0;
 }
