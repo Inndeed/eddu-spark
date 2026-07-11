@@ -239,8 +239,12 @@ export function PlayerSessionPage() {
           <h1>#{view.leaderboard.yourRank ?? '-'}</h1>
           <p>{view.participant.score} pts</p>
           <div className="mini-score-list">
-            {view.leaderboard.topPlayers.slice(0, 3).map((player) => (
-              <div className="mini-score-row" key={player.participantId}>
+            {view.leaderboard.topPlayers.slice(0, 3).map((player, index) => (
+              <div
+                className="mini-score-row mini-score-row-enter"
+                key={player.participantId}
+                style={{ animationDelay: `${index * 90}ms` }}
+              >
                 <span>#{player.rank}</span>
                 <strong>{player.displayName}</strong>
                 <span>{player.score}</span>

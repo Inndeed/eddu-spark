@@ -176,6 +176,7 @@ export function HostLivePage() {
   const remainingQuestions = view
     ? Math.max(totalQuestions - ((view.session.lastClosedQuestionIndex ?? -1) + 1), 0)
     : 0
+  const isTimerUrgent = showQuestion && countdown > 0 && countdown <= 5
   const isFinalQuestion =
     !!view &&
     view.session.currentQuestionIndex >= view.quizSet.questions.length - 1 &&
@@ -209,7 +210,7 @@ export function HostLivePage() {
           </div>
 
           {showLobby ? (
-            <div className="kahoot-stage lobby-stage">
+            <div className="kahoot-stage lobby-stage stage-animate-in">
               <div className="lobby-hero">
                 <div className="join-qr-panel join-qr-panel-wide">
                   <span className="eyebrow">Join</span>
@@ -255,7 +256,7 @@ export function HostLivePage() {
           ) : null}
 
           {showQuestion && currentQuestion ? (
-            <div className="kahoot-stage kahoot-stage-focus">
+            <div className="kahoot-stage kahoot-stage-focus stage-animate-in">
               <div className="kahoot-stage-header">
                 <div>
                   <span className="eyebrow">Question</span>
@@ -267,7 +268,9 @@ export function HostLivePage() {
                   <div className="stage-progress-pill">
                     {view?.currentQuestionSubmissionCount ?? 0}/{view?.session.participants.length ?? 0} ตอบแล้ว
                   </div>
-                  <div className="timer-badge timer-badge-large">{countdown}s</div>
+                  <div className={`timer-badge timer-badge-large ${isTimerUrgent ? 'timer-badge-urgent' : ''}`.trim()}>
+                    {countdown}s
+                  </div>
                 </div>
               </div>
 
@@ -286,7 +289,11 @@ export function HostLivePage() {
 
                 <div className="host-answer-grid">
                   {currentQuestion.choices.map((choice, index) => (
-                    <div className={`host-answer-card ${answerClassNames[index]}`} key={choice.id}>
+                    <div
+                      className={`host-answer-card host-answer-card-enter ${answerClassNames[index]}`}
+                      key={choice.id}
+                      style={{ animationDelay: `${index * 70}ms` }}
+                    >
                       <div className="host-answer-card-head">
                         <ChoiceGlyph index={index} />
                       </div>
@@ -310,7 +317,7 @@ export function HostLivePage() {
           ) : null}
 
           {showReveal && closedQuestion && closedQuestionStats ? (
-            <div className="kahoot-stage results-stage">
+            <div className="kahoot-stage results-stage stage-animate-in">
               <div className="kahoot-stage-header">
                 <div>
                   <span className="eyebrow">Reveal</span>
@@ -343,10 +350,11 @@ export function HostLivePage() {
 
                     return (
                       <div
-                        className={`host-answer-card ${answerClassNames[index]} ${
+                        className={`host-answer-card host-answer-card-enter ${answerClassNames[index]} ${
                           isCorrect ? 'is-correct' : 'is-incorrect'
                         }`.trim()}
                         key={choice.id}
+                        style={{ animationDelay: `${index * 90}ms` }}
                       >
                         <div className="host-answer-card-head">
                           <ChoiceGlyph index={index} />
@@ -389,8 +397,12 @@ export function HostLivePage() {
                   </div>
                   <div className="rank-list">
                     {topFive.length > 0 ? (
-                      topFive.map((ranking) => (
-                        <div className="rank-row rank-row-highlight" key={ranking.participantId}>
+                      topFive.map((ranking, index) => (
+                        <div
+                          className="rank-row rank-row-highlight rank-row-enter"
+                          key={ranking.participantId}
+                          style={{ animationDelay: `${index * 80}ms` }}
+                        >
                           <span>#{ranking.rank}</span>
                           <strong>{ranking.displayName}</strong>
                           <div className="rank-row-meta">
@@ -413,23 +425,23 @@ export function HostLivePage() {
                     <h2>จบข้อนี้</h2>
                   </div>
                   <div className="summary-grid summary-grid-tight">
-                    <article className="summary-card">
+                    <article className="summary-card summary-card-enter" style={{ animationDelay: '0ms' }}>
                       <strong>ถูก</strong>
                       <p>{percentLabel(closedQuestionStats.accuracyRate)}</p>
                     </article>
-                    <article className="summary-card">
+                    <article className="summary-card summary-card-enter" style={{ animationDelay: '60ms' }}>
                       <strong>เหลือ</strong>
                       <p>{remainingQuestions}</p>
                     </article>
-                    <article className="summary-card">
+                    <article className="summary-card summary-card-enter" style={{ animationDelay: '120ms' }}>
                       <strong>ตอบแล้ว</strong>
                       <p>{closedQuestionStats.totalSubmissions}</p>
                     </article>
-                    <article className="summary-card">
+                    <article className="summary-card summary-card-enter" style={{ animationDelay: '180ms' }}>
                       <strong>เฉลย</strong>
                       <p>{closedQuestion.explanation || '-'}</p>
                     </article>
-                    <article className="summary-card">
+                    <article className="summary-card summary-card-enter" style={{ animationDelay: '240ms' }}>
                       <strong>ชวนคุย</strong>
                       <p>{closedQuestion.facilitatorPrompt || '-'}</p>
                     </article>
@@ -459,7 +471,7 @@ export function HostLivePage() {
           ) : null}
 
           {showLeaderboard ? (
-            <div className="kahoot-stage leaderboard-stage">
+            <div className="kahoot-stage leaderboard-stage stage-animate-in">
               <div className="kahoot-stage-header">
                 <div>
                   <span className="eyebrow">Leaderboard</span>
@@ -476,10 +488,11 @@ export function HostLivePage() {
                     <div className="leaderboard-podium">
                       {podiumPlayers.map((ranking) => (
                         <article
-                          className={`leaderboard-card leaderboard-card-podium leaderboard-card-rank-${ranking.rank} ${
+                          className={`leaderboard-card leaderboard-card-podium leaderboard-card-enter leaderboard-card-rank-${ranking.rank} ${
                             ranking.rank === 1 ? 'leaderboard-card-winner' : ''
                           }`.trim()}
                           key={ranking.participantId}
+                          style={{ animationDelay: `${(ranking.rank - 1) * 90}ms` }}
                         >
                           <span className="leaderboard-rank">#{ranking.rank}</span>
                           <strong>{ranking.displayName}</strong>
@@ -495,8 +508,12 @@ export function HostLivePage() {
 
                     {podiumRemainder.length > 0 ? (
                       <div className="rank-list">
-                        {podiumRemainder.map((ranking) => (
-                          <div className="rank-row rank-row-highlight" key={ranking.participantId}>
+                        {podiumRemainder.map((ranking, index) => (
+                          <div
+                            className="rank-row rank-row-highlight rank-row-enter"
+                            key={ranking.participantId}
+                            style={{ animationDelay: `${260 + index * 70}ms` }}
+                          >
                             <span>#{ranking.rank}</span>
                             <strong>{ranking.displayName}</strong>
                             <div className="rank-row-meta">
@@ -531,7 +548,7 @@ export function HostLivePage() {
           ) : null}
 
           {showFinished ? (
-            <div className="kahoot-stage final-stage">
+            <div className="kahoot-stage final-stage stage-animate-in">
               <div className="kahoot-stage-header">
                 <div>
                   <span className="eyebrow">Finished</span>
@@ -553,10 +570,11 @@ export function HostLivePage() {
                       <div className="leaderboard-podium leaderboard-podium-final">
                         {podiumPlayers.map((ranking) => (
                           <article
-                            className={`leaderboard-card leaderboard-card-podium leaderboard-card-rank-${ranking.rank} ${
+                            className={`leaderboard-card leaderboard-card-podium leaderboard-card-enter leaderboard-card-rank-${ranking.rank} ${
                               ranking.rank === 1 ? 'leaderboard-card-winner' : ''
                             }`.trim()}
                             key={ranking.participantId}
+                            style={{ animationDelay: `${(ranking.rank - 1) * 90}ms` }}
                           >
                             <span className="leaderboard-rank">#{ranking.rank}</span>
                             <strong>{ranking.displayName}</strong>
@@ -569,8 +587,12 @@ export function HostLivePage() {
 
                       {podiumRemainder.length > 0 ? (
                         <div className="rank-list">
-                          {podiumRemainder.map((ranking) => (
-                            <div className="rank-row rank-row-highlight" key={ranking.participantId}>
+                          {podiumRemainder.map((ranking, index) => (
+                            <div
+                              className="rank-row rank-row-highlight rank-row-enter"
+                              key={ranking.participantId}
+                              style={{ animationDelay: `${260 + index * 70}ms` }}
+                            >
                               <span>#{ranking.rank}</span>
                               <strong>{ranking.displayName}</strong>
                               <span>{ranking.score}</span>
@@ -590,19 +612,19 @@ export function HostLivePage() {
                     <h2>ภาพรวม</h2>
                   </div>
                   <div className="summary-grid">
-                    <article className="summary-card">
+                    <article className="summary-card summary-card-enter" style={{ animationDelay: '60ms' }}>
                       <strong>ผู้เล่น</strong>
                       <p>{view?.summary.totalParticipants ?? 0}</p>
                     </article>
-                    <article className="summary-card">
+                    <article className="summary-card summary-card-enter" style={{ animationDelay: '120ms' }}>
                       <strong>ยากสุด</strong>
                       <p>{view?.summary.hardestQuestion ?? '-'}</p>
                     </article>
-                    <article className="summary-card">
+                    <article className="summary-card summary-card-enter" style={{ animationDelay: '180ms' }}>
                       <strong>เด่นสุด</strong>
                       <p>{view?.summary.strongestTopic ?? '-'}</p>
                     </article>
-                    <article className="summary-card">
+                    <article className="summary-card summary-card-enter" style={{ animationDelay: '240ms' }}>
                       <strong>อ่อนสุด</strong>
                       <p>{view?.summary.weakestTopic ?? '-'}</p>
                     </article>
