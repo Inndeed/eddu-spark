@@ -9,7 +9,9 @@ interface BrandLogoProps {
 export function BrandLogo({ className = '', compact = false, to }: BrandLogoProps) {
   const content = (
     <div className={`brand-logo ${compact ? 'brand-logo-compact' : ''} ${className}`.trim()}>
-      <img alt="eddu.org" src="/eddu-wordmark.svg" />
+      <span className="brand-mark">
+        <img alt="eddu.org" src="/eddu-wordmark.svg" />
+      </span>
       <div className="brand-copy">
         <strong>Eddu Quiz</strong>
       </div>

@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { Link, useLocation, useParams } from 'react-router-dom'
 
 import { ChoiceGlyph } from '../components/ChoiceGlyph'
@@ -25,6 +25,11 @@ export function PlayerSessionPage() {
     questionId: string
     choiceId: string
   } | null>(null)
+  const [lockPreview, setLockPreview] = useState<{
+    questionId: string
+    choiceId: string
+  } | null>(null)
+  const lockTimeoutRef = useRef<number | null>(null)
 
   const loadSession = useCallback(async () => {
     if (!joinCode || !participantId) {
@@ -53,6 +58,9 @@ export function PlayerSessionPage() {
 
         return payload.session.status === 'question_open' ? current : null
       })
+      if (payload.session.status !== 'question_open' || !payload.currentQuestion?.submittedChoiceId) {
+        setLockPreview(null)
+      }
       setPlayerRecord({
         joinCode,
         participantId,
@@ -70,6 +78,14 @@ export function PlayerSessionPage() {
     void loadSession()
   }, [loadSession])
 
+  useEffect(() => {
+    return () => {
+      if (lockTimeoutRef.current) {
+        window.clearTimeout(lockTimeoutRef.current)
+      }
+    }
+  }, [])
+
   useSessionChannel(joinCode, loadSession)
 
   const handleSubmit = async (choiceId: string) => {
@@ -79,16 +95,32 @@ export function PlayerSessionPage() {
 
     setSubmittingChoiceId(choiceId)
     setError(null)
+    if (lockTimeoutRef.current) {
+      window.clearTimeout(lockTimeoutRef.current)
+    }
+    setLockPreview({
+      questionId: view.currentQuestion.id,
+      choiceId,
+    })
     setOptimisticSubmission({
       questionId: view.currentQuestion.id,
       choiceId,
     })
+    lockTimeoutRef.current = window.setTimeout(() => {
+      setLockPreview((current) =>
+        current && current.questionId === view.currentQuestion?.id && current.choiceId === choiceId
+          ? null
+          : current,
+      )
+      lockTimeoutRef.current = null
+    }, 180)
 
     try {
       await submitAnswer(joinCode, participantId, choiceId)
       void loadSession()
     } catch (submitError) {
       setOptimisticSubmission(null)
+      setLockPreview(null)
       setError(submitError instanceof Error ? submitError.message : 'Submit failed')
     } finally {
       setSubmittingChoiceId(null)
@@ -123,9 +155,21 @@ export function PlayerSessionPage() {
     (optimisticSubmission?.questionId === view?.currentQuestion?.id
       ? optimisticSubmission?.choiceId ?? null
       : null)
-  const isLiveQuestion = view?.session.status === 'question_open' && !!view?.currentQuestion && !submittedChoiceId
+  const selectedPreviewChoiceId =
+    lockPreview && lockPreview.questionId === view?.currentQuestion?.id ? lockPreview.choiceId : null
+  const selectedChoiceId = selectedPreviewChoiceId ?? submittedChoiceId
+  const selectedChoiceIndex = selectedChoiceId
+    ? view?.currentQuestion?.choiceIds.findIndex((choiceId) => choiceId === selectedChoiceId) ?? -1
+    : -1
+  const isLiveQuestion =
+    view?.session.status === 'question_open' &&
+    !!view?.currentQuestion &&
+    (!submittedChoiceId || !!selectedPreviewChoiceId)
   const isWaitingDuringQuestion =
-    view?.session.status === 'question_open' && !!view?.currentQuestion && !!submittedChoiceId
+    view?.session.status === 'question_open' &&
+    !!view?.currentQuestion &&
+    !!submittedChoiceId &&
+    !selectedPreviewChoiceId
 
   return (
     <main className="player-live-shell">
@@ -135,19 +179,21 @@ export function PlayerSessionPage() {
         <section className="player-full-panel player-wait-panel">
           <span className="eyebrow">Join</span>
           <h1>{joinCode}</h1>
-          <p>{view.playerCount} players</p>
+          <p>{view.playerCount} คน</p>
         </section>
       ) : null}
 
       {isLiveQuestion ? (
-        <section className="player-answer-stage">
-          <div className="player-answer-grid">
+        <section className={`player-answer-stage ${selectedPreviewChoiceId ? 'is-locking' : ''}`.trim()}>
+          <div className={`player-answer-grid ${selectedPreviewChoiceId ? 'is-locked' : ''}`.trim()}>
             {view?.currentQuestion?.choiceIds.map((choiceId, index) => (
               <button
                 className={`player-answer-button ${answerClassNames[index]} ${
-                  submittingChoiceId === choiceId ? 'is-submitting' : ''
+                  selectedPreviewChoiceId === choiceId ? 'is-submitting is-selected' : ''
+                } ${
+                  selectedPreviewChoiceId && selectedPreviewChoiceId !== choiceId ? 'is-dimmed' : ''
                 }`.trim()}
-                disabled={submittingChoiceId !== null}
+                disabled={submittingChoiceId !== null || !!submittedChoiceId}
                 key={choiceId}
                 onClick={() => handleSubmit(choiceId)}
                 type="button"
@@ -164,6 +210,11 @@ export function PlayerSessionPage() {
         <section className="player-full-panel player-wait-panel">
           <span className="eyebrow">Locked</span>
           <h1>รอเฉลยบนจอหลัก</h1>
+          {selectedChoiceIndex >= 0 ? (
+            <div className={`waiting-choice-chip ${answerClassNames[selectedChoiceIndex]}`}>
+              <ChoiceGlyph index={selectedChoiceIndex} />
+            </div>
+          ) : null}
           <div className="waiting-room-placeholder">
             <div className="waiting-block" />
             <div className="waiting-block waiting-block-wide" />

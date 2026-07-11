@@ -11,7 +11,7 @@ import {
   type AppHealthData,
   type HostBootstrapData,
 } from '../lib/api'
-import { formatDateTime, statusLabel } from '../lib/format'
+import { formatDateTime } from '../lib/format'
 import { signInHostWithPassword, signOutHostSession } from '../lib/supabase'
 import { useHostSession } from '../lib/use-host-session'
 import type { QuizQuestion, QuizSet } from '../lib/types'
@@ -371,15 +371,203 @@ export function HostPage() {
 
       {error ? <p className="error-text">{error}</p> : null}
 
-      <section className="studio-grid">
-        <div className="host-panel host-library-panel">
+      {isEditorOpen ? (
+        <section className="host-panel host-editor-panel host-editor-panel-full">
           <div className="panel-header">
+            <span className="eyebrow">Editor</span>
+            <h2>{draft.title || 'New Quiz'}</h2>
+          </div>
+
+          <div className="field-grid compact-field-grid">
+            <label>
+              Title
+              <input
+                value={draft.title}
+                onChange={(event) =>
+                  setDraft((current) => ({ ...current, title: event.target.value }))
+                }
+              />
+            </label>
+            <label>
+              Description
+              <input
+                value={draft.description}
+                onChange={(event) =>
+                  setDraft((current) => ({ ...current, description: event.target.value }))
+                }
+              />
+            </label>
+          </div>
+
+          <div className="question-stack">
+            {draft.questions.map((question, index) => (
+              <article className="question-card" key={question.id}>
+                <div className="question-header">
+                  <div>
+                    <span className="eyebrow">Q{index + 1}</span>
+                    <h3>{question.prompt || 'New question'}</h3>
+                  </div>
+                  <button className="mini-button" onClick={() => removeQuestion(question.id)} type="button">
+                    ลบ
+                  </button>
+                </div>
+
+                <label>
+                  Prompt
+                  <textarea
+                    rows={2}
+                    value={question.prompt}
+                    onChange={(event) =>
+                      handleQuestionChange(question.id, 'prompt', event.target.value)
+                    }
+                  />
+                </label>
+
+                <div className="question-image-block">
+                  {question.imageUrl ? (
+                    <img alt={question.imageAlt ?? `Question ${index + 1}`} src={question.imageUrl} />
+                  ) : (
+                    <div className="image-empty-state">ยังไม่มีภาพ</div>
+                  )}
+                  <div className="image-controls">
+                    <label className="button button-secondary button-inline file-button">
+                      {uploadingQuestionId === question.id ? 'Uploading...' : 'Upload image'}
+                      <input
+                        accept="image/png,image/jpeg,image/webp"
+                        hidden
+                        type="file"
+                        onChange={(event) =>
+                          void handleQuestionImageUpload(question.id, event.target.files?.[0] ?? null)
+                        }
+                      />
+                    </label>
+                    {question.imageUrl ? (
+                      <button
+                        className="button button-ghost button-inline"
+                        onClick={() => {
+                          handleQuestionChange(question.id, 'imagePath', null)
+                          handleQuestionChange(question.id, 'imageUrl', null)
+                          handleQuestionChange(question.id, 'imageAlt', null)
+                          setManualImageUrls((current) => ({ ...current, [question.id]: '' }))
+                        }}
+                        type="button"
+                      >
+                        Remove
+                      </button>
+                    ) : null}
+                  </div>
+                  <label>
+                    Image URL
+                    <input
+                      placeholder="https://..."
+                      value={
+                        manualImageUrls[question.id] ??
+                        (question.imagePath && isExternalImageUrl(question.imagePath)
+                          ? question.imagePath
+                          : '')
+                      }
+                      onChange={(event) =>
+                        handleQuestionImageUrlChange(question.id, event.target.value)
+                      }
+                    />
+                  </label>
+                </div>
+
+                <div className="field-grid compact-field-grid">
+                  <label>
+                    Time
+                    <input
+                      max={15}
+                      min={10}
+                      type="number"
+                      value={question.timeLimitSec}
+                      onChange={(event) =>
+                        handleQuestionChange(question.id, 'timeLimitSec', Number(event.target.value))
+                      }
+                    />
+                  </label>
+                  <label>
+                    Topic
+                    <input
+                      value={question.themeTag}
+                      onChange={(event) =>
+                        handleQuestionChange(question.id, 'themeTag', event.target.value)
+                      }
+                    />
+                  </label>
+                </div>
+
+                <div className="choices-grid host-choices-grid">
+                  {question.choices.map((choice, choiceIndex) => (
+                    <div className="choice-row" key={choice.id}>
+                      <label className="choice-radio">
+                        <input
+                          checked={question.correctChoiceId === choice.id}
+                          name={`correct-${question.id}`}
+                          onChange={() =>
+                            handleQuestionChange(question.id, 'correctChoiceId', choice.id)
+                          }
+                          type="radio"
+                        />
+                        {choiceIndex + 1}
+                      </label>
+                      <input
+                        placeholder={`Choice ${choiceIndex + 1}`}
+                        value={choice.text}
+                        onChange={(event) =>
+                          handleChoiceChange(question.id, choice.id, event.target.value)
+                        }
+                      />
+                    </div>
+                  ))}
+                </div>
+
+                <label>
+                  Explain
+                  <textarea
+                    rows={2}
+                    value={question.explanation}
+                    onChange={(event) =>
+                      handleQuestionChange(question.id, 'explanation', event.target.value)
+                    }
+                  />
+                </label>
+
+                <label>
+                  Debrief prompt
+                  <textarea
+                    rows={2}
+                    value={question.facilitatorPrompt}
+                    onChange={(event) =>
+                      handleQuestionChange(question.id, 'facilitatorPrompt', event.target.value)
+                    }
+                  />
+                </label>
+              </article>
+            ))}
+          </div>
+
+          <div className="editor-actions">
+            <button className="button button-secondary" onClick={addQuestion} type="button">
+              เพิ่มคำถาม
+            </button>
+            <button className="button button-ghost" onClick={() => setIsEditorOpen(false)} type="button">
+              กลับไป Library
+            </button>
+            <button className="button button-primary" disabled={saving} onClick={handleSave} type="button">
+              {saving ? 'Saving...' : 'Save'}
+            </button>
+          </div>
+        </section>
+      ) : (
+        <section className="host-panel host-library-panel host-library-panel-full">
+          <div className="panel-header panel-header-inline">
             <span className="eyebrow">Library</span>
             <h2>Quiz</h2>
           </div>
 
           <div className="library-toolbar">
-            <p className="library-helper-text">เลือกชุดที่ต้องการแล้วกดแก้ไขหรือเริ่มเล่น</p>
+            <p className="library-helper-text">เลือกแล้วลุยได้เลย</p>
             <button className="button button-primary" onClick={startNewQuiz} type="button">
               New Quiz
             </button>
@@ -417,230 +605,8 @@ export function HostPage() {
               </article>
             ))}
           </div>
-
-          <div className="panel-header">
-            <span className="eyebrow">Recent</span>
-            <h2>ล่าสุด</h2>
-          </div>
-
-          <div className="card-list">
-            {bootstrap?.recentSessions.map((sessionSummary) => (
-              <article className="library-card" key={sessionSummary.id}>
-                <div className="library-card-top">
-                  <div>
-                    <h3>{sessionSummary.quizSetTitle}</h3>
-                    <p>{statusLabel(sessionSummary.status)}</p>
-                  </div>
-                  <span className="join-pill">{sessionSummary.joinCode}</span>
-                </div>
-                <div className="library-meta">
-                  <span>{sessionSummary.participantCount} คน</span>
-                  <span>{formatDateTime(sessionSummary.updatedAt)}</span>
-                </div>
-                <Link className="button button-secondary button-inline" to={`/host/live/${sessionSummary.joinCode}`}>
-                  Open
-                </Link>
-              </article>
-            ))}
-          </div>
-        </div>
-
-        {isEditorOpen ? (
-          <div className="host-panel host-editor-panel">
-            <div className="panel-header">
-              <span className="eyebrow">Editor</span>
-              <h2>{draft.title || 'New Quiz'}</h2>
-            </div>
-
-            <div className="field-grid compact-field-grid">
-              <label>
-                Title
-                <input
-                  value={draft.title}
-                  onChange={(event) =>
-                    setDraft((current) => ({ ...current, title: event.target.value }))
-                  }
-                />
-              </label>
-              <label>
-                Description
-                <input
-                  value={draft.description}
-                  onChange={(event) =>
-                    setDraft((current) => ({ ...current, description: event.target.value }))
-                  }
-                />
-              </label>
-            </div>
-
-            <div className="question-stack">
-              {draft.questions.map((question, index) => (
-                <article className="question-card" key={question.id}>
-                  <div className="question-header">
-                    <div>
-                      <span className="eyebrow">Q{index + 1}</span>
-                      <h3>{question.prompt || 'New question'}</h3>
-                    </div>
-                    <button className="mini-button" onClick={() => removeQuestion(question.id)} type="button">
-                      ลบ
-                    </button>
-                  </div>
-
-                  <label>
-                    Prompt
-                    <textarea
-                      rows={2}
-                      value={question.prompt}
-                      onChange={(event) =>
-                        handleQuestionChange(question.id, 'prompt', event.target.value)
-                      }
-                    />
-                  </label>
-
-                  <div className="question-image-block">
-                    {question.imageUrl ? (
-                      <img alt={question.imageAlt ?? `Question ${index + 1}`} src={question.imageUrl} />
-                    ) : (
-                      <div className="image-empty-state">ยังไม่มีภาพ</div>
-                    )}
-                    <div className="image-controls">
-                      <label className="button button-secondary button-inline file-button">
-                        {uploadingQuestionId === question.id ? 'Uploading...' : 'Upload image'}
-                        <input
-                          accept="image/png,image/jpeg,image/webp"
-                          hidden
-                          type="file"
-                          onChange={(event) =>
-                            void handleQuestionImageUpload(question.id, event.target.files?.[0] ?? null)
-                          }
-                        />
-                      </label>
-                      {question.imageUrl ? (
-                        <button
-                          className="button button-ghost button-inline"
-                          onClick={() => {
-                            handleQuestionChange(question.id, 'imagePath', null)
-                            handleQuestionChange(question.id, 'imageUrl', null)
-                            handleQuestionChange(question.id, 'imageAlt', null)
-                            setManualImageUrls((current) => ({ ...current, [question.id]: '' }))
-                          }}
-                          type="button"
-                        >
-                          Remove
-                        </button>
-                      ) : null}
-                    </div>
-                    <label>
-                      Image URL
-                      <input
-                        placeholder="https://..."
-                        value={
-                          manualImageUrls[question.id] ??
-                          (question.imagePath && isExternalImageUrl(question.imagePath)
-                            ? question.imagePath
-                            : '')
-                        }
-                        onChange={(event) =>
-                          handleQuestionImageUrlChange(question.id, event.target.value)
-                        }
-                      />
-                    </label>
-                  </div>
-
-                  <div className="field-grid compact-field-grid">
-                    <label>
-                      Time
-                      <input
-                        max={15}
-                        min={10}
-                        type="number"
-                        value={question.timeLimitSec}
-                        onChange={(event) =>
-                          handleQuestionChange(question.id, 'timeLimitSec', Number(event.target.value))
-                        }
-                      />
-                    </label>
-                    <label>
-                      Topic
-                      <input
-                        value={question.themeTag}
-                        onChange={(event) =>
-                          handleQuestionChange(question.id, 'themeTag', event.target.value)
-                        }
-                      />
-                    </label>
-                  </div>
-
-                  <div className="choices-grid host-choices-grid">
-                    {question.choices.map((choice, choiceIndex) => (
-                      <div className="choice-row" key={choice.id}>
-                        <label className="choice-radio">
-                          <input
-                            checked={question.correctChoiceId === choice.id}
-                            name={`correct-${question.id}`}
-                            onChange={() =>
-                              handleQuestionChange(question.id, 'correctChoiceId', choice.id)
-                            }
-                            type="radio"
-                          />
-                          {choiceIndex + 1}
-                        </label>
-                        <input
-                          placeholder={`Choice ${choiceIndex + 1}`}
-                          value={choice.text}
-                          onChange={(event) =>
-                            handleChoiceChange(question.id, choice.id, event.target.value)
-                          }
-                        />
-                      </div>
-                    ))}
-                  </div>
-
-                  <label>
-                    Explain
-                    <textarea
-                      rows={2}
-                      value={question.explanation}
-                      onChange={(event) =>
-                        handleQuestionChange(question.id, 'explanation', event.target.value)
-                      }
-                    />
-                  </label>
-
-                  <label>
-                    Debrief prompt
-                    <textarea
-                      rows={2}
-                      value={question.facilitatorPrompt}
-                      onChange={(event) =>
-                        handleQuestionChange(question.id, 'facilitatorPrompt', event.target.value)
-                      }
-                    />
-                  </label>
-                </article>
-              ))}
-            </div>
-
-            <div className="editor-actions">
-              <button className="button button-secondary" onClick={addQuestion} type="button">
-                เพิ่มคำถาม
-              </button>
-              <button className="button button-ghost" onClick={() => setIsEditorOpen(false)} type="button">
-                กลับไป Library
-              </button>
-              <button className="button button-primary" disabled={saving} onClick={handleSave} type="button">
-                {saving ? 'Saving...' : 'Save'}
-              </button>
-            </div>
-          </div>
-        ) : (
-          <div className="host-panel host-editor-panel editor-empty-panel">
-            <span className="eyebrow">Editor</span>
-            <h2>เลือก Quiz ก่อน</h2>
-            <p>กด Edit หรือ New Quiz เพื่อเริ่ม</p>
-          </div>
-        )}
-      </section>
+        </section>
+      )}
     </main>
   )
 }

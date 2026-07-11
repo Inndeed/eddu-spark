@@ -339,43 +339,6 @@ export class SessionStore {
     return clone(await this.hydrateQuizSets((quizSetRows ?? []) as QuizSetRow[]))
   }
 
-  async listRecentSessions() {
-    const { data: sessionRows, error } = await this.supabase
-      .from('live_sessions')
-      .select('*')
-      .order('updated_at', { ascending: false })
-      .limit(8)
-
-    if (error) {
-      throw error
-    }
-
-    const summaries = await Promise.all(
-      ((sessionRows ?? []) as LiveSessionRow[]).map(async (sessionRow) => {
-        const { count, error: countError } = await this.supabase
-          .from('session_participants')
-          .select('id', { count: 'exact', head: true })
-          .eq('session_id', sessionRow.id)
-
-        if (countError) {
-          throw countError
-        }
-
-        return {
-          id: sessionRow.id,
-          joinCode: sessionRow.join_code,
-          quizSetTitle: sessionRow.quiz_set_title,
-          status: sessionRow.status,
-          createdAt: sessionRow.created_at,
-          updatedAt: sessionRow.updated_at,
-          participantCount: count ?? 0,
-        }
-      }),
-    )
-
-    return clone(summaries)
-  }
-
   async upsertQuizSet(
     input: Omit<QuizSet, 'createdAt' | 'updatedAt'> & { createdAt?: string },
     createdBy?: string | null,

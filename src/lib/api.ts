@@ -3,23 +3,11 @@ import type {
   HostSessionView,
   PlayerSessionView,
   QuizSet,
-  SessionStatus,
 } from './types'
 import { getHostAccessToken } from './supabase'
 
-export interface RecentSessionSummary {
-  id: string
-  joinCode: string
-  quizSetTitle: string
-  status: SessionStatus
-  createdAt: string
-  updatedAt: string
-  participantCount: number
-}
-
 export interface HostBootstrapData {
   quizSets: QuizSet[]
-  recentSessions: RecentSessionSummary[]
   currentHost: HostUser | null
   config: {
     scoringMode: string

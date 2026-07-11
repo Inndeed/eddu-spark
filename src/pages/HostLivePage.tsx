@@ -164,7 +164,8 @@ export function HostLivePage() {
   )
   const showLobby = sessionStatus === 'lobby'
   const showQuestion = sessionStatus === 'question_open'
-  const showRoundWrapUp = sessionStatus === 'question_closed' || sessionStatus === 'leaderboard'
+  const showReveal = sessionStatus === 'question_closed'
+  const showLeaderboard = sessionStatus === 'leaderboard'
   const showFinished = sessionStatus === 'finished'
   const totalQuestions = view?.quizSet.questions.length ?? 0
   const remainingQuestions = view
@@ -219,8 +220,12 @@ export function HostLivePage() {
                   </div>
                   <div className="player-bubble-cloud">
                     {participants.length > 0 ? (
-                      participants.map((participant) => (
-                        <div className="player-bubble" key={participant.id}>
+                      participants.map((participant, index) => (
+                        <div
+                          className="player-bubble"
+                          key={participant.id}
+                          style={{ animationDelay: `${index * 45}ms` }}
+                        >
                           {participant.displayName}
                         </div>
                       ))
@@ -261,7 +266,9 @@ export function HostLivePage() {
                 </div>
               </div>
 
-              <div className={`host-question-stage ${currentQuestion.imageUrl ? '' : 'host-question-stage-no-image'}`.trim()}>
+              <div
+                className={`host-question-stage ${currentQuestion.imageUrl ? '' : 'host-question-stage-no-image'}`.trim()}
+              >
                 {currentQuestion.imageUrl ? (
                   <div className="stage-image-frame">
                     <img alt={currentQuestion.imageAlt ?? currentQuestion.prompt} src={currentQuestion.imageUrl} />
@@ -297,7 +304,7 @@ export function HostLivePage() {
             </div>
           ) : null}
 
-          {showRoundWrapUp && closedQuestion && closedQuestionStats ? (
+          {showReveal && closedQuestion && closedQuestionStats ? (
             <div className="kahoot-stage results-stage">
               <div className="kahoot-stage-header">
                 <div>
@@ -338,9 +345,11 @@ export function HostLivePage() {
                       >
                         <div className="host-answer-card-head">
                           <ChoiceGlyph index={index} />
-                          <span className={`pill ${isCorrect ? 'pill-success pill-correct-answer' : ''}`.trim()}>
-                            {isCorrect ? 'ถูกต้อง' : `${distributionItem?.count ?? 0} โหวต`}
-                          </span>
+                          <div className="answer-card-status">
+                            <span className={`pill ${isCorrect ? 'pill-success pill-correct-answer' : ''}`.trim()}>
+                              {isCorrect ? 'คำตอบที่ถูก' : `${distributionItem?.count ?? 0} โหวต`}
+                            </span>
+                          </div>
                         </div>
                         <strong>{choice.text}</strong>
                         <div className="answer-stat-row">
@@ -358,37 +367,45 @@ export function HostLivePage() {
                 </div>
               </div>
 
-              <div className="post-question-grid">
-                <section className="host-panel side-panel-card embedded-panel">
+              <div className="post-question-grid post-question-grid-tight">
+                <section className="host-panel side-panel-card embedded-panel embedded-panel-compact">
                   <div className="panel-header">
                     <span className="eyebrow">Top 5</span>
                     <h2>Top 5</h2>
                   </div>
                   <div className="rank-list">
-                    {topFive.map((ranking) => (
-                      <div className="rank-row rank-row-highlight" key={ranking.participantId}>
-                        <span>#{ranking.rank}</span>
-                        <strong>{ranking.displayName}</strong>
-                        <div className="rank-row-meta">
-                          {ranking.currentStreak >= 2 ? (
-                            <span className="pill pill-streak">Hot {ranking.currentStreak}</span>
-                          ) : null}
-                          <span>{ranking.score}</span>
+                    {topFive.length > 0 ? (
+                      topFive.map((ranking) => (
+                        <div className="rank-row rank-row-highlight" key={ranking.participantId}>
+                          <span>#{ranking.rank}</span>
+                          <strong>{ranking.displayName}</strong>
+                          <div className="rank-row-meta">
+                            {ranking.currentStreak >= 2 ? (
+                              <span className="pill pill-streak">Hot {ranking.currentStreak}</span>
+                            ) : null}
+                            <span>{ranking.score}</span>
+                          </div>
                         </div>
-                      </div>
-                    ))}
+                      ))
+                    ) : (
+                      <p className="side-note">ยังไม่มีคะแนน</p>
+                    )}
                   </div>
                 </section>
 
-                <section className="host-panel side-panel-card embedded-panel">
+                <section className="host-panel side-panel-card embedded-panel embedded-panel-compact">
                   <div className="panel-header">
-                    <span className="eyebrow">Debrief</span>
-                    <h2>ชวนคุยต่อ</h2>
+                    <span className="eyebrow">Round</span>
+                    <h2>จบข้อนี้</h2>
                   </div>
-                  <div className="summary-grid">
+                  <div className="summary-grid summary-grid-tight">
                     <article className="summary-card">
                       <strong>ถูก</strong>
                       <p>{percentLabel(closedQuestionStats.accuracyRate)}</p>
+                    </article>
+                    <article className="summary-card">
+                      <strong>เหลือ</strong>
+                      <p>{remainingQuestions}</p>
                     </article>
                     <article className="summary-card">
                       <strong>ตอบแล้ว</strong>
@@ -404,6 +421,63 @@ export function HostLivePage() {
                     </article>
                   </div>
                 </section>
+              </div>
+
+              <div className="action-row action-row-spread">
+                <button
+                  className="button button-secondary"
+                  disabled={workingAction === 'show_leaderboard'}
+                  onClick={() => handleAction('show_leaderboard')}
+                  type="button"
+                >
+                  Top 5
+                </button>
+                <button
+                  className="button button-primary"
+                  disabled={workingAction === 'advance' || workingAction === 'finish'}
+                  onClick={() => handleAction(isFinalQuestion ? 'finish' : 'advance')}
+                  type="button"
+                >
+                  {isFinalQuestion ? 'จบเกม' : 'ข้อถัดไป'}
+                </button>
+              </div>
+            </div>
+          ) : null}
+
+          {showLeaderboard ? (
+            <div className="kahoot-stage leaderboard-stage">
+              <div className="kahoot-stage-header">
+                <div>
+                  <span className="eyebrow">Leaderboard</span>
+                  <h2>Top 5</h2>
+                </div>
+                <div className="stage-progress-pill">
+                  เหลือ {remainingQuestions} ข้อ
+                </div>
+              </div>
+
+              <div className="leaderboard-stage-grid">
+                {topFive.length > 0 ? (
+                  topFive.map((ranking) => (
+                    <article
+                      className={`leaderboard-card ${ranking.rank === 1 ? 'leaderboard-card-winner' : ''}`.trim()}
+                      key={ranking.participantId}
+                    >
+                      <span className="leaderboard-rank">#{ranking.rank}</span>
+                      <strong>{ranking.displayName}</strong>
+                      <div className="leaderboard-meta">
+                        <span>{ranking.score} pts</span>
+                        {ranking.currentStreak >= 2 ? (
+                          <span className="pill pill-streak">Hot {ranking.currentStreak}</span>
+                        ) : null}
+                      </div>
+                    </article>
+                  ))
+                ) : (
+                  <section className="host-panel side-panel-card embedded-panel embedded-panel-compact">
+                    <p className="side-note">ยังไม่มีคะแนน</p>
+                  </section>
+                )}
               </div>
 
               <div className="action-row action-row-spread">

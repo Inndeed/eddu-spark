@@ -166,7 +166,6 @@ app.get('/api/host/bootstrap', requireHostAuth, async (request, response) => {
     const authedRequest = request as AuthedRequest
     response.json({
       quizSets: await store.listQuizSets(),
-      recentSessions: await store.listRecentSessions(),
       currentHost: authedRequest.hostUser ?? null,
       config: {
         scoringMode: '600 base + up to 400 speed bonus',
