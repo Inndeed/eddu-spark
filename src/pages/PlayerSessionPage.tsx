@@ -136,9 +136,10 @@ export function PlayerSessionPage() {
     return (
       <main className="player-live-shell">
         <section className="player-full-panel">
+          <BrandLogo compact className="player-brand-mark" />
           <h1>ยังไม่พบผู้เล่น</h1>
           <Link className="button button-primary" to="/play">
-            Join ใหม่
+            เข้าใหม่
           </Link>
         </section>
       </main>
@@ -149,6 +150,7 @@ export function PlayerSessionPage() {
     return (
       <main className="player-live-shell">
         <section className="player-full-panel">
+          <BrandLogo compact className="player-brand-mark" />
           <h1>กำลังเชื่อม...</h1>
         </section>
       </main>
@@ -244,7 +246,8 @@ export function PlayerSessionPage() {
 
       {isWaitingDuringQuestion ? (
         <section className="player-full-panel player-wait-panel">
-          <span className="eyebrow">Locked</span>
+          <BrandLogo compact className="player-brand-mark" />
+          <span className="eyebrow">ตอบแล้ว</span>
           <h1>รอเฉลย</h1>
           {selectedChoiceIndex >= 0 ? (
             <div className={`waiting-choice-chip ${answerClassNames[selectedChoiceIndex]}`}>
@@ -270,7 +273,8 @@ export function PlayerSessionPage() {
 
       {view?.session.status === 'question_closed' ? (
         <section className="player-full-panel player-wait-panel">
-          <span className="eyebrow">Next</span>
+          <BrandLogo compact className="player-brand-mark" />
+          <span className="eyebrow">รอ</span>
           <h1>เตรียมข้อถัดไป</h1>
           {totalQuestions > 0 ? (
             <div className="question-progress-dots" aria-label={`completed ${completedQuestions} of ${totalQuestions}`}>
@@ -291,10 +295,11 @@ export function PlayerSessionPage() {
 
       {view?.session.status === 'leaderboard' ? (
         <section className="player-full-panel player-score-panel">
-          <span className="eyebrow">Rank</span>
+          <BrandLogo compact className="player-brand-mark" />
+          <span className="eyebrow">อันดับ</span>
           <div className="player-rank-hero">
             <h1>#{view.leaderboard.yourRank ?? '-'}</h1>
-            <p>{view.participant.score} pts</p>
+            <p>{view.participant.score} คะแนน</p>
           </div>
           <div className="mini-score-list">
             {view.leaderboard.topPlayers.slice(0, 5).map((player, index) => (
@@ -314,13 +319,14 @@ export function PlayerSessionPage() {
 
       {view?.session.status === 'finished' ? (
         <section className="player-full-panel player-score-panel">
-          <span className="eyebrow">Finish</span>
+          <BrandLogo compact className="player-brand-mark" />
+          <span className="eyebrow">จบเกม</span>
           <div className="player-rank-hero">
             <h1>#{view.leaderboard.yourRank ?? '-'}</h1>
-            <p>{view.participant.score} pts</p>
+            <p>{view.participant.score} คะแนน</p>
           </div>
           <Link className="button button-secondary" to="/play">
-            เล่นใหม่
+            เล่นอีกครั้ง
           </Link>
         </section>
       ) : null}
