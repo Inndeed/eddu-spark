@@ -311,7 +311,7 @@ export function HostPage() {
       return
     }
 
-    const confirmed = window.confirm(`ลบ Quiz "${draft.title || 'ยังไม่มีชื่อ'}" ?`)
+    const confirmed = window.confirm(`ลบควิซ "${draft.title || 'ยังไม่มีชื่อ'}" ?`)
     if (!confirmed) {
       return
     }
