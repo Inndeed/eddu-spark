@@ -1114,6 +1114,19 @@ label {
   padding: 0.75rem 1.1rem;
 }
 
+.summary-stage-header-actions {
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.summary-stage-header-actions .button {
+  min-height: 48px;
+  padding: 0.75rem 1.1rem;
+}
+
 .lobby-hero,
 .post-question-grid {
   display: grid;

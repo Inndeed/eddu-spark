@@ -420,8 +420,18 @@ export function HostLivePage() {
                   <span className="eyebrow">Summary</span>
                   <h2>หลังข้อนี้</h2>
                 </div>
-                <div className="stage-progress-pill">
-                  เหลือ {remainingQuestions} ข้อ
+                <div className="summary-stage-header-actions">
+                  <div className="stage-progress-pill">
+                    เหลือ {remainingQuestions} ข้อ
+                  </div>
+                  <button
+                    className="button button-primary"
+                    disabled={workingAction === 'advance' || workingAction === 'finish'}
+                    onClick={() => handleAction(isFinalQuestion ? 'finish' : 'advance')}
+                    type="button"
+                  >
+                    {isFinalQuestion ? 'จบเกม' : 'ข้อถัดไป'}
+                  </button>
                 </div>
               </div>
               {winner ? (
@@ -508,16 +518,6 @@ export function HostLivePage() {
                 ) : null}
               </div>
 
-              <div className="action-row action-row-spread">
-                <button
-                  className="button button-primary"
-                  disabled={workingAction === 'advance' || workingAction === 'finish'}
-                  onClick={() => handleAction(isFinalQuestion ? 'finish' : 'advance')}
-                  type="button"
-                >
-                  {isFinalQuestion ? 'จบเกม' : 'ข้อถัดไป'}
-                </button>
-              </div>
             </div>
           ) : null}
 
