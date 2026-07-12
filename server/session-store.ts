@@ -796,7 +796,6 @@ export class SessionStore {
         joinCode: session.joinCode,
         quizSetTitle: session.quizSetTitle,
         status: session.status,
-        showLeaderboardEveryRound: session.showLeaderboardEveryRound,
         currentQuestionIndex: session.currentQuestionIndex,
         lastClosedQuestionIndex: session.lastClosedQuestionIndex,
         questionStartedAt: session.questionStartedAt,

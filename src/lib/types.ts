@@ -153,7 +153,6 @@ export interface PlayerSessionView {
     | 'joinCode'
     | 'quizSetTitle'
     | 'status'
-    | 'showLeaderboardEveryRound'
     | 'currentQuestionIndex'
     | 'lastClosedQuestionIndex'
     | 'questionStartedAt'
