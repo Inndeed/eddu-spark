@@ -1126,6 +1126,11 @@ label {
   align-items: stretch;
 }
 
+.panel-header-lobby {
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: start;
+}
+
 .post-question-grid-tight {
   grid-template-columns: minmax(280px, 0.82fr) minmax(0, 1.18fr);
 }
@@ -1205,10 +1210,7 @@ label {
 }
 
 .lobby-stage-actions {
-  position: sticky;
-  bottom: 0;
-  padding-top: 6px;
-  background: linear-gradient(180deg, rgba(24, 22, 19, 0), rgba(24, 22, 19, 0.92) 38%);
+  justify-content: flex-end;
 }
 
 .rank-row {

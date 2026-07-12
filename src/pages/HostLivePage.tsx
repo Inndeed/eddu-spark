@@ -216,9 +216,21 @@ export function HostLivePage() {
                 </div>
 
                 <div className="lobby-players-panel">
-                  <div className="panel-header">
-                    <span className="eyebrow">Players</span>
-                    <h2>{participants.length}</h2>
+                  <div className="panel-header panel-header-lobby">
+                    <div>
+                      <span className="eyebrow">Players</span>
+                      <h2>{participants.length}</h2>
+                    </div>
+                    <div className="action-row action-row-spread lobby-stage-actions">
+                      <button
+                        className="button button-primary"
+                        disabled={workingAction === 'advance'}
+                        onClick={() => handleAction('advance')}
+                        type="button"
+                      >
+                        เปิดข้อแรก
+                      </button>
+                    </div>
                   </div>
                   <div className="player-bubble-cloud">
                     {participants.length > 0 ? (
@@ -236,17 +248,6 @@ export function HostLivePage() {
                     )}
                   </div>
                 </div>
-              </div>
-
-              <div className="action-row action-row-spread lobby-stage-actions">
-                <button
-                  className="button button-primary"
-                  disabled={workingAction === 'advance'}
-                  onClick={() => handleAction('advance')}
-                  type="button"
-                >
-                  เปิดข้อแรก
-                </button>
               </div>
             </div>
           ) : null}
