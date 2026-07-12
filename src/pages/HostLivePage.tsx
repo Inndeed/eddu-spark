@@ -147,7 +147,7 @@ export function HostLivePage() {
       <section className="host-panel host-state-panel">
         <BrandLogo compact to="/host" />
         <div className="auth-loading-state">
-          <span className="eyebrow">Host Live</span>
+          <span className="eyebrow">Live</span>
           <h1>{title}</h1>
         </div>
         {actionLabel ? (
@@ -160,7 +160,7 @@ export function HostLivePage() {
   )
 
   if (!configured || appHealth?.status === 'setup_required') {
-    return renderHostLiveState('Live console ยังไม่พร้อม', 'กลับ')
+    return renderHostLiveState('หน้า Live ยังไม่พร้อม', 'กลับ')
   }
 
   if (!ready) {
@@ -168,11 +168,11 @@ export function HostLivePage() {
   }
 
   if (!session) {
-    return renderHostLiveState('Host session ไม่พร้อม', 'Login ใหม่')
+    return renderHostLiveState('Session ของ Host ไม่พร้อม', 'Login ใหม่')
   }
 
   if (loading && !view) {
-    return renderHostLiveState('กำลังโหลด live...')
+    return renderHostLiveState('กำลังโหลดหน้า Live...')
   }
 
   const sessionStatus = view?.session.status ?? 'lobby'

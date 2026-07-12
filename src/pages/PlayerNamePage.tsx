@@ -60,7 +60,7 @@ export function PlayerNamePage() {
           </div>
           <label>
             <input
-              aria-label="Display name"
+              aria-label="ชื่อผู้เล่น"
               autoFocus
               placeholder="Mika"
               value={displayName}

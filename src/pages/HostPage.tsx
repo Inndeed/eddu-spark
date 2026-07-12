@@ -71,6 +71,13 @@ const readFileAsDataUrl = (file: File) =>
   })
 
 const isExternalImageUrl = (value: string) => /^https?:\/\//i.test(value.trim())
+const roleLabel = (role: string | null | undefined) => {
+  if (role === 'admin') {
+    return 'ผู้ดูแล'
+  }
+
+  return 'โฮสต์'
+}
 
 export function HostPage() {
   const navigate = useNavigate()
@@ -303,7 +310,7 @@ export function HostPage() {
       return
     }
 
-    const confirmed = window.confirm(`ลบ Quiz "${draft.title || 'Untitled'}" ?`)
+    const confirmed = window.confirm(`ลบ Quiz "${draft.title || 'ยังไม่มีชื่อ'}" ?`)
     if (!confirmed) {
       return
     }
@@ -395,7 +402,7 @@ export function HostPage() {
         <div className="header-actions">
           <div className="host-badge">
             <strong>{bootstrap?.currentHost?.displayName || session.user.email}</strong>
-            <span>{bootstrap?.currentHost?.role ?? 'host'}</span>
+            <span>{roleLabel(bootstrap?.currentHost?.role)}</span>
           </div>
           <button className="button button-ghost" onClick={() => void signOutHostSession()} type="button">
             ออก
@@ -409,12 +416,12 @@ export function HostPage() {
         <section className="host-panel host-editor-panel host-editor-panel-full">
           <div className="panel-header">
             <span className="eyebrow">แก้ไข</span>
-            <h2>{draft.title || 'Quiz ใหม่'}</h2>
+            <h2>{draft.title || 'ควิซใหม่'}</h2>
           </div>
 
           <div className="field-grid compact-field-grid">
             <label>
-              ชื่อ Quiz
+              ชื่อควิซ
               <input
                 value={draft.title}
                 onChange={(event) =>
@@ -459,7 +466,7 @@ export function HostPage() {
 
                 <div className="question-image-block">
                   {question.imageUrl ? (
-                    <img alt={question.imageAlt ?? `Question ${index + 1}`} src={question.imageUrl} />
+                    <img alt={question.imageAlt ?? `คำถาม ${index + 1}`} src={question.imageUrl} />
                   ) : (
                     <div className="image-empty-state">ยังไม่มีภาพ</div>
                   )}
@@ -592,7 +599,7 @@ export function HostPage() {
                 onClick={() => void handleDeleteQuiz()}
                 type="button"
               >
-                {deleting ? 'กำลังลบ...' : 'ลบ Quiz'}
+                {deleting ? 'กำลังลบ...' : 'ลบควิซ'}
               </button>
             ) : null}
             <button className="button button-ghost" onClick={() => setIsEditorOpen(false)} type="button">
@@ -607,12 +614,12 @@ export function HostPage() {
         <section className="host-panel host-library-panel host-library-panel-full">
           <div className="panel-header panel-header-inline">
             <span className="eyebrow">คลัง</span>
-            <h2>Quiz</h2>
+            <h2>ควิซ</h2>
           </div>
 
           <div className="library-toolbar">
             <button className="button button-primary" onClick={startNewQuiz} type="button">
-              สร้าง Quiz
+              สร้างควิซ
             </button>
           </div>
 

@@ -25,7 +25,7 @@ export function PlayerJoinPage() {
         <BrandLogo compact />
         <div className="entry-heading">
           <span className="eyebrow">รหัส</span>
-          <h1 className="entry-title">Code</h1>
+          <h1 className="entry-title">รหัส</h1>
         </div>
         <div className="entry-pin-preview" aria-hidden="true">
           {codeCells.map((cell, index) => (
@@ -37,7 +37,7 @@ export function PlayerJoinPage() {
         <form className="entry-form" onSubmit={handleSubmit}>
           <label>
             <input
-              aria-label="Join code"
+              aria-label="รหัสเข้าห้อง"
               autoFocus
               inputMode="text"
               maxLength={6}

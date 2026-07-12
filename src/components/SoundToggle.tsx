@@ -7,7 +7,7 @@ interface SoundToggleProps {
 export function SoundToggle({ muted, onToggle, className = '' }: SoundToggleProps) {
   return (
     <button
-      aria-label={muted ? 'Turn sound on' : 'Mute sound'}
+      aria-label={muted ? 'เปิดเสียง' : 'ปิดเสียง'}
       className={`sound-toggle ${className}`.trim()}
       onClick={onToggle}
       type="button"

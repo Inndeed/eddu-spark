@@ -9,27 +9,27 @@ export const formatDateTime = (value: string) => dateTimeFormatter.format(new Da
 
 export const modeLabel = (mode: QuizMode) => {
   if (mode === 'knowledge_check') {
-    return 'Quiz'
+    return 'ควิซ'
   }
 
-  return 'Quiz'
+  return 'ควิซ'
 }
 
 export const statusLabel = (status: SessionStatus) => {
   if (status === 'lobby') {
-    return 'Join'
+    return 'เข้าห้อง'
   }
   if (status === 'question_open') {
-    return 'Question'
+    return 'คำถาม'
   }
   if (status === 'question_closed') {
-    return 'Reveal'
+    return 'เฉลย'
   }
   if (status === 'leaderboard') {
     return 'Top 5'
   }
 
-  return 'Finished'
+  return 'จบเกม'
 }
 
 export const percentLabel = (value: number) => `${Math.round(value * 100)}%`
