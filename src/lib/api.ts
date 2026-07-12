@@ -4,6 +4,7 @@ import type {
   PlayerSessionView,
   QuizSet,
 } from './types'
+import { localizeErrorMessage } from './errors'
 import { getHostAccessToken } from './supabase'
 
 export interface HostBootstrapData {
@@ -44,7 +45,7 @@ const request = async <T>(
     const payload = (await response.json().catch(() => null)) as
       | { error?: string }
       | null
-    throw new Error(payload?.error ?? 'Request failed')
+    throw new Error(localizeErrorMessage(payload?.error ?? 'Request failed'))
   }
 
   return (await response.json()) as T
@@ -53,7 +54,7 @@ const request = async <T>(
 const getRequiredHostToken = async () => {
   const token = await getHostAccessToken()
   if (!token) {
-    throw new Error('Host authentication required')
+    throw new Error(localizeErrorMessage('Host authentication required'))
   }
 
   return token

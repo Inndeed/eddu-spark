@@ -7,6 +7,7 @@ import { ChoiceGlyph } from '../components/ChoiceGlyph'
 import { SoundToggle } from '../components/SoundToggle'
 import { fetchAppHealth, fetchHostSession, sendHostAction } from '../lib/api'
 import { useQuizAudio } from '../lib/audio'
+import { toLocalizedError } from '../lib/errors'
 import { percentLabel } from '../lib/format'
 import { useCountdown, useSessionChannel } from '../lib/live'
 import { signOutHostSession } from '../lib/supabase'
@@ -40,7 +41,7 @@ export function HostLivePage() {
       setView(payload)
       setError(null)
     } catch (loadError) {
-      setError(loadError instanceof Error ? loadError.message : 'Unable to load session')
+      setError(toLocalizedError(loadError, 'โหลดห้องไม่สำเร็จ'))
     } finally {
       setLoading(false)
     }
@@ -50,7 +51,7 @@ export function HostLivePage() {
     void fetchAppHealth()
       .then((payload) => setAppHealth(payload))
       .catch((healthError) => {
-        setError(healthError instanceof Error ? healthError.message : 'Unable to reach server')
+        setError(toLocalizedError(healthError, 'เชื่อมต่อเซิร์ฟเวอร์ไม่สำเร็จ'))
       })
   }, [])
 
@@ -110,7 +111,7 @@ export function HostLivePage() {
       await sendHostAction(joinCode, action)
       await loadSession()
     } catch (actionError) {
-      setError(actionError instanceof Error ? actionError.message : 'Unable to update')
+      setError(toLocalizedError(actionError, 'อัปเดตข้อมูลไม่สำเร็จ'))
     } finally {
       setWorkingAction(null)
     }
@@ -125,7 +126,7 @@ export function HostLivePage() {
 
       await document.exitFullscreen()
     } catch (fullscreenError) {
-      setError(fullscreenError instanceof Error ? fullscreenError.message : 'Unable to change fullscreen')
+      setError(toLocalizedError(fullscreenError, 'เปลี่ยนโหมดเต็มจอไม่สำเร็จ'))
     }
   }
 

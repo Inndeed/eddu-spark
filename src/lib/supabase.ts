@@ -1,4 +1,5 @@
 import { createClient, type Session } from '@supabase/supabase-js'
+import { localizeErrorMessage } from './errors'
 
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
 const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY
@@ -12,9 +13,7 @@ export const hasSupabaseBrowserConfig = () =>
 
 export const getBrowserSupabase = () => {
   if (!hasSupabaseBrowserConfig()) {
-    throw new Error(
-      'Supabase browser configuration is missing. Set VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY.',
-    )
+    throw new Error(localizeErrorMessage('Supabase browser configuration is missing.'))
   }
 
   if (!browserSupabase) {

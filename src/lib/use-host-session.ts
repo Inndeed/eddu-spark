@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import type { Session } from '@supabase/supabase-js'
 
+import { localizeErrorMessage, toLocalizedError } from './errors'
 import {
   getHostSession,
   hasSupabaseBrowserConfig,
@@ -14,9 +15,7 @@ export const useHostSession = () => {
 
   useEffect(() => {
     if (!hasSupabaseBrowserConfig()) {
-      setError(
-        'Supabase browser configuration is missing. Set VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY.',
-      )
+      setError(localizeErrorMessage('Supabase browser configuration is missing.'))
       return
     }
 
@@ -36,7 +35,7 @@ export const useHostSession = () => {
           return
         }
 
-        setError(nextError instanceof Error ? nextError.message : 'Unable to load host session')
+        setError(toLocalizedError(nextError, 'โหลด session ของ Host ไม่สำเร็จ'))
         setReady(true)
       })
 

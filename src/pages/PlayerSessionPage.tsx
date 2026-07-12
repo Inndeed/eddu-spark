@@ -4,6 +4,7 @@ import { Link, useLocation, useParams } from 'react-router-dom'
 import { BrandLogo } from '../components/BrandLogo'
 import { ChoiceGlyph } from '../components/ChoiceGlyph'
 import { fetchPlayerSession, submitAnswer } from '../lib/api'
+import { toLocalizedError } from '../lib/errors'
 import { useSessionChannel } from '../lib/live'
 import { getPlayerRecord, setPlayerRecord } from '../lib/storage'
 import type { PlayerSessionView } from '../lib/types'
@@ -73,7 +74,7 @@ export function PlayerSessionPage() {
       })
       setError(null)
     } catch (loadError) {
-      setError(loadError instanceof Error ? loadError.message : 'Unable to load session')
+      setError(toLocalizedError(loadError, 'โหลดห้องไม่สำเร็จ'))
     } finally {
       setLoading(false)
     }
@@ -126,7 +127,7 @@ export function PlayerSessionPage() {
     } catch (submitError) {
       setOptimisticSubmission(null)
       setLockPreview(null)
-      setError(submitError instanceof Error ? submitError.message : 'Submit failed')
+      setError(toLocalizedError(submitError, 'ส่งคำตอบไม่สำเร็จ'))
     } finally {
       setSubmittingChoiceId(null)
     }

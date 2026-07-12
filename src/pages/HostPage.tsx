@@ -13,6 +13,7 @@ import {
   type HostBootstrapData,
 } from '../lib/api'
 import { formatDateTime } from '../lib/format'
+import { toLocalizedError } from '../lib/errors'
 import { signInHostWithPassword, signOutHostSession } from '../lib/supabase'
 import { useHostSession } from '../lib/use-host-session'
 import type { QuizQuestion, QuizSet } from '../lib/types'
@@ -115,7 +116,7 @@ export function HostPage() {
           : toDraft(payload.quizSets[0] ?? createDraft()),
       )
     } catch (loadError) {
-      setError(loadError instanceof Error ? loadError.message : 'Unable to load host studio')
+      setError(toLocalizedError(loadError, 'โหลดหน้า Host ไม่สำเร็จ'))
     } finally {
       setLoading(false)
     }
@@ -125,7 +126,7 @@ export function HostPage() {
     void fetchAppHealth()
       .then((payload) => setAppHealth(payload))
       .catch((healthError) => {
-        setError(healthError instanceof Error ? healthError.message : 'Unable to reach server')
+        setError(toLocalizedError(healthError, 'เชื่อมต่อเซิร์ฟเวอร์ไม่สำเร็จ'))
       })
   }, [])
 
@@ -145,7 +146,7 @@ export function HostPage() {
     try {
       await signInHostWithPassword(email, password)
     } catch (loginError) {
-      setError(loginError instanceof Error ? loginError.message : 'Login failed')
+      setError(toLocalizedError(loginError, 'เข้าใช้ไม่สำเร็จ'))
       setLoading(false)
     }
   }
@@ -241,7 +242,7 @@ export function HostPage() {
       }))
       setManualImageUrls((current) => ({ ...current, [questionId]: '' }))
     } catch (uploadError) {
-      setError(uploadError instanceof Error ? uploadError.message : 'Upload failed')
+      setError(toLocalizedError(uploadError, 'อัปโหลดภาพไม่สำเร็จ'))
     } finally {
       setUploadingQuestionId(null)
     }
@@ -284,7 +285,7 @@ export function HostPage() {
       setDraft(toDraft(payload))
       await loadBootstrap()
     } catch (saveError) {
-      setError(saveError instanceof Error ? saveError.message : 'Unable to save quiz')
+      setError(toLocalizedError(saveError, 'บันทึกควิซไม่สำเร็จ'))
     } finally {
       setSaving(false)
     }
@@ -298,7 +299,7 @@ export function HostPage() {
       const sessionPayload = await launchSession(quizSetId)
       navigate(`/host/live/${sessionPayload.joinCode}`)
     } catch (launchError) {
-      setError(launchError instanceof Error ? launchError.message : 'Unable to launch')
+      setError(toLocalizedError(launchError, 'เริ่มห้องไม่สำเร็จ'))
       setLaunchingId(null)
     }
   }
@@ -325,7 +326,7 @@ export function HostPage() {
       setIsEditorOpen(false)
       await loadBootstrap()
     } catch (deleteError) {
-      setError(deleteError instanceof Error ? deleteError.message : 'Unable to delete quiz')
+      setError(toLocalizedError(deleteError, 'ลบควิซไม่สำเร็จ'))
     } finally {
       setDeleting(false)
     }

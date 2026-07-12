@@ -3,6 +3,7 @@ import { Link, useNavigate, useParams } from 'react-router-dom'
 
 import { BrandLogo } from '../components/BrandLogo'
 import { joinSession } from '../lib/api'
+import { toLocalizedError } from '../lib/errors'
 import { getPlayerRecord, setPlayerRecord } from '../lib/storage'
 
 export function PlayerNamePage() {
@@ -34,7 +35,7 @@ export function PlayerNamePage() {
       })
       navigate(`/play/session/${payload.joinCode}?participantId=${payload.participantId}`)
     } catch (joinError) {
-      setError(joinError instanceof Error ? joinError.message : 'Unable to join session')
+      setError(toLocalizedError(joinError, 'เข้าห้องไม่สำเร็จ'))
       setLoading(false)
     }
   }
