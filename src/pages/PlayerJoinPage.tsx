@@ -24,7 +24,7 @@ export function PlayerJoinPage() {
       <section className="entry-card entry-card-player">
         <BrandLogo compact />
         <div className="entry-heading">
-          <span className="eyebrow">Join</span>
+          <span className="eyebrow">รหัส</span>
           <h1 className="entry-title">Code</h1>
         </div>
         <div className="entry-pin-preview" aria-hidden="true">

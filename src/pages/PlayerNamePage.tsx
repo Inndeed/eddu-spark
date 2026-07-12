@@ -44,7 +44,7 @@ export function PlayerNamePage() {
       <section className="entry-card entry-card-player">
         <BrandLogo compact />
         <div className="entry-heading">
-          <span className="eyebrow">Room</span>
+          <span className="eyebrow">ห้อง</span>
           <div className="entry-pin-preview entry-pin-preview-tight" aria-hidden="true">
             {codeCells.map((cell, index) => (
               <span className={`entry-pin-cell ${cell ? 'is-filled' : ''}`.trim()} key={index}>
@@ -55,8 +55,8 @@ export function PlayerNamePage() {
         </div>
         <form className="entry-form" onSubmit={handleSubmit}>
           <div className="entry-player-badge">
-            <span className="eyebrow">Name</span>
-            <h1 className="entry-title">Name</h1>
+            <span className="eyebrow">ชื่อ</span>
+            <h1 className="entry-title">ชื่อ</h1>
           </div>
           <label>
             <input

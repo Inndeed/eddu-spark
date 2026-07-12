@@ -225,10 +225,10 @@ export function HostLivePage() {
       : []
 
   return (
-    <main className="app-shell host-live-shell">
-      <section className="host-topbar">
+    <main className="app-shell host-live-shell host-live-shell-immersive">
+      <aside className="host-topbar host-live-rail">
         <BrandLogo compact to="/host" />
-        <div className="header-actions">
+        <div className="header-actions host-live-rail-actions">
           <button className="button button-ghost" onClick={() => void toggleFullscreen()} type="button">
             {fullscreenActive ? 'Exit full' : 'Full screen'}
           </button>
@@ -237,12 +237,13 @@ export function HostLivePage() {
             Logout
           </button>
         </div>
-      </section>
+      </aside>
 
-      {error ? <p className="error-text">{error}</p> : null}
+      <section className="host-live-main">
+        {error ? <p className="error-text">{error}</p> : null}
 
-      <section className="live-grid live-grid-single">
-        <div className="live-stage-panel live-stage-panel-full">
+        <section className="live-grid live-grid-single">
+          <div className="live-stage-panel live-stage-panel-full">
           {showLobby ? (
             <div className="kahoot-stage lobby-stage stage-animate-in">
               <div className="lobby-hero">
@@ -312,7 +313,10 @@ export function HostLivePage() {
                   </div>
                 </div>
               </div>
-              <div className={`stage-tension-bar ${isTimerUrgent ? 'is-urgent' : ''}`.trim()} aria-hidden="true">
+              <div
+                className={`stage-tension-bar question-stage-tension-bar ${isTimerUrgent ? 'is-urgent' : ''}`.trim()}
+                aria-hidden="true"
+              >
                 <span style={{ width: `${countdownRatio * 100}%` }} />
               </div>
 
@@ -586,8 +590,8 @@ export function HostLivePage() {
             </div>
           ) : null}
 
-          {showFinished ? (
-            <div className="kahoot-stage final-stage stage-animate-in">
+            {showFinished ? (
+              <div className="kahoot-stage final-stage stage-animate-in">
               <div className="kahoot-stage-header">
                 <div>
                   <span className="eyebrow">Finished</span>
@@ -670,9 +674,10 @@ export function HostLivePage() {
                   </div>
                 </section>
               </div>
-            </div>
-          ) : null}
-        </div>
+              </div>
+            ) : null}
+          </div>
+        </section>
       </section>
     </main>
   )

@@ -13,7 +13,7 @@ export function SoundToggle({ muted, onToggle, className = '' }: SoundToggleProp
       type="button"
     >
       <span className={`sound-toggle-dot ${muted ? 'is-muted' : 'is-live'}`.trim()} aria-hidden="true" />
-      <span>{muted ? 'Mute' : 'Sound'}</span>
+      <span>{muted ? 'ปิดเสียง' : 'เสียง'}</span>
     </button>
   )
 }

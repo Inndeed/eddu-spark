@@ -20,10 +20,10 @@ export function HomePage() {
           </div>
           <div className="hero-actions hero-actions-stacked">
             <Link className="button button-primary" to="/host">
-              Host
+              เข้า Host
             </Link>
             <Link className="button button-secondary" to="/play">
-              Join
+              เข้าเล่น
             </Link>
           </div>
         </div>
