@@ -15,7 +15,8 @@ export function HomePage() {
         <div className="poster-center">
           <BrandLogo />
           <div className="hero-title-block">
-            <h1>Live Quiz</h1>
+            <span className="eyebrow hero-eyebrow">Eddu</span>
+            <h1>Eddu Quiz</h1>
           </div>
           <div className="hero-actions hero-actions-stacked">
             <Link className="button button-primary" to="/host">
