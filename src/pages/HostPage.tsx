@@ -329,7 +329,7 @@ export function HostPage() {
       <main className="app-shell host-shell">
         <section className="host-panel">
           <BrandLogo compact to="/host" />
-          <h1>Setup required</h1>
+          <h1>ยังไม่พร้อม</h1>
           <p>ต้องใส่ env ของ Supabase และ APP_BASE_URL ก่อน</p>
           <Link className="button button-secondary" to="/">
             กลับ
@@ -345,7 +345,7 @@ export function HostPage() {
         <section className="host-panel host-login-panel host-login-panel-loading">
           <BrandLogo compact />
           <div className="auth-loading-state">
-            <span className="eyebrow">Host</span>
+            <span className="eyebrow">เข้าใช้</span>
             <h1>กำลังตรวจสิทธิ์...</h1>
           </div>
         </section>
@@ -360,7 +360,7 @@ export function HostPage() {
           <BrandLogo compact />
           <form className="entry-form" onSubmit={handleLogin}>
             <label>
-              Email
+              อีเมล
               <input
                 placeholder="host@eddu.org"
                 type="email"
@@ -369,9 +369,9 @@ export function HostPage() {
               />
             </label>
             <label>
-              Password
+              รหัสผ่าน
               <input
-                placeholder="Password"
+                placeholder="รหัสผ่าน"
                 type="password"
                 value={password}
                 onChange={(event) => setPassword(event.target.value)}
@@ -398,7 +398,7 @@ export function HostPage() {
             <span>{bootstrap?.currentHost?.role ?? 'host'}</span>
           </div>
           <button className="button button-ghost" onClick={() => void signOutHostSession()} type="button">
-            Logout
+            ออก
           </button>
         </div>
       </section>
@@ -408,13 +408,13 @@ export function HostPage() {
       {isEditorOpen ? (
         <section className="host-panel host-editor-panel host-editor-panel-full">
           <div className="panel-header">
-            <span className="eyebrow">Editor</span>
-            <h2>{draft.title || 'New Quiz'}</h2>
+            <span className="eyebrow">แก้ไข</span>
+            <h2>{draft.title || 'Quiz ใหม่'}</h2>
           </div>
 
           <div className="field-grid compact-field-grid">
             <label>
-              Title
+              ชื่อ Quiz
               <input
                 value={draft.title}
                 onChange={(event) =>
@@ -423,7 +423,7 @@ export function HostPage() {
               />
             </label>
             <label>
-              Description
+              คำอธิบาย
               <input
                 value={draft.description}
                 onChange={(event) =>
@@ -439,7 +439,7 @@ export function HostPage() {
                 <div className="question-header">
                   <div>
                     <span className="eyebrow">Q{index + 1}</span>
-                    <h3>{question.prompt || 'New question'}</h3>
+                    <h3>{question.prompt || 'คำถามใหม่'}</h3>
                   </div>
                   <button className="mini-button" onClick={() => removeQuestion(question.id)} type="button">
                     ลบ
@@ -447,7 +447,7 @@ export function HostPage() {
                 </div>
 
                 <label>
-                  Prompt
+                  คำถาม
                   <textarea
                     rows={2}
                     value={question.prompt}
@@ -465,7 +465,7 @@ export function HostPage() {
                   )}
                   <div className="image-controls">
                     <label className="button button-secondary button-inline file-button">
-                      {uploadingQuestionId === question.id ? 'Uploading...' : 'Upload image'}
+                      {uploadingQuestionId === question.id ? 'กำลังอัปโหลด...' : 'อัปโหลดภาพ'}
                       <input
                         accept="image/png,image/jpeg,image/webp"
                         hidden
@@ -486,12 +486,12 @@ export function HostPage() {
                         }}
                         type="button"
                       >
-                        Remove
+                        ลบภาพ
                       </button>
                     ) : null}
                   </div>
                   <label>
-                    Image URL
+                    ลิงก์ภาพ
                     <input
                       placeholder="https://..."
                       value={
@@ -509,7 +509,7 @@ export function HostPage() {
 
                 <div className="field-grid compact-field-grid">
                   <label>
-                    Time
+                    เวลา
                     <input
                       max={15}
                       min={10}
@@ -521,7 +521,7 @@ export function HostPage() {
                     />
                   </label>
                   <label>
-                    Topic
+                    หัวข้อ
                     <input
                       value={question.themeTag}
                       onChange={(event) =>
@@ -546,7 +546,7 @@ export function HostPage() {
                         {choiceIndex + 1}
                       </label>
                       <input
-                        placeholder={`Choice ${choiceIndex + 1}`}
+                        placeholder={`ตัวเลือก ${choiceIndex + 1}`}
                         value={choice.text}
                         onChange={(event) =>
                           handleChoiceChange(question.id, choice.id, event.target.value)
@@ -557,7 +557,7 @@ export function HostPage() {
                 </div>
 
                 <label>
-                  Explain
+                  เฉลย
                   <textarea
                     rows={2}
                     value={question.explanation}
@@ -568,7 +568,7 @@ export function HostPage() {
                 </label>
 
                 <label>
-                  Debrief prompt
+                  ชวนคุย
                   <textarea
                     rows={2}
                     value={question.facilitatorPrompt}
@@ -592,27 +592,27 @@ export function HostPage() {
                 onClick={() => void handleDeleteQuiz()}
                 type="button"
               >
-                {deleting ? 'Deleting...' : 'ลบ Quiz'}
+                {deleting ? 'กำลังลบ...' : 'ลบ Quiz'}
               </button>
             ) : null}
             <button className="button button-ghost" onClick={() => setIsEditorOpen(false)} type="button">
-              กลับไป Library
+              กลับไปคลัง
             </button>
             <button className="button button-primary" disabled={saving} onClick={handleSave} type="button">
-              {saving ? 'Saving...' : 'Save'}
+              {saving ? 'กำลังบันทึก...' : 'บันทึก'}
             </button>
           </div>
         </section>
       ) : (
         <section className="host-panel host-library-panel host-library-panel-full">
           <div className="panel-header panel-header-inline">
-            <span className="eyebrow">Library</span>
+            <span className="eyebrow">คลัง</span>
             <h2>Quiz</h2>
           </div>
 
           <div className="library-toolbar">
             <button className="button button-primary" onClick={startNewQuiz} type="button">
-              New Quiz
+              สร้าง Quiz
             </button>
           </div>
 
@@ -634,7 +634,7 @@ export function HostPage() {
                     onClick={() => openQuizEditor(quizSet)}
                     type="button"
                   >
-                    Edit
+                    แก้ไข
                   </button>
                   <button
                     className="button button-primary button-inline"
@@ -642,7 +642,7 @@ export function HostPage() {
                     onClick={() => handleLaunch(quizSet.id)}
                     type="button"
                   >
-                    {launchingId === quizSet.id ? 'Opening...' : 'Launch'}
+                    {launchingId === quizSet.id ? 'กำลังเปิด...' : 'เริ่ม'}
                   </button>
                 </div>
               </article>
