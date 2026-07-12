@@ -230,11 +230,11 @@ export function HostLivePage() {
         <BrandLogo compact to="/host" />
         <div className="header-actions host-live-rail-actions">
           <button className="button button-ghost" onClick={() => void toggleFullscreen()} type="button">
-            {fullscreenActive ? 'Exit full' : 'Full screen'}
+            {fullscreenActive ? 'ย่อจอ' : 'เต็มจอ'}
           </button>
           <SoundToggle muted={muted} onToggle={toggleMuted} />
           <button className="button button-ghost" onClick={() => void signOutHostSession()} type="button">
-            Logout
+            ออก
           </button>
         </div>
       </aside>
@@ -248,7 +248,7 @@ export function HostLivePage() {
             <div className="kahoot-stage lobby-stage stage-animate-in">
               <div className="lobby-hero">
                 <div className="join-qr-panel join-qr-panel-wide">
-                  <span className="eyebrow">Join</span>
+                  <span className="eyebrow">เข้า</span>
                   <div className="join-code-display">{view?.session.joinCode}</div>
                   {qrCodeUrl ? <img alt="QR code for joining the room" src={qrCodeUrl} /> : null}
                   <p>{joinUrl.replace(/^https?:\/\//, '')}</p>
@@ -257,7 +257,7 @@ export function HostLivePage() {
                 <div className="lobby-players-panel">
                   <div className="panel-header panel-header-lobby">
                     <div>
-                      <span className="eyebrow">Players</span>
+                      <span className="eyebrow">ผู้เล่น</span>
                       <h2>{participants.length}</h2>
                     </div>
                     <div className="action-row action-row-spread lobby-stage-actions">
@@ -295,7 +295,7 @@ export function HostLivePage() {
             <div className="kahoot-stage kahoot-stage-focus stage-animate-in">
               <div className="kahoot-stage-header question-stage-header">
                 <div>
-                  <span className="eyebrow">Question</span>
+                  <span className="eyebrow">ข้อ</span>
                   <h2>
                     {view!.session.currentQuestionIndex + 1} / {view!.quizSet.questions.length}
                   </h2>
@@ -376,7 +376,7 @@ export function HostLivePage() {
             <div className="kahoot-stage results-stage stage-animate-in">
               <div className="kahoot-stage-header">
                 <div>
-                  <span className="eyebrow">Reveal</span>
+                  <span className="eyebrow">เฉลย</span>
                   <h2>
                     {view!.session.lastClosedQuestionIndex! + 1} / {view!.quizSet.questions.length}
                   </h2>
@@ -401,8 +401,8 @@ export function HostLivePage() {
                     <ChoiceGlyph index={closedQuestion.choices.findIndex((choice) => choice.id === correctRevealChoice.id)} />
                   </div>
                   <div className="reveal-spotlight-copy">
-                    <span className="eyebrow">Correct</span>
-                    <strong>คำตอบที่ถูก</strong>
+                    <span className="eyebrow">เฉลย</span>
+                    <strong>ถูก</strong>
                   </div>
                 </div>
               ) : null}
