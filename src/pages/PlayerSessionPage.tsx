@@ -192,7 +192,7 @@ export function PlayerSessionPage() {
       {error ? <p className="error-banner">{error}</p> : null}
 
       {view?.session.status === 'lobby' ? (
-        <section className="player-full-panel player-wait-panel">
+        <section className="player-full-panel player-wait-panel player-lobby-panel">
           <BrandLogo compact className="player-brand-mark" />
           <div className="entry-pin-preview entry-pin-preview-tight" aria-hidden="true">
             {codeCells.map((cell, index) => (
@@ -202,7 +202,7 @@ export function PlayerSessionPage() {
             ))}
           </div>
           <div className="player-identity-badge">
-            <span className="eyebrow">Player</span>
+            <span className="eyebrow">ผู้เล่น</span>
             <h1>{view.participant.displayName}</h1>
           </div>
           <p>{view.playerCount} คน</p>
@@ -245,7 +245,7 @@ export function PlayerSessionPage() {
       ) : null}
 
       {isWaitingDuringQuestion ? (
-        <section className="player-full-panel player-wait-panel">
+        <section className="player-full-panel player-wait-panel player-wait-panel-compact">
           <BrandLogo compact className="player-brand-mark" />
           <span className="eyebrow">ตอบแล้ว</span>
           <h1>รอเฉลย</h1>
@@ -272,7 +272,7 @@ export function PlayerSessionPage() {
       ) : null}
 
       {view?.session.status === 'question_closed' ? (
-        <section className="player-full-panel player-wait-panel">
+        <section className="player-full-panel player-wait-panel player-wait-panel-compact">
           <BrandLogo compact className="player-brand-mark" />
           <span className="eyebrow">รอ</span>
           <h1>เตรียมข้อถัดไป</h1>
@@ -294,7 +294,7 @@ export function PlayerSessionPage() {
       ) : null}
 
       {view?.session.status === 'leaderboard' ? (
-        <section className="player-full-panel player-score-panel">
+        <section className="player-full-panel player-score-panel player-score-panel-compact">
           <BrandLogo compact className="player-brand-mark" />
           <span className="eyebrow">อันดับ</span>
           <div className="player-rank-hero">
@@ -318,7 +318,7 @@ export function PlayerSessionPage() {
       ) : null}
 
       {view?.session.status === 'finished' ? (
-        <section className="player-full-panel player-score-panel">
+        <section className="player-full-panel player-score-panel player-score-panel-compact">
           <BrandLogo compact className="player-brand-mark" />
           <span className="eyebrow">จบเกม</span>
           <div className="player-rank-hero">
