@@ -965,12 +965,21 @@ label {
 
 .question-stage-header {
   gap: 8px;
+  align-items: flex-start;
 }
 
 .question-stage-header h2 {
   margin-top: 0.12rem;
   font-size: clamp(0.94rem, 1.55vw, 1.45rem);
   line-height: 0.88;
+}
+
+.question-stage-header-actions {
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+  flex-wrap: wrap;
 }
 
 .kahoot-stage-focus,
@@ -990,7 +999,7 @@ label {
 
 .kahoot-stage-focus {
   min-height: calc(100vh - 36px);
-  grid-template-rows: auto auto minmax(0, 1fr) auto;
+  grid-template-rows: auto auto minmax(0, 1fr);
   gap: 10px;
   padding: 16px 18px;
 }
@@ -1056,7 +1065,7 @@ label {
 
 .host-question-stage {
   display: grid;
-  gap: 12px;
+  gap: 10px;
   min-height: 0;
   align-content: start;
 }
@@ -1067,16 +1076,16 @@ label {
 }
 
 .stage-image-frame {
-  min-height: 200px;
-  max-height: min(28vh, 260px);
+  min-height: 220px;
+  max-height: min(34vh, 320px);
   overflow: hidden;
   background: rgba(255, 255, 255, 0.06);
 }
 
 .stage-image-frame img {
   width: 100%;
-  min-height: 200px;
-  max-height: min(28vh, 260px);
+  min-height: 220px;
+  max-height: min(34vh, 320px);
   object-fit: cover;
 }
 
@@ -1251,6 +1260,12 @@ label {
   padding: 0.75rem 1.1rem;
 }
 
+.question-stage-close {
+  min-height: 36px;
+  padding: 0.44rem 0.74rem;
+  font-size: 0.78rem;
+}
+
 .summary-stage-header-actions {
   display: inline-flex;
   align-items: center;
@@ -1279,6 +1294,7 @@ label {
 
 .question-stage-status-strip {
   gap: 6px;
+  flex-wrap: nowrap;
 }
 
 .question-stage-progress {
@@ -2053,7 +2069,7 @@ label {
 
   .kahoot-stage-focus {
     min-height: auto;
-    grid-template-rows: auto auto auto auto;
+    grid-template-rows: auto auto auto;
   }
 
   .results-stage {
@@ -2152,6 +2168,11 @@ label {
   }
 
   .question-stage-actions {
+    justify-content: flex-start;
+  }
+
+  .question-stage-header-actions {
+    width: 100%;
     justify-content: flex-start;
   }
 

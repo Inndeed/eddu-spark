@@ -300,17 +300,27 @@ export function HostLivePage() {
                     {view!.session.currentQuestionIndex + 1} / {view!.quizSet.questions.length}
                   </h2>
                 </div>
-                <div className="stage-status-strip question-stage-status-strip">
-                  <div className="stage-progress-pill question-stage-progress">
-                    {view?.currentQuestionSubmissionCount ?? 0}/{view?.session.participants.length ?? 0} ตอบแล้ว
+                <div className="question-stage-header-actions">
+                  <div className="stage-status-strip question-stage-status-strip">
+                    <div className="stage-progress-pill question-stage-progress">
+                      {view?.currentQuestionSubmissionCount ?? 0}/{view?.session.participants.length ?? 0} ตอบแล้ว
+                    </div>
+                    <div
+                      className={`timer-badge timer-badge-large question-stage-timer ${
+                        isTimerUrgent ? 'timer-badge-urgent' : ''
+                      }`.trim()}
+                    >
+                      {countdown}s
+                    </div>
                   </div>
-                  <div
-                    className={`timer-badge timer-badge-large question-stage-timer ${
-                      isTimerUrgent ? 'timer-badge-urgent' : ''
-                    }`.trim()}
+                  <button
+                    className="button button-primary button-inline question-stage-close"
+                    disabled={workingAction === 'close_question'}
+                    onClick={() => handleAction('close_question')}
+                    type="button"
                   >
-                    {countdown}s
-                  </div>
+                    จบข้อนี้
+                  </button>
                 </div>
               </div>
               <div
@@ -357,17 +367,6 @@ export function HostLivePage() {
                     </div>
                   ))}
                 </div>
-              </div>
-
-              <div className="action-row action-row-spread question-stage-actions">
-                <button
-                  className="button button-primary"
-                  disabled={workingAction === 'close_question'}
-                  onClick={() => handleAction('close_question')}
-                  type="button"
-                >
-                  จบข้อนี้
-                </button>
               </div>
             </div>
           ) : null}
