@@ -919,7 +919,7 @@ label {
 
 .timer-badge-large {
   min-width: 120px;
-  font-size: 2rem;
+  font-size: 1.75rem;
 }
 
 .timer-badge-urgent {
@@ -974,24 +974,24 @@ label {
 }
 
 .stage-question-copy {
-  padding: 16px 18px;
+  padding: 14px 16px;
   border-radius: 22px;
   background: rgba(255, 247, 232, 0.08);
 }
 
 .stage-question-copy p {
-  font-size: clamp(1.2rem, 2vw, 1.9rem);
-  line-height: 1.14;
+  font-size: clamp(1.26rem, 2.2vw, 2rem);
+  line-height: 1.1;
   font-weight: 700;
   overflow-wrap: anywhere;
 }
 
 .stage-question-copy-hero {
-  padding: 18px 20px;
+  padding: 16px 18px;
 }
 
 .stage-question-copy-hero p {
-  font-size: clamp(1.35rem, 2.4vw, 2.15rem);
+  font-size: clamp(1.45rem, 2.7vw, 2.3rem);
 }
 
 .host-answer-grid {
@@ -1031,9 +1031,26 @@ label {
   overflow: hidden;
 }
 
-.host-answer-card-head .choice-glyph {
+.host-answer-card-main {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+
+.host-answer-card-main .choice-glyph {
   width: min(7vw, 58px);
   height: min(7vw, 58px);
+  flex-shrink: 0;
+}
+
+.host-answer-card-main strong {
+  margin: 0;
+}
+
+.host-answer-grid-reveal .host-answer-card {
+  gap: 10px;
 }
 
 .host-answer-card.is-correct {
@@ -1232,9 +1249,10 @@ label {
 
 .stage-progress-pill {
   min-height: 42px;
-  padding: 0.65rem 0.9rem;
+  padding: 0.55rem 0.8rem;
   background: rgba(255, 255, 255, 0.09);
   border: 1px solid rgba(255, 255, 255, 0.1);
+  font-size: 0.94rem;
 }
 
 .pill-streak {
@@ -1252,7 +1270,7 @@ label {
 .answer-card-status {
   display: inline-flex;
   align-items: center;
-  justify-content: flex-end;
+  justify-content: flex-start;
 }
 
 .distribution-row {
@@ -1321,6 +1339,8 @@ label {
 .leaderboard-stage-grid {
   display: grid;
   gap: 14px;
+  grid-template-columns: minmax(0, 1.08fr) minmax(280px, 0.92fr);
+  align-items: start;
 }
 
 .leaderboard-winner-banner {
@@ -1342,14 +1362,14 @@ label {
 .leaderboard-podium {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 14px;
+  gap: 12px;
   align-items: end;
 }
 
 .leaderboard-card {
   display: grid;
   gap: 0.65rem;
-  padding: 1.15rem 1.25rem;
+  padding: 1rem 1.05rem;
   border-radius: 24px;
   border: 1px solid rgba(255, 247, 232, 0.08);
   background: rgba(255, 247, 232, 0.06);
@@ -1363,17 +1383,17 @@ label {
 }
 
 .leaderboard-card-podium {
-  min-height: 190px;
+  min-height: 164px;
   align-content: space-between;
 }
 
 .leaderboard-card-rank-1 {
-  min-height: 238px;
+  min-height: 204px;
 }
 
 .leaderboard-card-rank-2,
 .leaderboard-card-rank-3 {
-  min-height: 204px;
+  min-height: 178px;
 }
 
 .leaderboard-rank {
@@ -1383,7 +1403,7 @@ label {
 }
 
 .leaderboard-card strong {
-  font-size: clamp(1.2rem, 2vw, 1.7rem);
+  font-size: clamp(1.05rem, 1.55vw, 1.42rem);
   line-height: 1.05;
 }
 

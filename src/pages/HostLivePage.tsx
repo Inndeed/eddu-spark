@@ -293,10 +293,10 @@ export function HostLivePage() {
                       key={choice.id}
                       style={{ animationDelay: `${index * 70}ms` }}
                     >
-                      <div className="host-answer-card-head">
+                      <div className="host-answer-card-main">
                         <ChoiceGlyph index={index} />
+                        <strong>{choice.text}</strong>
                       </div>
-                      <strong>{choice.text}</strong>
                     </div>
                   ))}
                 </div>
@@ -366,15 +366,15 @@ export function HostLivePage() {
                         key={choice.id}
                         style={{ animationDelay: `${index * 90}ms` }}
                       >
-                        <div className="host-answer-card-head">
+                        <div className="host-answer-card-main">
                           <ChoiceGlyph index={index} />
-                          <div className="answer-card-status">
-                            <span className={`pill ${isCorrect ? 'pill-success pill-correct-answer' : ''}`.trim()}>
-                              {isCorrect ? 'คำตอบที่ถูก' : `${distributionItem?.count ?? 0} โหวต`}
-                            </span>
-                          </div>
+                          <strong>{choice.text}</strong>
                         </div>
-                        <strong>{choice.text}</strong>
+                        <div className="answer-card-status">
+                          <span className={`pill ${isCorrect ? 'pill-success pill-correct-answer' : ''}`.trim()}>
+                            {isCorrect ? 'คำตอบที่ถูก' : `${distributionItem?.count ?? 0} โหวต`}
+                          </span>
+                        </div>
                         <div className="distribution-bar distribution-bar-answer">
                           <span
                             style={{
@@ -401,20 +401,12 @@ export function HostLivePage() {
 
               <div className="action-row action-row-spread">
                 <button
-                  className="button button-secondary"
+                  className="button button-primary"
                   disabled={workingAction === 'show_leaderboard'}
                   onClick={() => handleAction('show_leaderboard')}
                   type="button"
                 >
-                  Top 5
-                </button>
-                <button
-                  className="button button-primary"
-                  disabled={workingAction === 'advance' || workingAction === 'finish'}
-                  onClick={() => handleAction(isFinalQuestion ? 'finish' : 'advance')}
-                  type="button"
-                >
-                  {isFinalQuestion ? 'จบเกม' : 'ข้อถัดไป'}
+                  ข้อถัดไป
                 </button>
               </div>
             </div>
@@ -424,8 +416,8 @@ export function HostLivePage() {
             <div className="kahoot-stage leaderboard-stage stage-animate-in">
               <div className="kahoot-stage-header">
                 <div>
-                  <span className="eyebrow">Leaderboard</span>
-                  <h2>Top 5</h2>
+                  <span className="eyebrow">Summary</span>
+                  <h2>หลังข้อนี้</h2>
                 </div>
                 <div className="stage-progress-pill">
                   เหลือ {remainingQuestions} ข้อ
