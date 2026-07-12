@@ -26,6 +26,8 @@ export function HostLivePage() {
   const [error, setError] = useState<string | null>(null)
   const [workingAction, setWorkingAction] = useState<string | null>(null)
   const [qrCodeUrl, setQrCodeUrl] = useState<string | null>(null)
+  const [fullscreenActive, setFullscreenActive] = useState(false)
+  const [failedImageUrls, setFailedImageUrls] = useState<Record<string, boolean>>({})
 
   const loadSession = useCallback(async () => {
     if (!joinCode || !session) {
@@ -83,6 +85,19 @@ export function HostLivePage() {
     }).then(setQrCodeUrl)
   }, [joinUrl])
 
+  useEffect(() => {
+    const syncFullscreenState = () => {
+      setFullscreenActive(Boolean(document.fullscreenElement))
+    }
+
+    syncFullscreenState()
+    document.addEventListener('fullscreenchange', syncFullscreenState)
+
+    return () => {
+      document.removeEventListener('fullscreenchange', syncFullscreenState)
+    }
+  }, [])
+
   const countdown = useCountdown(view?.session.questionEndsAt ?? null)
 
   const handleAction = async (action: string) => {
@@ -99,6 +114,32 @@ export function HostLivePage() {
     } finally {
       setWorkingAction(null)
     }
+  }
+
+  const toggleFullscreen = async () => {
+    try {
+      if (!document.fullscreenElement) {
+        await document.documentElement.requestFullscreen()
+        return
+      }
+
+      await document.exitFullscreen()
+    } catch (fullscreenError) {
+      setError(fullscreenError instanceof Error ? fullscreenError.message : 'Unable to change fullscreen')
+    }
+  }
+
+  const registerImageFailure = (imageUrl: string) => {
+    setFailedImageUrls((current) => {
+      if (current[imageUrl]) {
+        return current
+      }
+
+      return {
+        ...current,
+        [imageUrl]: true,
+      }
+    })
   }
 
   const renderHostLiveState = (title: string, actionLabel?: string) => (
@@ -180,12 +221,6 @@ export function HostLivePage() {
           { label: 'ถูก', value: percentLabel(closedQuestionStats.accuracyRate) },
           { label: 'เหลือ', value: String(remainingQuestions) },
           { label: 'ตอบแล้ว', value: String(closedQuestionStats.totalSubmissions) },
-          ...(closedQuestion.explanation
-            ? [{ label: 'เฉลย', value: closedQuestion.explanation }]
-            : []),
-          ...(closedQuestion.facilitatorPrompt
-            ? [{ label: 'ชวนคุย', value: closedQuestion.facilitatorPrompt }]
-            : []),
         ]
       : []
 
@@ -194,6 +229,9 @@ export function HostLivePage() {
       <section className="host-topbar">
         <BrandLogo compact to="/host" />
         <div className="header-actions">
+          <button className="button button-ghost" onClick={() => void toggleFullscreen()} type="button">
+            {fullscreenActive ? 'Exit full' : 'Full screen'}
+          </button>
           <SoundToggle muted={muted} onToggle={toggleMuted} />
           <button className="button button-ghost" onClick={() => void signOutHostSession()} type="button">
             Logout
@@ -278,9 +316,19 @@ export function HostLivePage() {
                 className={`host-question-stage ${currentQuestion.imageUrl ? '' : 'host-question-stage-no-image'}`.trim()}
               >
                 {currentQuestion.imageUrl ? (
-                  <div className="stage-image-frame">
-                    <img alt={currentQuestion.imageAlt ?? currentQuestion.prompt} src={currentQuestion.imageUrl} />
-                  </div>
+                  failedImageUrls[currentQuestion.imageUrl] ? (
+                    <div className="stage-image-empty">
+                      <span>ภาพไม่พร้อมแสดงผล</span>
+                    </div>
+                  ) : (
+                    <div className="stage-image-frame">
+                      <img
+                        alt={currentQuestion.imageAlt ?? currentQuestion.prompt}
+                        onError={() => registerImageFailure(currentQuestion.imageUrl!)}
+                        src={currentQuestion.imageUrl}
+                      />
+                    </div>
+                  )
                 ) : null}
 
                 <div className="stage-question-copy stage-question-copy-hero">
@@ -325,8 +373,18 @@ export function HostLivePage() {
                     {view!.session.lastClosedQuestionIndex! + 1} / {view!.quizSet.questions.length}
                   </h2>
                 </div>
-                <div className="stage-progress-pill">
-                  เหลือ {remainingQuestions} ข้อ
+                <div className="reveal-stage-header-actions">
+                  <div className="stage-progress-pill">
+                    เหลือ {remainingQuestions} ข้อ
+                  </div>
+                  <button
+                    className="button button-primary"
+                    disabled={workingAction === 'show_leaderboard'}
+                    onClick={() => handleAction('show_leaderboard')}
+                    type="button"
+                  >
+                    Summary
+                  </button>
                 </div>
               </div>
               {correctRevealChoice ? (
@@ -336,19 +394,33 @@ export function HostLivePage() {
                   </div>
                   <div className="reveal-spotlight-copy">
                     <span className="eyebrow">Correct</span>
-                    <strong>{correctRevealChoice.text}</strong>
+                    <strong>คำตอบที่ถูก</strong>
                   </div>
                 </div>
               ) : null}
 
-              <div className={`host-question-stage ${closedQuestion.imageUrl ? '' : 'host-question-stage-no-image'}`.trim()}>
+              <div
+                className={`host-question-stage reveal-question-stage ${
+                  closedQuestion.imageUrl ? '' : 'host-question-stage-no-image'
+                }`.trim()}
+              >
                 {closedQuestion.imageUrl ? (
-                  <div className="stage-image-frame">
-                    <img alt={closedQuestion.imageAlt ?? closedQuestion.prompt} src={closedQuestion.imageUrl} />
-                  </div>
+                  failedImageUrls[closedQuestion.imageUrl] ? (
+                    <div className="stage-image-empty stage-image-empty-reveal">
+                      <span>ภาพไม่พร้อมแสดงผล</span>
+                    </div>
+                  ) : (
+                    <div className="stage-image-frame stage-image-frame-reveal">
+                      <img
+                        alt={closedQuestion.imageAlt ?? closedQuestion.prompt}
+                        onError={() => registerImageFailure(closedQuestion.imageUrl!)}
+                        src={closedQuestion.imageUrl}
+                      />
+                    </div>
+                  )
                 ) : null}
 
-                <div className="stage-question-copy">
+                <div className="stage-question-copy stage-question-copy-reveal">
                   <p>{closedQuestion.prompt}</p>
                 </div>
 
@@ -398,17 +470,6 @@ export function HostLivePage() {
                     )
                   })}
                 </div>
-              </div>
-
-              <div className="action-row action-row-spread">
-                <button
-                  className="button button-primary"
-                  disabled={workingAction === 'show_leaderboard'}
-                  onClick={() => handleAction('show_leaderboard')}
-                  type="button"
-                >
-                  ข้อถัดไป
-                </button>
               </div>
             </div>
           ) : null}
