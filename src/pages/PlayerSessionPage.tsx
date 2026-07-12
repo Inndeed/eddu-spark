@@ -245,7 +245,7 @@ export function PlayerSessionPage() {
       {isWaitingDuringQuestion ? (
         <section className="player-full-panel player-wait-panel">
           <span className="eyebrow">Locked</span>
-          <h1>รอเฉลยบนจอหลัก</h1>
+          <h1>รอเฉลย</h1>
           {selectedChoiceIndex >= 0 ? (
             <div className={`waiting-choice-chip ${answerClassNames[selectedChoiceIndex]}`}>
               <ChoiceGlyph index={selectedChoiceIndex} />
@@ -258,7 +258,9 @@ export function PlayerSessionPage() {
               ))}
             </div>
           ) : null}
-          <p>{remainingQuestions > 0 ? `เหลือ ${remainingQuestions} ข้อ` : 'ข้อสุดท้าย'}</p>
+          <div className="player-wait-meta">
+            <span>{remainingQuestions > 0 ? `เหลือ ${remainingQuestions} ข้อ` : 'ข้อสุดท้าย'}</span>
+          </div>
           <div className="waiting-room-placeholder">
             <div className="waiting-block" />
             <div className="waiting-block waiting-block-wide" />
@@ -269,7 +271,7 @@ export function PlayerSessionPage() {
       {view?.session.status === 'question_closed' ? (
         <section className="player-full-panel player-wait-panel">
           <span className="eyebrow">Next</span>
-          <h1>รอคำถามถัดไป</h1>
+          <h1>เตรียมข้อถัดไป</h1>
           {totalQuestions > 0 ? (
             <div className="question-progress-dots" aria-label={`completed ${completedQuestions} of ${totalQuestions}`}>
               {Array.from({ length: totalQuestions }, (_, index) => (
@@ -277,7 +279,9 @@ export function PlayerSessionPage() {
               ))}
             </div>
           ) : null}
-          <p>{remainingQuestions > 0 ? `เหลือ ${remainingQuestions} ข้อ` : 'กำลังสรุปผล'}</p>
+          <div className="player-wait-meta">
+            <span>{remainingQuestions > 0 ? `เหลือ ${remainingQuestions} ข้อ` : 'กำลังสรุปผล'}</span>
+          </div>
           <div className="waiting-room-placeholder">
             <div className="waiting-block" />
             <div className="waiting-block waiting-block-wide" />

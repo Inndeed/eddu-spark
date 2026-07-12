@@ -174,6 +174,20 @@ export function HostLivePage() {
   const winner = topFive[0] ?? null
   const correctRevealChoice =
     closedQuestion?.choices.find((choice) => choice.id === closedQuestion.correctChoiceId) ?? null
+  const revealSummaryCards =
+    closedQuestion && closedQuestionStats
+      ? [
+          { label: 'ถูก', value: percentLabel(closedQuestionStats.accuracyRate) },
+          { label: 'เหลือ', value: String(remainingQuestions) },
+          { label: 'ตอบแล้ว', value: String(closedQuestionStats.totalSubmissions) },
+          ...(closedQuestion.explanation
+            ? [{ label: 'เฉลย', value: closedQuestion.explanation }]
+            : []),
+          ...(closedQuestion.facilitatorPrompt
+            ? [{ label: 'ชวนคุย', value: closedQuestion.facilitatorPrompt }]
+            : []),
+        ]
+      : []
 
   return (
     <main className="app-shell host-live-shell">
@@ -224,7 +238,7 @@ export function HostLivePage() {
                 </div>
               </div>
 
-              <div className="action-row action-row-spread">
+              <div className="action-row action-row-spread lobby-stage-actions">
                 <button
                   className="button button-primary"
                   disabled={workingAction === 'advance'}
@@ -288,7 +302,7 @@ export function HostLivePage() {
                 </div>
               </div>
 
-              <div className="action-row action-row-spread">
+              <div className="action-row action-row-spread question-stage-actions">
                 <button
                   className="button button-primary"
                   disabled={workingAction === 'close_question'}
@@ -418,29 +432,19 @@ export function HostLivePage() {
                 <section className="host-panel side-panel-card embedded-panel embedded-panel-compact">
                   <div className="panel-header">
                     <span className="eyebrow">Round</span>
-                    <h2>จบข้อนี้</h2>
+                    <h2>หลังข้อนี้</h2>
                   </div>
                   <div className="summary-grid summary-grid-tight">
-                    <article className="summary-card summary-card-enter" style={{ animationDelay: '0ms' }}>
-                      <strong>ถูก</strong>
-                      <p>{percentLabel(closedQuestionStats.accuracyRate)}</p>
-                    </article>
-                    <article className="summary-card summary-card-enter" style={{ animationDelay: '60ms' }}>
-                      <strong>เหลือ</strong>
-                      <p>{remainingQuestions}</p>
-                    </article>
-                    <article className="summary-card summary-card-enter" style={{ animationDelay: '120ms' }}>
-                      <strong>ตอบแล้ว</strong>
-                      <p>{closedQuestionStats.totalSubmissions}</p>
-                    </article>
-                    <article className="summary-card summary-card-enter" style={{ animationDelay: '180ms' }}>
-                      <strong>เฉลย</strong>
-                      <p>{closedQuestion.explanation || '-'}</p>
-                    </article>
-                    <article className="summary-card summary-card-enter" style={{ animationDelay: '240ms' }}>
-                      <strong>ชวนคุย</strong>
-                      <p>{closedQuestion.facilitatorPrompt || '-'}</p>
-                    </article>
+                    {revealSummaryCards.map((card, index) => (
+                      <article
+                        className="summary-card summary-card-enter"
+                        key={card.label}
+                        style={{ animationDelay: `${index * 60}ms` }}
+                      >
+                        <strong>{card.label}</strong>
+                        <p>{card.value}</p>
+                      </article>
+                    ))}
                   </div>
                 </section>
               </div>

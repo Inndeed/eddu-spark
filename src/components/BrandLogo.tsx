@@ -12,11 +12,6 @@ export function BrandLogo({ className = '', compact = false, to }: BrandLogoProp
       <span className="brand-mark">
         <img alt="eddu.org" src="/eddu-wordmark.svg" />
       </span>
-      {compact ? null : (
-        <div className="brand-copy">
-          <strong>Eddu Quiz</strong>
-        </div>
-      )}
     </div>
   )
 

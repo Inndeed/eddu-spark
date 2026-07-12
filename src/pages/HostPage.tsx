@@ -611,7 +611,6 @@ export function HostPage() {
           </div>
 
           <div className="library-toolbar">
-            <p className="library-helper-text">เลือกแล้วลุยได้เลย</p>
             <button className="button button-primary" onClick={startNewQuiz} type="button">
               New Quiz
             </button>
