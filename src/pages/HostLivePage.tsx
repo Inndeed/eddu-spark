@@ -399,56 +399,6 @@ export function HostLivePage() {
                 </div>
               </div>
 
-              <div className="post-question-grid post-question-grid-tight">
-                <section className="host-panel side-panel-card embedded-panel embedded-panel-compact">
-                  <div className="panel-header">
-                    <span className="eyebrow">Top 5</span>
-                    <h2>Top 5</h2>
-                  </div>
-                  <div className="rank-list">
-                    {topFive.length > 0 ? (
-                      topFive.map((ranking, index) => (
-                        <div
-                          className="rank-row rank-row-highlight rank-row-enter"
-                          key={ranking.participantId}
-                          style={{ animationDelay: `${index * 80}ms` }}
-                        >
-                          <span>#{ranking.rank}</span>
-                          <strong>{ranking.displayName}</strong>
-                          <div className="rank-row-meta">
-                            {ranking.currentStreak >= 2 ? (
-                              <span className="pill pill-streak">Hot {ranking.currentStreak}</span>
-                            ) : null}
-                            <span>{ranking.score}</span>
-                          </div>
-                        </div>
-                      ))
-                    ) : (
-                      <p className="side-note">ยังไม่มีคะแนน</p>
-                    )}
-                  </div>
-                </section>
-
-                <section className="host-panel side-panel-card embedded-panel embedded-panel-compact">
-                  <div className="panel-header">
-                    <span className="eyebrow">Round</span>
-                    <h2>หลังข้อนี้</h2>
-                  </div>
-                  <div className="summary-grid summary-grid-tight">
-                    {revealSummaryCards.map((card, index) => (
-                      <article
-                        className="summary-card summary-card-enter"
-                        key={card.label}
-                        style={{ animationDelay: `${index * 60}ms` }}
-                      >
-                        <strong>{card.label}</strong>
-                        <p>{card.value}</p>
-                      </article>
-                    ))}
-                  </div>
-                </section>
-              </div>
-
               <div className="action-row action-row-spread">
                 <button
                   className="button button-secondary"
@@ -542,6 +492,27 @@ export function HostLivePage() {
                     <p className="side-note">ยังไม่มีคะแนน</p>
                   </section>
                 )}
+
+                {revealSummaryCards.length > 0 ? (
+                  <section className="host-panel side-panel-card embedded-panel embedded-panel-compact">
+                    <div className="panel-header">
+                      <span className="eyebrow">Round</span>
+                      <h2>หลังข้อนี้</h2>
+                    </div>
+                    <div className="summary-grid summary-grid-tight">
+                      {revealSummaryCards.map((card, index) => (
+                        <article
+                          className="summary-card summary-card-enter"
+                          key={card.label}
+                          style={{ animationDelay: `${260 + index * 60}ms` }}
+                        >
+                          <strong>{card.label}</strong>
+                          <p>{card.value}</p>
+                        </article>
+                      ))}
+                    </div>
+                  </section>
+                ) : null}
               </div>
 
               <div className="action-row action-row-spread">
