@@ -10,6 +10,7 @@
     "build": "tsc -b && vite build && tsup server/index.ts --format esm --platform node --target node20 --out-dir dist-server",
     "start": "node dist-server/index.js",
     "host:create": "tsx scripts/create-host-user.ts",
+    "smoke:public": "tsx scripts/smoke-public.ts",
     "lint": "oxlint",
     "preview": "vite preview"
   },
