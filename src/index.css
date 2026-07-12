@@ -1533,6 +1533,17 @@ label {
   min-height: 0;
 }
 
+.reveal-question-stage-with-image {
+  grid-template-columns: minmax(320px, 0.92fr) minmax(0, 1.08fr);
+  align-items: start;
+}
+
+.reveal-media-column {
+  display: grid;
+  gap: 8px;
+  min-height: 0;
+}
+
 .stage-image-frame-reveal {
   min-height: 210px;
   max-height: min(34vh, 300px);
@@ -1551,6 +1562,10 @@ label {
   min-height: 210px;
   max-height: min(34vh, 300px);
   border: 1px dashed rgba(255, 247, 232, 0.16);
+}
+
+.reveal-question-stage-with-image .host-answer-grid-reveal {
+  align-content: start;
 }
 
 .reveal-spotlight .choice-glyph {

@@ -408,27 +408,29 @@ export function HostLivePage() {
 
               <div
                 className={`host-question-stage reveal-question-stage ${
-                  closedQuestion.imageUrl ? '' : 'host-question-stage-no-image'
+                  closedQuestion.imageUrl ? 'reveal-question-stage-with-image' : 'host-question-stage-no-image'
                 }`.trim()}
               >
-                {closedQuestion.imageUrl ? (
-                  failedImageUrls[closedQuestion.imageUrl] ? (
-                    <div className="stage-image-empty stage-image-empty-reveal">
-                      <span>ภาพไม่พร้อมแสดงผล</span>
-                    </div>
-                  ) : (
-                    <div className="stage-image-frame stage-image-frame-reveal">
-                      <img
-                        alt={closedQuestion.imageAlt ?? closedQuestion.prompt}
-                        onError={() => registerImageFailure(closedQuestion.imageUrl!)}
-                        src={closedQuestion.imageUrl}
-                      />
-                    </div>
-                  )
-                ) : null}
+                <div className={`reveal-media-column ${closedQuestion.imageUrl ? 'reveal-media-column-with-image' : ''}`.trim()}>
+                  {closedQuestion.imageUrl ? (
+                    failedImageUrls[closedQuestion.imageUrl] ? (
+                      <div className="stage-image-empty stage-image-empty-reveal">
+                        <span>ภาพไม่พร้อมแสดงผล</span>
+                      </div>
+                    ) : (
+                      <div className="stage-image-frame stage-image-frame-reveal">
+                        <img
+                          alt={closedQuestion.imageAlt ?? closedQuestion.prompt}
+                          onError={() => registerImageFailure(closedQuestion.imageUrl!)}
+                          src={closedQuestion.imageUrl}
+                        />
+                      </div>
+                    )
+                  ) : null}
 
-                <div className="stage-question-copy stage-question-copy-reveal">
-                  <p>{closedQuestion.prompt}</p>
+                  <div className="stage-question-copy stage-question-copy-reveal">
+                    <p>{closedQuestion.prompt}</p>
+                  </div>
                 </div>
 
                 <div className="host-answer-grid host-answer-grid-reveal">
