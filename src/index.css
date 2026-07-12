@@ -1558,18 +1558,23 @@ label {
   height: 22px;
 }
 
+.leaderboard-stage {
+  gap: 10px;
+  grid-template-rows: auto auto minmax(0, 1fr);
+}
+
 .leaderboard-stage-grid {
   display: grid;
-  gap: 14px;
-  grid-template-columns: minmax(0, 1.08fr) minmax(280px, 0.92fr);
+  gap: 12px;
+  grid-template-columns: minmax(0, 1.14fr) minmax(240px, 0.86fr);
   align-items: start;
 }
 
 .leaderboard-winner-banner {
   display: grid;
-  gap: 8px;
-  padding: 18px 20px;
-  border-radius: 24px;
+  gap: 6px;
+  padding: 14px 16px;
+  border-radius: 20px;
   background:
     radial-gradient(circle at top right, rgba(255, 224, 94, 0.22), transparent 42%),
     rgba(255, 247, 232, 0.09);
@@ -1577,22 +1582,22 @@ label {
 }
 
 .leaderboard-winner-banner strong {
-  font-size: clamp(1.6rem, 2.6vw, 2.4rem);
+  font-size: clamp(1.28rem, 2vw, 1.82rem);
   line-height: 1;
 }
 
 .leaderboard-podium {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 12px;
+  gap: 10px;
   align-items: end;
 }
 
 .leaderboard-card {
   display: grid;
-  gap: 0.65rem;
-  padding: 1rem 1.05rem;
-  border-radius: 24px;
+  gap: 0.5rem;
+  padding: 0.82rem 0.9rem;
+  border-radius: 20px;
   border: 1px solid rgba(255, 247, 232, 0.08);
   background: rgba(255, 247, 232, 0.06);
 }
@@ -1605,27 +1610,27 @@ label {
 }
 
 .leaderboard-card-podium {
-  min-height: 164px;
+  min-height: 142px;
   align-content: space-between;
 }
 
 .leaderboard-card-rank-1 {
-  min-height: 204px;
+  min-height: 172px;
 }
 
 .leaderboard-card-rank-2,
 .leaderboard-card-rank-3 {
-  min-height: 178px;
+  min-height: 152px;
 }
 
 .leaderboard-rank {
   font-family: var(--display);
-  font-size: 1.6rem;
+  font-size: 1.26rem;
   line-height: 1;
 }
 
 .leaderboard-card strong {
-  font-size: clamp(1.05rem, 1.55vw, 1.42rem);
+  font-size: clamp(0.96rem, 1.22vw, 1.16rem);
   line-height: 1.05;
 }
 
@@ -1633,12 +1638,30 @@ label {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 12px;
+  gap: 8px;
   flex-wrap: wrap;
 }
 
+.leaderboard-stage .summary-card,
+.final-stage .summary-card {
+  padding: 14px 15px;
+  border-radius: 18px;
+}
+
+.leaderboard-stage .summary-card p,
+.final-stage .summary-card p {
+  font-size: clamp(0.9rem, 1vw, 1rem);
+  line-height: 1.18;
+}
+
+.leaderboard-stage .summary-card strong,
+.final-stage .summary-card strong {
+  font-size: 0.86rem;
+}
+
 .final-stage-grid {
-  grid-template-columns: minmax(0, 1.1fr) minmax(320px, 0.9fr);
+  grid-template-columns: minmax(0, 1.08fr) minmax(280px, 0.92fr);
+  gap: 12px;
 }
 
 .player-live-shell {
