@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 
+import { BrandLogo } from '../components/BrandLogo'
 import { joinSession } from '../lib/api'
 import { getPlayerRecord, setPlayerRecord } from '../lib/storage'
 
@@ -41,6 +42,7 @@ export function PlayerNamePage() {
   return (
     <main className="app-shell player-entry-shell">
       <section className="entry-card entry-card-player">
+        <BrandLogo compact />
         <div className="entry-heading">
           <span className="eyebrow">Room</span>
           <div className="entry-pin-preview entry-pin-preview-tight" aria-hidden="true">
@@ -54,7 +56,7 @@ export function PlayerNamePage() {
         <form className="entry-form" onSubmit={handleSubmit}>
           <div className="entry-player-badge">
             <span className="eyebrow">Name</span>
-            <h1 className="entry-title">Ready</h1>
+            <h1 className="entry-title">Name</h1>
           </div>
           <label>
             <input
