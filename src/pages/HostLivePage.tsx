@@ -390,7 +390,7 @@ export function HostLivePage() {
                     onClick={() => handleAction('show_leaderboard')}
                     type="button"
                   >
-                    Summary
+                    สรุป
                   </button>
                 </div>
               </div>
@@ -485,7 +485,7 @@ export function HostLivePage() {
             <div className="kahoot-stage leaderboard-stage stage-animate-in">
               <div className="kahoot-stage-header">
                 <div>
-                  <span className="eyebrow">Summary</span>
+                  <span className="eyebrow">สรุป</span>
                   <h2>หลังข้อนี้</h2>
                 </div>
                 <div className="summary-stage-header-actions">
@@ -504,10 +504,10 @@ export function HostLivePage() {
               </div>
               {winner ? (
                 <div className="leaderboard-winner-banner">
-                  <span className="eyebrow">Leading</span>
+                  <span className="eyebrow">นำอยู่</span>
                   <strong>{winner.displayName}</strong>
                   <div className="leaderboard-meta">
-                    <span>{winner.score} pts</span>
+                    <span>{winner.score} คะแนน</span>
                     {winner.currentStreak >= 2 ? <span className="pill pill-streak">Hot {winner.currentStreak}</span> : null}
                   </div>
                 </div>
@@ -528,7 +528,7 @@ export function HostLivePage() {
                           <span className="leaderboard-rank">#{ranking.rank}</span>
                           <strong>{ranking.displayName}</strong>
                           <div className="leaderboard-meta">
-                            <span>{ranking.score} pts</span>
+                            <span>{ranking.score} คะแนน</span>
                             {ranking.currentStreak >= 2 ? (
                               <span className="pill pill-streak">Hot {ranking.currentStreak}</span>
                             ) : null}
@@ -567,7 +567,7 @@ export function HostLivePage() {
                 {revealSummaryCards.length > 0 ? (
                   <section className="host-panel side-panel-card embedded-panel embedded-panel-compact">
                     <div className="panel-header">
-                      <span className="eyebrow">Round</span>
+                      <span className="eyebrow">รอบนี้</span>
                       <h2>หลังข้อนี้</h2>
                     </div>
                     <div className="summary-grid summary-grid-tight">
@@ -593,7 +593,7 @@ export function HostLivePage() {
               <div className="kahoot-stage final-stage stage-animate-in">
               <div className="kahoot-stage-header">
                 <div>
-                  <span className="eyebrow">Finished</span>
+                  <span className="eyebrow">จบเกม</span>
                   <h2>สรุปเกม</h2>
                 </div>
                 <Link className="button button-secondary button-inline" to="/host">
@@ -604,7 +604,7 @@ export function HostLivePage() {
               <div className="post-question-grid final-stage-grid">
                 <section className="host-panel side-panel-card embedded-panel">
                   <div className="panel-header">
-                    <span className="eyebrow">Top 5</span>
+                    <span className="eyebrow">อันดับ</span>
                     <h2>Top 5</h2>
                   </div>
                   {topFive.length > 0 ? (
@@ -621,7 +621,7 @@ export function HostLivePage() {
                             <span className="leaderboard-rank">#{ranking.rank}</span>
                             <strong>{ranking.displayName}</strong>
                             <div className="leaderboard-meta">
-                              <span>{ranking.score} pts</span>
+                              <span>{ranking.score} คะแนน</span>
                             </div>
                           </article>
                         ))}
@@ -650,7 +650,7 @@ export function HostLivePage() {
 
                 <section className="host-panel side-panel-card embedded-panel">
                   <div className="panel-header">
-                    <span className="eyebrow">Summary</span>
+                    <span className="eyebrow">สรุป</span>
                     <h2>ภาพรวม</h2>
                   </div>
                   <div className="summary-grid">

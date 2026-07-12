@@ -1648,6 +1648,16 @@ label {
   border-radius: 18px;
 }
 
+.leaderboard-stage .embedded-panel,
+.final-stage .embedded-panel {
+  padding: 18px;
+}
+
+.leaderboard-stage .embedded-panel-compact,
+.final-stage .embedded-panel-compact {
+  gap: 12px;
+}
+
 .leaderboard-stage .summary-card p,
 .final-stage .summary-card p {
   font-size: clamp(0.9rem, 1vw, 1rem);
@@ -1659,9 +1669,25 @@ label {
   font-size: 0.86rem;
 }
 
+.leaderboard-stage .rank-list,
+.final-stage .rank-list {
+  gap: 10px;
+}
+
+.leaderboard-stage .rank-row,
+.final-stage .rank-row {
+  padding: 0.8rem 0.9rem;
+  border-radius: 16px;
+}
+
 .final-stage-grid {
   grid-template-columns: minmax(0, 1.08fr) minmax(280px, 0.92fr);
   gap: 12px;
+}
+
+.final-stage {
+  gap: 10px;
+  padding: 16px 18px;
 }
 
 .player-live-shell {
