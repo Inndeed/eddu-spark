@@ -292,18 +292,22 @@ export function HostLivePage() {
 
           {showQuestion && currentQuestion ? (
             <div className="kahoot-stage kahoot-stage-focus stage-animate-in">
-              <div className="kahoot-stage-header">
+              <div className="kahoot-stage-header question-stage-header">
                 <div>
                   <span className="eyebrow">Question</span>
                   <h2>
                     {view!.session.currentQuestionIndex + 1} / {view!.quizSet.questions.length}
                   </h2>
                 </div>
-                <div className="stage-status-strip">
-                  <div className="stage-progress-pill">
+                <div className="stage-status-strip question-stage-status-strip">
+                  <div className="stage-progress-pill question-stage-progress">
                     {view?.currentQuestionSubmissionCount ?? 0}/{view?.session.participants.length ?? 0} ตอบแล้ว
                   </div>
-                  <div className={`timer-badge timer-badge-large ${isTimerUrgent ? 'timer-badge-urgent' : ''}`.trim()}>
+                  <div
+                    className={`timer-badge timer-badge-large question-stage-timer ${
+                      isTimerUrgent ? 'timer-badge-urgent' : ''
+                    }`.trim()}
+                  >
                     {countdown}s
                   </div>
                 </div>
