@@ -15,6 +15,10 @@ on:
         options:
           - "false"
           - "true"
+      expected_commit_sha:
+        description: Optional deployed commit SHA to verify
+        required: false
+        default: ""
 
 jobs:
   code-gate:
@@ -60,4 +64,6 @@ jobs:
         run: npm ci
 
       - name: Smoke public deployment
+        env:
+          EXPECTED_COMMIT_SHA: ${{ inputs.expected_commit_sha }}
         run: npm run smoke:public

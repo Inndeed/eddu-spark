@@ -124,6 +124,7 @@ GitHub verification:
 
 - Pushes and pull requests run `audit:product`, `build`, and `lint`.
 - The public Railway smoke check can be run manually from GitHub Actions with `run_public_smoke=true`.
+- Add `expected_commit_sha` in the manual workflow when you want to prove Railway is serving a specific release commit.
 - Supabase readiness is intentionally not part of the default CI because it requires production secrets.
 
 Supabase readiness check:
@@ -140,12 +141,19 @@ To check a different deployment URL:
 npm run smoke:public -- https://your-railway-domain.up.railway.app
 ```
 
+To prove production is serving a specific commit:
+
+```bash
+EXPECTED_COMMIT_SHA=eac06ed npm run smoke:public
+```
+
 The smoke check verifies:
 
 - `/api/health` returns `status: ok`
 - the server is running in Supabase-backed mode
 - `APP_BASE_URL` matches the public URL
 - release metadata is exposed when available, including app `version` and platform `commitSha`
+- the deployed `commitSha` matches `EXPECTED_COMMIT_SHA` when that env value is provided
 - the landing page references built JS/CSS assets
 - the built assets are reachable
 - brand, icon, and workshop audio assets are reachable

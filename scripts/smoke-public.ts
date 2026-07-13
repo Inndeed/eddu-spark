@@ -4,6 +4,7 @@ const DEFAULT_BASE_URL = 'https://eddu-spark-production.up.railway.app'
 
 const baseUrl = (process.argv[2] || process.env.APP_BASE_URL || DEFAULT_BASE_URL).replace(/\/$/, '')
 const wsUrl = `${baseUrl.replace(/^http/, 'ws')}/ws`
+const expectedCommitSha = process.env.EXPECTED_COMMIT_SHA?.trim() || null
 
 const fail = (message: string) => {
   console.error(`FAIL ${message}`)
@@ -190,6 +191,12 @@ type HealthPayload = {
   commitSha?: string | null
 }
 
+const commitMatchesExpectation = (actualCommitSha: string, expected: string) => {
+  const actual = actualCommitSha.toLowerCase()
+  const normalizedExpected = expected.toLowerCase()
+  return actual === normalizedExpected || actual.startsWith(normalizedExpected)
+}
+
 try {
   const health = await requestJson<HealthPayload>('/api/health')
   if (health.status !== 'ok' || health.mode !== 'supabase') {
@@ -222,6 +229,20 @@ try {
     }
   } else {
     pass('release metadata commit is not exposed by this deployment environment')
+  }
+
+  if (expectedCommitSha) {
+    if (!health.commitSha) {
+      throw new Error('EXPECTED_COMMIT_SHA was provided but /api/health did not expose commitSha')
+    }
+
+    if (!commitMatchesExpectation(health.commitSha, expectedCommitSha)) {
+      throw new Error(
+        `deployed commit ${health.commitSha.slice(0, 7)} does not match expected ${expectedCommitSha}`,
+      )
+    }
+
+    pass(`deployed commit matches expected ${expectedCommitSha.slice(0, 7)}`)
   }
 
   const html = await requestText('/')
