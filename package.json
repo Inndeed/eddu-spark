@@ -11,6 +11,7 @@
     "start": "node dist-server/index.js",
     "host:create": "tsx scripts/create-host-user.ts",
     "smoke:public": "tsx scripts/smoke-public.ts",
+    "audit:product": "tsx scripts/audit-product-surface.ts",
     "lint": "oxlint",
     "preview": "vite preview"
   },

@@ -103,6 +103,14 @@ Public smoke check after each deploy:
 npm run smoke:public
 ```
 
+Product surface audit before deploy:
+
+```bash
+npm run audit:product
+```
+
+This audit guards against old public-facing product concepts returning by accident, such as old product naming, team fields, multi-mode labels, or the removed leaderboard-every-round toggle.
+
 To check a different deployment URL:
 
 ```bash
