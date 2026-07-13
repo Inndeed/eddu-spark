@@ -73,6 +73,35 @@ const requestJson = async <T>(
   return (await response.json()) as T
 }
 
+const expectJsonError = async (
+  path: string,
+  expectedStatus: number,
+  expectedMessage: RegExp,
+  init?: RequestInit,
+  token?: string,
+) => {
+  const response = await fetch(`${baseUrl}${path}`, {
+    ...init,
+    headers: {
+      'content-type': 'application/json',
+      ...(token ? { authorization: `Bearer ${token}` } : {}),
+      ...(init?.headers ?? {}),
+    },
+  })
+
+  if (response.status !== expectedStatus) {
+    throw new Error(`${path} returned ${response.status}, expected ${expectedStatus}`)
+  }
+
+  const payload = (await response.json().catch(() => null)) as
+    | { error?: string }
+    | null
+
+  if (!payload?.error || !expectedMessage.test(payload.error)) {
+    throw new Error(`${path} returned unexpected error payload`)
+  }
+}
+
 const openSessionSocket = async (joinCode: string) => {
   const socket = new WebSocket(wsUrl)
 
@@ -201,13 +230,33 @@ try {
     body: JSON.stringify({ joinCode, displayName: playerName }),
   })
   await waitForSessionUpdate(socket, 'player join broadcast')
-  pass('player joined with name-only public flow')
+  pass('first player joined with name-only public flow')
+
+  await expectJsonError(
+    '/api/play/join',
+    409,
+    /ถูกใช้ไปแล้ว|already/i,
+    {
+      method: 'POST',
+      body: JSON.stringify({ joinCode, displayName: playerName }),
+    },
+  )
+  pass('duplicate player names are rejected')
+
+  const secondPlayerName = `${playerName} B`
+  const joinedSecondPlayer = await requestJson<JoinPayload>('/api/play/join', {
+    method: 'POST',
+    body: JSON.stringify({ joinCode, displayName: secondPlayerName }),
+  })
+  await waitForSessionUpdate(socket, 'second player join broadcast')
+  pass('second player joined the same room')
 
   const lobbyView = await requestJson<HostSessionView>(`/api/host/sessions/${joinCode}`, undefined, hostToken)
-  if (!lobbyView.session.participants.some((participant) => participant.id === joinedPlayer.participantId)) {
-    throw new Error('Host lobby did not include the smoke player')
+  const lobbyParticipantIds = new Set(lobbyView.session.participants.map((participant) => participant.id))
+  if (!lobbyParticipantIds.has(joinedPlayer.participantId) || !lobbyParticipantIds.has(joinedSecondPlayer.participantId)) {
+    throw new Error('Host lobby did not include both smoke players')
   }
-  pass('host lobby sees the player')
+  pass('host lobby sees both players')
 
   await requestJson(
     `/api/host/sessions/${joinCode}/actions`,
@@ -239,7 +288,41 @@ try {
     },
   )
   await waitForSessionUpdate(socket, 'answer submission broadcast')
-  pass('player submitted one locked answer')
+  pass('first player submitted one locked answer')
+
+  await expectJsonError(
+    `/api/play/sessions/${joinCode}/submit`,
+    409,
+    /Duplicate submission|ส่งคำตอบซ้ำ|duplicate/i,
+    {
+      method: 'POST',
+      body: JSON.stringify({
+        participantId: joinedPlayer.participantId,
+        selectedChoiceId: playerQuestion.currentQuestion.choiceIds[1],
+      }),
+    },
+  )
+  pass('duplicate answer submissions are rejected before the round closes')
+
+  const secondPlayerQuestion = await requestJson<PlayerSessionView>(
+    `/api/play/sessions/${joinCode}?participantId=${encodeURIComponent(joinedSecondPlayer.participantId)}`,
+  )
+  if (secondPlayerQuestion.session.status !== 'question_open' || secondPlayerQuestion.currentQuestion?.choiceIds.length !== 4) {
+    throw new Error('Second player did not receive the live question')
+  }
+
+  await requestJson(
+    `/api/play/sessions/${joinCode}/submit`,
+    {
+      method: 'POST',
+      body: JSON.stringify({
+        participantId: joinedSecondPlayer.participantId,
+        selectedChoiceId: secondPlayerQuestion.currentQuestion.choiceIds[0],
+      }),
+    },
+  )
+  await waitForSessionUpdate(socket, 'second answer submission broadcast')
+  pass('second player submission closes the question when everyone answered')
 
   const closedHostView = await requestJson<HostSessionView>(`/api/host/sessions/${joinCode}`, undefined, hostToken)
   if (closedHostView.session.status !== 'question_closed') {
