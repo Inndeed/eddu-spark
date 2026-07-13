@@ -129,7 +129,7 @@ const verifyHostLiveDeployedLayout = async (assets: string[]) => {
   ])
 
   const compactCss = cssText.replace(/\s+/g, '')
-  const expectedRailLayout = 'grid-template-columns:70pxminmax(0,1fr)'
+  const expectedRailLayout = 'grid-template-columns:clamp(58px,4.2vw,68px)minmax(0,1fr)'
 
   if (!compactCss.includes(expectedRailLayout)) {
     throw new Error('deployed CSS does not include the compact Host Live left rail layout')
