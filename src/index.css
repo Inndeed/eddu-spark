@@ -1035,14 +1035,14 @@ label {
 }
 
 .compact-stage-header {
-  padding: 6px 8px;
-  border-radius: 16px;
+  padding: 4px 6px;
+  border-radius: 14px;
   background: rgba(255, 247, 232, 0.06);
   border: 1px solid rgba(255, 247, 232, 0.08);
 }
 
 .question-stage-header {
-  gap: 8px;
+  gap: 6px;
   align-items: center;
 }
 
@@ -1055,12 +1055,13 @@ label {
 .question-stage-counter {
   display: inline-flex;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
 }
 
 .question-stage-counter .eyebrow {
-  font-size: 0.55rem;
-  letter-spacing: 0.12em;
+  font-size: 0.48rem;
+  letter-spacing: 0.1em;
+  opacity: 0.78;
 }
 
 .reveal-stage-header {
@@ -1070,14 +1071,14 @@ label {
 .reveal-stage-title {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 7px;
   min-width: 0;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
 }
 
 .reveal-stage-title > .eyebrow {
-  font-size: 0.55rem;
-  letter-spacing: 0.12em;
+  font-size: 0.5rem;
+  letter-spacing: 0.1em;
 }
 
 .reveal-stage-header h2 {
@@ -1090,8 +1091,8 @@ label {
   display: inline-flex;
   align-items: center;
   justify-content: flex-end;
-  gap: 8px;
-  flex-wrap: wrap;
+  gap: 6px;
+  flex-wrap: nowrap;
 }
 
 .kahoot-stage-focus,
@@ -1112,15 +1113,15 @@ label {
 .kahoot-stage-focus {
   min-height: calc(100dvh - 16px);
   grid-template-rows: auto auto minmax(0, 1fr);
-  gap: 8px;
-  padding: 12px;
+  gap: 6px;
+  padding: 10px;
 }
 
 .results-stage {
   min-height: calc(100dvh - 16px);
   grid-template-rows: auto minmax(0, 1fr);
-  gap: 8px;
-  padding: 12px;
+  gap: 6px;
+  padding: 10px;
 }
 
 .timer-badge {
@@ -1189,16 +1190,16 @@ label {
 }
 
 .stage-image-frame {
-  min-height: clamp(170px, 27vh, 250px);
-  max-height: min(31vh, 280px);
+  min-height: clamp(190px, 31vh, 300px);
+  max-height: min(35vh, 330px);
   overflow: hidden;
   background: rgba(255, 255, 255, 0.06);
 }
 
 .stage-image-frame img {
   width: 100%;
-  min-height: clamp(170px, 27vh, 250px);
-  max-height: min(31vh, 280px);
+  min-height: clamp(190px, 31vh, 300px);
+  max-height: min(35vh, 330px);
   object-fit: cover;
 }
 
@@ -1238,8 +1239,8 @@ label {
 }
 
 .host-answer-card {
-  min-height: clamp(72px, 12.8vh, 104px);
-  padding: 10px 12px;
+  min-height: clamp(66px, 11.4vh, 94px);
+  padding: 8px 10px;
   border-radius: 18px;
   display: grid;
   gap: 8px;
@@ -1316,15 +1317,15 @@ label {
 }
 
 .reveal-spotlight {
-  display: grid;
-  grid-template-columns: 24px auto;
+  display: inline-grid;
+  grid-template-columns: 18px auto;
   align-items: center;
   justify-content: flex-start;
-  gap: 6px;
+  gap: 5px;
   width: max-content;
   max-width: 100%;
-  padding: 5px 8px;
-  border-radius: 12px;
+  padding: 4px 7px;
+  border-radius: 999px;
   background:
     radial-gradient(circle at top right, rgba(255, 224, 94, 0.18), transparent 38%),
     rgba(255, 247, 232, 0.08);
@@ -1332,11 +1333,11 @@ label {
 }
 
 .reveal-spotlight-glyph {
-  width: 24px;
-  height: 24px;
+  width: 18px;
+  height: 18px;
   display: grid;
   place-items: center;
-  border-radius: 8px;
+  border-radius: 7px;
   box-shadow: inset 0 -10px 24px rgba(0, 0, 0, 0.14);
   overflow: hidden;
 }
@@ -1376,9 +1377,9 @@ label {
 }
 
 .question-stage-close {
-  min-height: 36px;
-  padding: 0.44rem 0.74rem;
-  font-size: 0.78rem;
+  min-height: 32px;
+  padding: 0.34rem 0.64rem;
+  font-size: 0.68rem;
 }
 
 .summary-stage-header-actions {
@@ -1398,24 +1399,24 @@ label {
   display: inline-flex;
   align-items: center;
   justify-content: flex-end;
-  gap: 8px;
-  flex-wrap: wrap;
-}
-
-.reveal-stage-header-actions .button {
-  min-height: 38px;
-  padding: 0.52rem 0.84rem;
-}
-
-.question-stage-status-strip {
   gap: 6px;
   flex-wrap: nowrap;
 }
 
+.reveal-stage-header-actions .button {
+  min-height: 34px;
+  padding: 0.4rem 0.7rem;
+}
+
+.question-stage-status-strip {
+  gap: 5px;
+  flex-wrap: nowrap;
+}
+
 .question-stage-progress {
-  min-height: 28px;
-  padding: 0.22rem 0.46rem;
-  font-size: 0.62rem;
+  min-height: 25px;
+  padding: 0.18rem 0.4rem;
+  font-size: 0.56rem;
 }
 
 .lobby-hero,
@@ -1650,13 +1651,13 @@ label {
 }
 
 .reveal-question-stage {
-  gap: 10px;
+  gap: 8px;
   min-height: 0;
   align-content: stretch;
 }
 
 .reveal-question-stage-with-image {
-  grid-template-columns: minmax(380px, 1.18fr) minmax(340px, 0.82fr);
+  grid-template-columns: minmax(420px, 1.28fr) minmax(320px, 0.72fr);
   align-items: stretch;
 }
 
@@ -1667,8 +1668,8 @@ label {
 }
 
 .stage-image-frame-reveal {
-  min-height: clamp(260px, 48vh, 460px);
-  max-height: min(52vh, 500px);
+  min-height: clamp(300px, 58vh, 560px);
+  max-height: min(62vh, 620px);
   padding: 8px;
   display: grid;
   place-items: center;
@@ -1676,13 +1677,13 @@ label {
 
 .stage-image-frame-reveal img {
   min-height: 0;
-  max-height: min(50vh, 480px);
+  max-height: min(60vh, 600px);
   object-fit: contain;
 }
 
 .stage-image-empty-reveal {
-  min-height: clamp(260px, 48vh, 460px);
-  max-height: min(52vh, 500px);
+  min-height: clamp(300px, 58vh, 560px);
+  max-height: min(62vh, 620px);
   border: 1px dashed rgba(255, 247, 232, 0.16);
 }
 
@@ -1691,8 +1692,8 @@ label {
 }
 
 .reveal-spotlight .choice-glyph {
-  width: 14px;
-  height: 14px;
+  width: 11px;
+  height: 11px;
 }
 
 .leaderboard-stage {
@@ -2297,17 +2298,17 @@ label {
   }
 
   .reveal-question-stage-with-image {
-    grid-template-columns: minmax(280px, 1fr) minmax(280px, 0.9fr);
+    grid-template-columns: minmax(300px, 1.18fr) minmax(260px, 0.82fr);
   }
 
   .stage-image-frame-reveal,
   .stage-image-empty-reveal {
-    min-height: clamp(220px, 44vh, 380px);
-    max-height: min(48vh, 420px);
+    min-height: clamp(260px, 52vh, 460px);
+    max-height: min(56vh, 500px);
   }
 
   .stage-image-frame-reveal img {
-    max-height: min(46vh, 400px);
+    max-height: min(54vh, 480px);
   }
 }
 
