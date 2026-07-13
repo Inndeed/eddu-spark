@@ -38,6 +38,7 @@ export function PlayerJoinPage() {
           <label>
             <input
               aria-label="รหัสเข้าห้อง"
+              autoComplete="off"
               autoFocus
               inputMode="text"
               maxLength={6}

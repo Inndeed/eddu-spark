@@ -370,6 +370,7 @@ export function HostPage() {
             <label>
               อีเมล
               <input
+                autoComplete="email"
                 placeholder="host@eddu.org"
                 type="email"
                 value={email}
@@ -379,6 +380,7 @@ export function HostPage() {
             <label>
               รหัสผ่าน
               <input
+                autoComplete="current-password"
                 placeholder="รหัสผ่าน"
                 type="password"
                 value={password}
