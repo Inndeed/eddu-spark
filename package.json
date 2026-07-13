@@ -17,6 +17,7 @@
     "check:live-smoke": "tsx scripts/check-live-smoke-readiness.ts",
     "typecheck:scripts": "tsc --ignoreConfig --noEmit --target es2023 --module nodenext --moduleResolution nodenext --types node --skipLibCheck scripts/*.ts",
     "verify:release": "npm run audit:product && npm run typecheck:scripts && npm run build && npm run lint && npm run smoke:public",
+    "verify:production": "npm run verify:release && npm run check:supabase && npm run check:live-smoke && npm run smoke:live",
     "lint": "oxlint",
     "preview": "vite preview"
   },

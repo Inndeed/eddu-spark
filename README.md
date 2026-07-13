@@ -105,6 +105,14 @@ npm run verify:release
 
 This runs the product surface audit, script typecheck, production build, lint, and public smoke check in one pass.
 
+Final production gate after Supabase + host smoke env is available:
+
+```bash
+npm run verify:production
+```
+
+This runs the full release verification, Supabase schema/storage readiness check, live smoke readiness check, and authenticated host/player smoke flow.
+
 Public smoke check only:
 
 ```bash
