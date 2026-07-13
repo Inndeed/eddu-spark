@@ -118,6 +118,13 @@ npm run audit:product
 ```
 
 This audit guards against old public-facing product concepts returning by accident, such as old product naming, team fields, multi-mode labels, or the removed leaderboard-every-round toggle.
+It also guards the Host Live projector layout so the controls stay in the compact left rail instead of regressing into the old top bar.
+
+GitHub verification:
+
+- Pushes and pull requests run `audit:product`, `build`, and `lint`.
+- The public Railway smoke check can be run manually from GitHub Actions with `run_public_smoke=true`.
+- Supabase readiness is intentionally not part of the default CI because it requires production secrets.
 
 Supabase readiness check:
 

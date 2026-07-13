@@ -60,4 +60,34 @@ if (failures.length > 0) {
   process.exit(1)
 }
 
-console.log('OK product surface has no legacy Eddu Spark/team/multi-mode terms')
+const hostLivePage = await readFile(path.join(rootDir, 'src/pages/HostLivePage.tsx'), 'utf8')
+const globalCss = await readFile(path.join(rootDir, 'src/index.css'), 'utf8')
+
+const hostLiveLayoutChecks: Array<{ passed: boolean; label: string }> = [
+  {
+    passed: hostLivePage.includes('className="host-live-rail"'),
+    label: 'Host Live renders the control rail as its own element',
+  },
+  {
+    passed: !hostLivePage.includes('host-topbar host-live-rail'),
+    label: 'Host Live rail is not mixed with the old topbar class',
+  },
+  {
+    passed: /grid-template-columns:\s*78px\s+minmax\(0,\s*1fr\)/.test(globalCss),
+    label: 'Host Live desktop layout reserves a compact left rail',
+  },
+]
+
+hostLiveLayoutChecks.forEach(({ passed, label }) => {
+  if (!passed) {
+    failures.push(label)
+  }
+})
+
+if (failures.length > 0) {
+  console.error('Product surface audit failed:')
+  failures.forEach((failure) => console.error(`- ${failure}`))
+  process.exit(1)
+}
+
+console.log('OK product surface has no legacy Eddu Spark/team/multi-mode terms and keeps Host Live controls in the side rail')
