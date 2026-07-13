@@ -943,6 +943,43 @@ label {
   min-height: calc(100dvh - 18px);
 }
 
+@media (min-width: 721px) {
+  .host-live-shell-immersive {
+    height: 100dvh;
+    overflow: hidden;
+  }
+
+  .host-live-main,
+  .live-grid,
+  .live-grid-single,
+  .live-stage-panel,
+  .live-stage-panel-full {
+    min-height: 0;
+    height: 100%;
+    overflow: hidden;
+  }
+
+  .lobby-stage,
+  .kahoot-stage-focus,
+  .results-stage,
+  .leaderboard-stage,
+  .final-stage {
+    min-height: 0;
+    height: 100%;
+    overflow: hidden;
+  }
+
+  .lobby-hero,
+  .lobby-players-panel,
+  .host-question-stage,
+  .reveal-question-stage,
+  .leaderboard-stage-grid,
+  .post-question-grid,
+  .final-stage-grid {
+    min-height: 0;
+  }
+}
+
 .kahoot-stage-header,
 .action-row {
   display: flex;
