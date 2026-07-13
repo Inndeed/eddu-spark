@@ -858,33 +858,35 @@ label {
 }
 
 .host-live-shell-immersive {
-  width: min(100%, calc(100% - 18px));
+  width: min(100%, calc(100% - 12px));
   min-height: 100dvh;
-  padding: 8px 0;
-  grid-template-columns: 78px minmax(0, 1fr);
+  padding: 6px 0;
+  grid-template-columns: 70px minmax(0, 1fr);
   align-items: stretch;
-  gap: 8px;
+  gap: 6px;
 }
 
 .host-live-main {
   display: grid;
-  gap: 8px;
+  gap: 6px;
   min-width: 0;
-  min-height: calc(100dvh - 16px);
+  min-height: calc(100dvh - 12px);
 }
 
 .host-live-rail {
   display: grid;
   align-content: space-between;
   justify-items: stretch;
-  gap: 8px;
-  padding: 8px 6px;
+  gap: 6px;
+  padding: 7px 5px;
   position: sticky;
-  top: 8px;
-  min-height: calc(100dvh - 16px);
-  border-radius: 20px;
+  top: 6px;
+  height: calc(100dvh - 12px);
+  min-height: calc(100dvh - 12px);
+  border-radius: 18px;
   background: rgba(23, 20, 16, 0.9);
   border: 1px solid rgba(255, 247, 232, 0.08);
+  z-index: 5;
 }
 
 .host-live-rail .brand-logo {
@@ -893,15 +895,15 @@ label {
 
 .host-live-rail .brand-logo-badge {
   width: 100%;
-  min-height: 46px;
-  padding: 0.4rem 0.28rem;
-  border-radius: 15px;
+  min-height: 40px;
+  padding: 0.34rem 0.22rem;
+  border-radius: 14px;
 }
 
 .host-live-rail .brand-mark {
   width: 100%;
-  padding: 0.42rem 0.24rem;
-  border-radius: 15px;
+  padding: 0.36rem 0.2rem;
+  border-radius: 14px;
 }
 
 .host-live-rail .brand-logo img {
@@ -910,24 +912,26 @@ label {
 }
 
 .host-live-rail-actions {
+  display: grid;
   flex-direction: column;
   align-items: stretch;
-  gap: 6px;
+  gap: 5px;
 }
 
 .host-live-rail-actions .button,
 .host-live-rail-actions .sound-toggle {
   width: 100%;
   justify-content: center;
-  min-height: 34px;
-  padding: 0.42rem 0.3rem;
-  border-radius: 13px;
-  font-size: 0.66rem;
+  min-height: 31px;
+  padding: 0.36rem 0.24rem;
+  border-radius: 12px;
+  font-size: 0.58rem;
   line-height: 1.05;
+  white-space: normal;
 }
 
 .host-live-rail-actions .sound-toggle {
-  gap: 4px;
+  gap: 3px;
 }
 
 .host-live-rail-actions .sound-toggle-dot {
@@ -2251,24 +2255,25 @@ label {
 
 @media (min-width: 721px) and (max-width: 1040px) {
   .host-live-shell-immersive {
-    grid-template-columns: 72px minmax(0, 1fr);
-    gap: 8px;
+    grid-template-columns: 66px minmax(0, 1fr);
+    gap: 6px;
   }
 
   .host-live-rail {
-    min-height: calc(100dvh - 16px);
-    padding: 7px 5px;
+    height: calc(100dvh - 12px);
+    min-height: calc(100dvh - 12px);
+    padding: 6px 4px;
   }
 
   .host-live-rail .brand-logo-badge {
-    min-height: 42px;
-    border-radius: 16px;
+    min-height: 38px;
+    border-radius: 14px;
   }
 
   .host-live-rail-actions .button,
   .host-live-rail-actions .sound-toggle {
-    min-height: 32px;
-    font-size: 0.62rem;
+    min-height: 30px;
+    font-size: 0.55rem;
   }
 
   .lobby-hero {

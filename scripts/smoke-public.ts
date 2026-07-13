@@ -129,7 +129,7 @@ const verifyHostLiveDeployedLayout = async (assets: string[]) => {
   ])
 
   const compactCss = cssText.replace(/\s+/g, '')
-  const expectedRailLayout = 'grid-template-columns:78pxminmax(0,1fr)'
+  const expectedRailLayout = 'grid-template-columns:70pxminmax(0,1fr)'
 
   if (!compactCss.includes(expectedRailLayout)) {
     throw new Error('deployed CSS does not include the compact Host Live left rail layout')
@@ -145,6 +145,10 @@ const verifyHostLiveDeployedLayout = async (assets: string[]) => {
 
   if (jsText.includes('host-topbar host-live-rail')) {
     throw new Error('deployed JS still mixes the old host topbar with the live rail')
+  }
+
+  if (jsText.includes('Full screen') || jsText.includes('Logout') || jsText.includes('Sound On')) {
+    throw new Error('deployed JS still includes the old English Host Live topbar controls')
   }
 }
 
