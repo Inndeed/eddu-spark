@@ -2161,25 +2161,8 @@ label {
 }
 
 @media (max-width: 1040px) {
-  .host-live-shell-immersive {
-    grid-template-columns: 1fr;
-  }
-
-  .host-live-rail {
-    position: static;
-    min-height: auto;
-    grid-template-columns: minmax(0, 1fr) auto;
-    align-items: center;
-  }
-
-  .host-live-rail-actions {
-    flex-direction: row;
-    justify-content: flex-end;
-  }
-
   .studio-grid,
   .live-grid,
-  .lobby-hero,
   .post-question-grid {
     grid-template-columns: 1fr;
   }
@@ -2202,23 +2185,65 @@ label {
     height: 160px;
   }
 
-  .lobby-stage {
-    min-height: auto;
-    grid-template-rows: auto auto;
-  }
-
-  .kahoot-stage-focus {
-    min-height: auto;
-    grid-template-rows: auto auto auto;
-  }
-
-  .results-stage {
-    min-height: auto;
-    grid-template-rows: auto auto auto;
-  }
-
   .player-bubble-cloud {
     max-height: 280px;
+  }
+}
+
+@media (min-width: 721px) and (max-width: 1040px) {
+  .host-live-shell-immersive {
+    grid-template-columns: 82px minmax(0, 1fr);
+    gap: 8px;
+  }
+
+  .host-live-rail {
+    min-height: calc(100dvh - 18px);
+    padding: 8px 6px;
+  }
+
+  .host-live-rail .brand-logo-badge {
+    min-height: 48px;
+    border-radius: 16px;
+  }
+
+  .host-live-rail-actions .button,
+  .host-live-rail-actions .sound-toggle {
+    min-height: 34px;
+    font-size: 0.66rem;
+  }
+
+  .lobby-hero {
+    grid-template-columns: minmax(260px, 0.68fr) minmax(0, 1fr);
+    gap: 12px;
+  }
+
+  .join-qr-panel {
+    gap: 8px;
+    padding: 14px;
+  }
+
+  .join-qr-panel p {
+    display: none;
+  }
+
+  .join-code-display {
+    min-height: 52px;
+    border-radius: 18px;
+    font-size: 1.5rem;
+  }
+
+  .reveal-question-stage-with-image {
+    grid-template-columns: minmax(280px, 1fr) minmax(280px, 0.9fr);
+  }
+
+  .stage-image-frame-reveal,
+  .stage-image-empty-reveal {
+    min-height: clamp(220px, 44vh, 380px);
+    max-height: min(48vh, 420px);
+  }
+
+  .stage-image-frame-reveal img {
+    max-height: min(46vh, 400px);
   }
 }
 
