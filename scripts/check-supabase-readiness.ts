@@ -4,7 +4,6 @@ import './load-env.js'
 
 const requiredEnv = [
   'SUPABASE_URL',
-  'SUPABASE_ANON_KEY',
   'SUPABASE_SERVICE_ROLE_KEY',
 ] as const
 

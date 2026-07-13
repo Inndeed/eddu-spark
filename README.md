@@ -132,7 +132,7 @@ GitHub verification:
 
 - Pushes and pull requests run `audit:product`, `typecheck:scripts`, `build`, and `lint`.
 - The public Railway smoke check can be run manually from GitHub Actions with `run_public_smoke=true`.
-- The Supabase schema and Storage readiness check can be run manually with `run_supabase_check=true` after adding `SUPABASE_URL`, `SUPABASE_ANON_KEY`, and `SUPABASE_SERVICE_ROLE_KEY`.
+- The Supabase schema and Storage readiness check can be run manually with `run_supabase_check=true` after adding `SUPABASE_URL` and `SUPABASE_SERVICE_ROLE_KEY`.
 - The authenticated host/player live smoke check can be run manually with `run_live_smoke=true` after adding `SMOKE_HOST_EMAIL` and `SMOKE_HOST_PASSWORD`; it runs `check:live-smoke` before creating a room.
 - Add `expected_commit_sha` in the manual workflow when you want to prove Railway is serving a specific release commit.
 - Supabase readiness is intentionally not part of the default CI because it requires production secrets.
@@ -143,7 +143,7 @@ Supabase readiness check:
 npm run check:supabase
 ```
 
-This read-only check requires `SUPABASE_URL`, `SUPABASE_ANON_KEY`, and `SUPABASE_SERVICE_ROLE_KEY`. It verifies the expected tables, `quiz_questions.image_path`, `quiz_questions.image_alt`, and the public `question-images` Storage bucket.
+This read-only check requires `SUPABASE_URL` and `SUPABASE_SERVICE_ROLE_KEY`. It verifies the expected tables, `quiz_questions.image_path`, `quiz_questions.image_alt`, and the public `question-images` Storage bucket.
 
 Local verification scripts automatically load `.env` and `.env.local` when those files exist.
 
