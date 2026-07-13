@@ -1,6 +1,9 @@
+import { WebSocket } from 'ws'
+
 const DEFAULT_BASE_URL = 'https://eddu-spark-production.up.railway.app'
 
 const baseUrl = (process.argv[2] || process.env.APP_BASE_URL || DEFAULT_BASE_URL).replace(/\/$/, '')
+const wsUrl = `${baseUrl.replace(/^http/, 'ws')}/ws`
 
 const fail = (message: string) => {
   console.error(`FAIL ${message}`)
@@ -10,6 +13,23 @@ const fail = (message: string) => {
 const pass = (message: string) => {
   console.log(`OK ${message}`)
 }
+
+const withTimeout = <T>(promise: Promise<T>, timeoutMs: number, label: string) =>
+  new Promise<T>((resolve, reject) => {
+    const timeout = setTimeout(() => {
+      reject(new Error(`${label} timed out after ${timeoutMs}ms`))
+    }, timeoutMs)
+
+    promise
+      .then((value) => {
+        clearTimeout(timeout)
+        resolve(value)
+      })
+      .catch((error) => {
+        clearTimeout(timeout)
+        reject(error)
+      })
+  })
 
 const requestText = async (path: string) => {
   const response = await fetch(`${baseUrl}${path}`)
@@ -51,6 +71,43 @@ const expectJsonStatus = async (
   if (typeof payload.error !== 'string' || payload.error.length === 0) {
     throw new Error(`${path} did not return a JSON error payload`)
   }
+}
+
+const verifyWebSocket = async () => {
+  const socket = new WebSocket(wsUrl)
+
+  await withTimeout(
+    new Promise<void>((resolve, reject) => {
+      socket.once('open', () => resolve())
+      socket.once('error', reject)
+    }),
+    5000,
+    'WebSocket open',
+  )
+
+  socket.send(JSON.stringify({ type: 'subscribe', joinCode: 'SMOKE1' }))
+  await new Promise((resolve) => setTimeout(resolve, 150))
+
+  if (socket.readyState !== WebSocket.OPEN) {
+    throw new Error('WebSocket closed after valid subscribe')
+  }
+
+  socket.send('not-json')
+  const message = await withTimeout(
+    new Promise<string>((resolve, reject) => {
+      socket.once('message', (data) => resolve(data.toString()))
+      socket.once('error', reject)
+    }),
+    5000,
+    'WebSocket invalid-message response',
+  )
+
+  const payload = JSON.parse(message) as { type?: unknown; message?: unknown }
+  if (payload.type !== 'error' || typeof payload.message !== 'string') {
+    throw new Error('WebSocket did not return the expected error payload')
+  }
+
+  socket.close()
 }
 
 type HealthPayload = {
@@ -117,6 +174,9 @@ try {
   })
   await expectJsonStatus('/api/host/bootstrap', 401)
   pass('public/host API routes return expected JSON status responses')
+
+  await verifyWebSocket()
+  pass('public WebSocket endpoint accepts subscriptions and returns protocol errors')
 } catch (error) {
   fail(error instanceof Error ? error.message : 'smoke check failed')
 }

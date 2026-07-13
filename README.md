@@ -118,6 +118,7 @@ The smoke check verifies:
 - the built assets are reachable
 - public SPA deep links return the app shell, including `/play`, `/play/join/:joinCode`, `/host`, and `/host/live/:joinCode`
 - key API routes return JSON instead of falling through to HTML, including public player session/join errors and host auth gating
+- the public `/ws` WebSocket endpoint opens, accepts a session subscription message, and returns a protocol error for invalid messages
 
 ## Vercel note
 
