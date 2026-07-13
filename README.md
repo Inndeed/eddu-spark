@@ -97,13 +97,21 @@ Current production URL:
 
 - `https://eddu-spark-production.up.railway.app`
 
-Public smoke check after each deploy:
+Release verification:
+
+```bash
+npm run verify:release
+```
+
+This runs the product surface audit, production build, lint, and public smoke check in one pass.
+
+Public smoke check only:
 
 ```bash
 npm run smoke:public
 ```
 
-Product surface audit before deploy:
+Product surface audit only:
 
 ```bash
 npm run audit:product
