@@ -116,6 +116,7 @@ The smoke check verifies:
 - `APP_BASE_URL` matches the public URL
 - the landing page references built JS/CSS assets
 - the built assets are reachable
+- public SPA deep links return the app shell, including `/play`, `/play/join/:joinCode`, `/host`, and `/host/live/:joinCode`
 
 ## Vercel note
 

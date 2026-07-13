@@ -20,6 +20,8 @@ const requestText = async (path: string) => {
   return response.text()
 }
 
+const readLandingAssets = (html: string) => [...new Set(html.match(/assets\/index-[\w-]+\.(?:js|css)/g) ?? [])]
+
 const requestJson = async <T>(path: string) => {
   const response = await fetch(`${baseUrl}${path}`)
   if (!response.ok) {
@@ -50,8 +52,7 @@ try {
   }
 
   const html = await requestText('/')
-  const assetMatches = html.match(/assets\/index-[\w-]+\.(?:js|css)/g) ?? []
-  const assets = [...new Set(assetMatches)]
+  const assets = readLandingAssets(html)
 
   if (assets.length < 2) {
     fail('missing built JS/CSS assets on landing HTML')
@@ -68,6 +69,18 @@ try {
     }),
   )
   pass('built assets are reachable')
+
+  const deepLinkPaths = ['/play', '/play/join/SMOKE1', '/host', '/host/live/SMOKE1']
+  await Promise.all(
+    deepLinkPaths.map(async (path) => {
+      const routeHtml = await requestText(path)
+      const routeAssets = readLandingAssets(routeHtml)
+      if (routeAssets.length < 2) {
+        throw new Error(`${path} did not return the SPA shell`)
+      }
+    }),
+  )
+  pass(`SPA deep links return the app shell (${deepLinkPaths.join(', ')})`)
 } catch (error) {
   fail(error instanceof Error ? error.message : 'smoke check failed')
 }
