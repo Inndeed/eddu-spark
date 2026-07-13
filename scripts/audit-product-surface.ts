@@ -64,8 +64,12 @@ const hostLivePage = await readFile(path.join(rootDir, 'src/pages/HostLivePage.t
 const globalCss = await readFile(path.join(rootDir, 'src/index.css'), 'utf8')
 const serverIndex = await readFile(path.join(rootDir, 'server/index.ts'), 'utf8')
 const sessionStore = await readFile(path.join(rootDir, 'server/session-store.ts'), 'utf8')
+const clientJoinCode = await readFile(path.join(rootDir, 'src/lib/join-code.ts'), 'utf8')
+const clientLive = await readFile(path.join(rootDir, 'src/lib/live.ts'), 'utf8')
+const clientStorage = await readFile(path.join(rootDir, 'src/lib/storage.ts'), 'utf8')
 const playerJoinPage = await readFile(path.join(rootDir, 'src/pages/PlayerJoinPage.tsx'), 'utf8')
 const playerNamePage = await readFile(path.join(rootDir, 'src/pages/PlayerNamePage.tsx'), 'utf8')
+const playerSessionPage = await readFile(path.join(rootDir, 'src/pages/PlayerSessionPage.tsx'), 'utf8')
 
 const hostLiveLayoutChecks: Array<{ passed: boolean; label: string }> = [
   {
@@ -103,12 +107,17 @@ const productionReadinessChecks: Array<{ passed: boolean; label: string }> = [
 
 const joinCodeResilienceChecks: Array<{ passed: boolean; label: string }> = [
   {
-    passed: /replace\(\s*\/\[\^A-Z0-9\]\/g,\s*''\s*\)\.slice\(0,\s*6\)/.test(playerJoinPage),
-    label: 'Player code entry strips pasted spaces and separators before limiting to six characters',
+    passed: /export const normalizeJoinCode/.test(clientJoinCode) &&
+      /replace\(\s*\/\[\^A-Z0-9\]\/g,\s*''\s*\)\.slice\(0,\s*6\)/.test(clientJoinCode),
+    label: 'Client exposes shared join-code normalization for pasted spaces and separators',
   },
   {
     passed: !/maxLength=\{?6\}?/.test(playerJoinPage),
     label: 'Player code entry does not truncate pasted room codes before normalization',
+  },
+  {
+    passed: playerJoinPage.includes('setJoinCode(normalizeJoinCode(event.target.value))'),
+    label: 'Player code entry normalizes pasted input before storing it',
   },
   {
     passed: /export const normalizeJoinCode/.test(sessionStore) &&
@@ -121,8 +130,19 @@ const joinCodeResilienceChecks: Array<{ passed: boolean; label: string }> = [
     label: 'WebSocket and broadcast paths use normalized join codes',
   },
   {
-    passed: playerNamePage.includes('const normalizedJoinCode = normalizeJoinCodeInput(joinCode)'),
+    passed: playerNamePage.includes('const normalizedJoinCode = normalizeJoinCode(joinCode)'),
     label: 'Deep-link player name route normalizes join codes before API calls',
+  },
+  {
+    passed: playerSessionPage.includes('const normalizedJoinCode = normalizeJoinCode(joinCode ??') &&
+      playerSessionPage.includes('fetchPlayerSession(normalizedJoinCode, participantId)') &&
+      playerSessionPage.includes('submitAnswer(normalizedJoinCode, participantId, choiceId)'),
+    label: 'Player session route normalizes join codes before reconnect, fetch, and submit',
+  },
+  {
+    passed: clientStorage.includes('normalizeJoinCode(record.joinCode)') &&
+      clientLive.includes('const normalizedJoinCode = normalizeJoinCode(joinCode)'),
+    label: 'Client storage and live channel use normalized join-code keys',
   },
 ]
 

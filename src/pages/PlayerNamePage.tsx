@@ -4,15 +4,13 @@ import { Link, useNavigate, useParams } from 'react-router-dom'
 import { BrandLogo } from '../components/BrandLogo'
 import { joinSession } from '../lib/api'
 import { toLocalizedError } from '../lib/errors'
+import { normalizeJoinCode } from '../lib/join-code'
 import { getPlayerRecord, setPlayerRecord } from '../lib/storage'
-
-const normalizeJoinCodeInput = (value: string) =>
-  value.toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 6)
 
 export function PlayerNamePage() {
   const navigate = useNavigate()
   const { joinCode = '' } = useParams()
-  const normalizedJoinCode = normalizeJoinCodeInput(joinCode)
+  const normalizedJoinCode = normalizeJoinCode(joinCode)
   const remembered = useMemo(() => getPlayerRecord('recent') ?? null, [])
   const [displayName, setDisplayName] = useState(remembered?.displayName ?? '')
   const [loading, setLoading] = useState(false)

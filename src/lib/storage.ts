@@ -1,3 +1,5 @@
+import { normalizeJoinCode } from './join-code'
+
 const PLAYER_RECORDS_KEY = 'eddu.quiz.player-records'
 
 export interface PlayerRecord {
@@ -13,12 +15,16 @@ export const getPlayerRecord = (joinCode: string) => {
   }
 
   const parsed = JSON.parse(records) as Record<string, PlayerRecord>
-  return parsed[joinCode.toUpperCase()] ?? null
+  return parsed[normalizeJoinCode(joinCode)] ?? null
 }
 
 export const setPlayerRecord = (record: PlayerRecord) => {
   const records = localStorage.getItem(PLAYER_RECORDS_KEY)
   const parsed = records ? (JSON.parse(records) as Record<string, PlayerRecord>) : {}
-  parsed[record.joinCode.toUpperCase()] = record
+  const normalizedJoinCode = normalizeJoinCode(record.joinCode)
+  parsed[normalizedJoinCode] = {
+    ...record,
+    joinCode: normalizedJoinCode,
+  }
   localStorage.setItem(PLAYER_RECORDS_KEY, JSON.stringify(parsed))
 }

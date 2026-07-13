@@ -2,17 +2,15 @@ import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 
 import { BrandLogo } from '../components/BrandLogo'
-
-const normalizeJoinCodeInput = (value: string) =>
-  value.toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 6)
+import { isCompleteJoinCode, normalizeJoinCode } from '../lib/join-code'
 
 export function PlayerJoinPage() {
   const navigate = useNavigate()
   const [joinCode, setJoinCode] = useState('')
   const [error, setError] = useState<string | null>(null)
-  const normalizedCode = normalizeJoinCodeInput(joinCode)
+  const normalizedCode = normalizeJoinCode(joinCode)
   const codeCells = Array.from({ length: 6 }, (_, index) => normalizedCode[index] ?? '')
-  const isCodeComplete = normalizedCode.length === 6
+  const isCodeComplete = isCompleteJoinCode(normalizedCode)
 
   const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault()
@@ -50,7 +48,7 @@ export function PlayerJoinPage() {
               placeholder="A1B2C3"
               value={normalizedCode}
               onChange={(event) => {
-                setJoinCode(normalizeJoinCodeInput(event.target.value))
+                setJoinCode(normalizeJoinCode(event.target.value))
                 setError(null)
               }}
             />

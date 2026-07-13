@@ -5,6 +5,7 @@ import { BrandLogo } from '../components/BrandLogo'
 import { ChoiceGlyph } from '../components/ChoiceGlyph'
 import { fetchPlayerSession, submitAnswer } from '../lib/api'
 import { toLocalizedError } from '../lib/errors'
+import { normalizeJoinCode } from '../lib/join-code'
 import { useSessionChannel } from '../lib/live'
 import { getPlayerRecord, setPlayerRecord } from '../lib/storage'
 import type { PlayerSessionView } from '../lib/types'
@@ -13,10 +14,11 @@ const answerClassNames = ['answer-red', 'answer-orange', 'answer-yellow', 'answe
 
 export function PlayerSessionPage() {
   const { joinCode } = useParams()
+  const normalizedJoinCode = normalizeJoinCode(joinCode ?? '')
   const location = useLocation()
   const query = new URLSearchParams(location.search)
   const queryParticipantId = query.get('participantId')
-  const rememberedParticipantId = joinCode ? getPlayerRecord(joinCode)?.participantId : null
+  const rememberedParticipantId = normalizedJoinCode ? getPlayerRecord(normalizedJoinCode)?.participantId : null
   const participantId = queryParticipantId ?? rememberedParticipantId
 
   const [view, setView] = useState<PlayerSessionView | null>(null)
@@ -35,13 +37,13 @@ export function PlayerSessionPage() {
   const lockTimeoutRef = useRef<number | null>(null)
 
   const loadSession = useCallback(async () => {
-    if (!joinCode || !participantId) {
+    if (!normalizedJoinCode || !participantId) {
       setLoading(false)
       return
     }
 
     try {
-      const payload = await fetchPlayerSession(joinCode, participantId)
+      const payload = await fetchPlayerSession(normalizedJoinCode, participantId)
       setView(payload)
       if (payload.currentQuestion?.totalQuestions) {
         setKnownQuestionTotal(payload.currentQuestion.totalQuestions)
@@ -68,7 +70,7 @@ export function PlayerSessionPage() {
         setLockPreview(null)
       }
       setPlayerRecord({
-        joinCode,
+        joinCode: normalizedJoinCode,
         participantId,
         displayName: payload.participant.displayName,
       })
@@ -78,7 +80,7 @@ export function PlayerSessionPage() {
     } finally {
       setLoading(false)
     }
-  }, [joinCode, participantId])
+  }, [normalizedJoinCode, participantId])
 
   useEffect(() => {
     void loadSession()
@@ -92,10 +94,10 @@ export function PlayerSessionPage() {
     }
   }, [])
 
-  useSessionChannel(joinCode, loadSession)
+  useSessionChannel(normalizedJoinCode, loadSession)
 
   const handleSubmit = async (choiceId: string) => {
-    if (!joinCode || !participantId || !view?.currentQuestion) {
+    if (!normalizedJoinCode || !participantId || !view?.currentQuestion) {
       return
     }
 
@@ -122,7 +124,7 @@ export function PlayerSessionPage() {
     }, 260)
 
     try {
-      await submitAnswer(joinCode, participantId, choiceId)
+      await submitAnswer(normalizedJoinCode, participantId, choiceId)
       void loadSession()
     } catch (submitError) {
       setOptimisticSubmission(null)
@@ -133,7 +135,7 @@ export function PlayerSessionPage() {
     }
   }
 
-  if (!participantId || !joinCode) {
+  if (!participantId || !normalizedJoinCode) {
     return (
       <main className="player-live-shell">
         <section className="player-full-panel">
@@ -169,7 +171,7 @@ export function PlayerSessionPage() {
   const selectedChoiceIndex = selectedChoiceId
     ? view?.currentQuestion?.choiceIds.findIndex((choiceId) => choiceId === selectedChoiceId) ?? -1
     : -1
-  const codeCells = Array.from({ length: 6 }, (_, index) => joinCode[index] ?? '')
+  const codeCells = Array.from({ length: 6 }, (_, index) => normalizedJoinCode[index] ?? '')
   const totalQuestions = knownQuestionTotal
   const completedQuestions =
     view?.session.status === 'finished'

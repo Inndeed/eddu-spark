@@ -7,6 +7,8 @@ import {
   useState,
 } from 'react'
 
+import { normalizeJoinCode } from './join-code'
+
 export const useSessionChannel = (
   joinCode: string | null | undefined,
   onRefresh: () => void | Promise<void>,
@@ -22,6 +24,11 @@ export const useSessionChannel = (
       return
     }
 
+    const normalizedJoinCode = normalizeJoinCode(joinCode)
+    if (!normalizedJoinCode) {
+      return
+    }
+
     let cancelled = false
     let socket: WebSocket | null = null
     let reconnectTimeout: number | null = null
@@ -33,7 +40,7 @@ export const useSessionChannel = (
         socket?.send(
           JSON.stringify({
             type: 'subscribe',
-            joinCode,
+            joinCode: normalizedJoinCode,
           }),
         )
       })
