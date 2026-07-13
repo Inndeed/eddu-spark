@@ -153,6 +153,10 @@ EXPECTED_COMMIT_SHA=eac06ed npm run smoke:public
 Authenticated live smoke check:
 
 ```bash
+npm run check:live-smoke
+```
+
+```bash
 SMOKE_HOST_EMAIL=host@example.com \
 SMOKE_HOST_PASSWORD=... \
 SUPABASE_URL=... \
