@@ -85,7 +85,7 @@ const hostLiveLayoutChecks: Array<{ passed: boolean; label: string }> = [
     label: 'Host Live desktop layout reserves a compact left rail instead of a topbar',
   },
   {
-    passed: /grid-template-columns:\s*minmax\(420px,\s*1\.28fr\)\s+minmax\(320px,\s*0\.72fr\)/.test(globalCss),
+    passed: /grid-template-columns:\s*minmax\(460px,\s*1\.36fr\)\s+minmax\(300px,\s*0\.64fr\)/.test(globalCss),
     label: 'Reveal layout prioritizes the image area over secondary cards',
   },
   {

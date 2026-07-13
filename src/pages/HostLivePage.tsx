@@ -193,6 +193,9 @@ export function HostLivePage() {
     .map((index) => topFive[index])
     .filter((ranking): ranking is NonNullable<(typeof topFive)[number]> => Boolean(ranking))
   const podiumRemainder = topFive.filter((ranking) => ranking.rank > 3)
+  const ceremonyPlayers = [3, 2, 1]
+    .map((rank) => topFive.find((entry) => entry.rank === rank))
+    .filter((ranking): ranking is NonNullable<(typeof topFive)[number]> => Boolean(ranking))
   const participants = [...(view?.session.participants ?? [])].sort((left, right) =>
     left.joinedAt.localeCompare(right.joinedAt),
   )
@@ -213,17 +216,6 @@ export function HostLivePage() {
   const countdownRatio = currentQuestion
     ? Math.max(0, Math.min(1, countdown / Math.max(1, currentQuestion.timeLimitSec)))
     : 0
-  const winner = topFive[0] ?? null
-  const correctRevealChoice =
-    closedQuestion?.choices.find((choice) => choice.id === closedQuestion.correctChoiceId) ?? null
-  const revealSummaryCards =
-    closedQuestion && closedQuestionStats
-      ? [
-          { label: 'ถูก', value: percentLabel(closedQuestionStats.accuracyRate) },
-          { label: 'เหลือ', value: String(remainingQuestions) },
-          { label: 'ตอบแล้ว', value: String(closedQuestionStats.totalSubmissions) },
-        ]
-      : []
 
   return (
     <main className="app-shell host-live-shell host-live-shell-immersive">
@@ -380,21 +372,8 @@ export function HostLivePage() {
                   <h2>
                     {view!.session.lastClosedQuestionIndex! + 1}/{view!.quizSet.questions.length}
                   </h2>
-                  {correctRevealChoice ? (
-                    <div className="reveal-spotlight stage-animate-in">
-                      <div className={`reveal-spotlight-glyph ${answerClassNames[closedQuestion.choices.findIndex((choice) => choice.id === correctRevealChoice.id)]}`}>
-                        <ChoiceGlyph index={closedQuestion.choices.findIndex((choice) => choice.id === correctRevealChoice.id)} />
-                      </div>
-                      <div className="reveal-spotlight-copy">
-                        <span className="eyebrow">ถูก</span>
-                      </div>
-                    </div>
-                  ) : null}
                 </div>
                 <div className="reveal-stage-header-actions">
-                  <div className="stage-progress-pill">
-                    เหลือ {remainingQuestions} ข้อ
-                  </div>
                   <button
                     className="button button-primary"
                     disabled={workingAction === 'show_leaderboard'}
@@ -438,6 +417,7 @@ export function HostLivePage() {
                       (item) => item.choiceId === choice.id,
                     )
                     const isCorrect = closedQuestion.correctChoiceId === choice.id
+                    const voteCount = distributionItem?.count ?? 0
 
                     return (
                       <div
@@ -452,25 +432,24 @@ export function HostLivePage() {
                           <strong>{choice.text}</strong>
                         </div>
                         <div className="answer-card-status">
-                          <span className={`pill ${isCorrect ? 'pill-success pill-correct-answer' : ''}`.trim()}>
-                            {isCorrect ? 'คำตอบที่ถูก' : `${distributionItem?.count ?? 0} โหวต`}
+                          <span className={`pill ${isCorrect ? 'pill-success pill-correct-answer' : 'pill-vote-count'}`.trim()}>
+                            {isCorrect ? 'คำตอบที่ถูก' : `${voteCount} โหวต`}
                           </span>
                         </div>
                         <div className="distribution-bar distribution-bar-answer">
                           <span
                             style={{
                               width: `${Math.round(
-                                ((distributionItem?.count ?? 0) / Math.max(1, closedQuestionStats.totalSubmissions)) * 100,
+                                (voteCount / Math.max(1, closedQuestionStats.totalSubmissions)) * 100,
                               )}%`,
                             }}
                           />
                         </div>
                         <div className="answer-stat-row">
-                          <span>{distributionItem?.count ?? 0} โหวต</span>
+                          <span>{voteCount} โหวต</span>
                           <span>
                             {percentLabel(
-                              (distributionItem?.count ?? 0) /
-                                Math.max(1, closedQuestionStats.totalSubmissions),
+                              voteCount / Math.max(1, closedQuestionStats.totalSubmissions),
                             )}
                           </span>
                         </div>
@@ -503,20 +482,9 @@ export function HostLivePage() {
                   </button>
                 </div>
               </div>
-              {winner ? (
-                <div className="leaderboard-winner-banner">
-                  <span className="eyebrow">นำอยู่</span>
-                  <strong>{winner.displayName}</strong>
-                  <div className="leaderboard-meta">
-                    <span>{winner.score} คะแนน</span>
-                    {winner.currentStreak >= 2 ? <span className="pill pill-streak">Hot {winner.currentStreak}</span> : null}
-                  </div>
-                </div>
-              ) : null}
-
-              <div className="leaderboard-stage-grid">
+              <div className="leaderboard-stage-grid leaderboard-stage-grid-single">
                 {topFive.length > 0 ? (
-                  <>
+                  <section className="leaderboard-summary-panel">
                     <div className="leaderboard-podium">
                       {podiumPlayers.map((ranking) => (
                         <article
@@ -538,55 +506,31 @@ export function HostLivePage() {
                       ))}
                     </div>
 
-                    {podiumRemainder.length > 0 ? (
-                      <div className="rank-list">
-                        {podiumRemainder.map((ranking, index) => (
-                          <div
-                            className="rank-row rank-row-highlight rank-row-enter"
-                            key={ranking.participantId}
-                            style={{ animationDelay: `${260 + index * 70}ms` }}
-                          >
-                            <span>#{ranking.rank}</span>
-                            <strong>{ranking.displayName}</strong>
-                            <div className="rank-row-meta">
-                              {ranking.currentStreak >= 2 ? (
-                                <span className="pill pill-streak">Hot {ranking.currentStreak}</span>
-                              ) : null}
-                              <span>{ranking.score}</span>
-                            </div>
+                    <div className="rank-list rank-list-top-five">
+                      {podiumRemainder.map((ranking, index) => (
+                        <div
+                          className="rank-row rank-row-highlight rank-row-enter"
+                          key={ranking.participantId}
+                          style={{ animationDelay: `${260 + index * 70}ms` }}
+                        >
+                          <span>#{ranking.rank}</span>
+                          <strong>{ranking.displayName}</strong>
+                          <div className="rank-row-meta">
+                            {ranking.currentStreak >= 2 ? (
+                              <span className="pill pill-streak">Hot {ranking.currentStreak}</span>
+                            ) : null}
+                            <span>{ranking.score}</span>
                           </div>
-                        ))}
-                      </div>
-                    ) : null}
-                  </>
+                        </div>
+                      ))}
+                    </div>
+                  </section>
                 ) : (
                   <section className="host-panel side-panel-card embedded-panel embedded-panel-compact">
                     <p className="side-note">ยังไม่มีคะแนน</p>
                   </section>
                 )}
-
-                {revealSummaryCards.length > 0 ? (
-                  <section className="host-panel side-panel-card embedded-panel embedded-panel-compact">
-                    <div className="panel-header">
-                      <span className="eyebrow">รอบนี้</span>
-                      <h2>หลังข้อนี้</h2>
-                    </div>
-                    <div className="summary-grid summary-grid-tight">
-                      {revealSummaryCards.map((card, index) => (
-                        <article
-                          className="summary-card summary-card-enter"
-                          key={card.label}
-                          style={{ animationDelay: `${260 + index * 60}ms` }}
-                        >
-                          <strong>{card.label}</strong>
-                          <p>{card.value}</p>
-                        </article>
-                      ))}
-                    </div>
-                  </section>
-                ) : null}
               </div>
-
             </div>
           ) : null}
 
@@ -602,77 +546,73 @@ export function HostLivePage() {
                 </Link>
               </div>
 
-              <div className="post-question-grid final-stage-grid">
-                <section className="host-panel side-panel-card embedded-panel">
-                  <div className="panel-header">
-                    <span className="eyebrow">อันดับ</span>
-                    <h2>Top 5</h2>
-                  </div>
-                  {topFive.length > 0 ? (
-                    <>
-                      <div className="leaderboard-podium leaderboard-podium-final">
-                        {podiumPlayers.map((ranking) => (
-                          <article
-                            className={`leaderboard-card leaderboard-card-podium leaderboard-card-enter leaderboard-card-rank-${ranking.rank} ${
-                              ranking.rank === 1 ? 'leaderboard-card-winner' : ''
+              <div className="final-ceremony-stage">
+                {topFive.length > 0 ? (
+                  <>
+                    <div className={`ceremony-podium ceremony-podium-${ceremonyPlayers.length}`.trim()}>
+                      {ceremonyPlayers.map((ranking, index) => (
+                        <article
+                          className={`ceremony-card ceremony-card-rank-${ranking.rank} ceremony-card-enter ${
+                            ranking.rank === 1 ? 'ceremony-card-champion' : ''
+                          }`.trim()}
+                          key={ranking.participantId}
+                          style={{ animationDelay: `${index * 520}ms` }}
+                        >
+                          {ranking.rank === 1 ? (
+                            <div className="ceremony-confetti" aria-hidden="true">
+                              <span />
+                              <span />
+                              <span />
+                              <span />
+                              <span />
+                              <span />
+                            </div>
+                          ) : null}
+                          <span className="ceremony-rank">#{ranking.rank}</span>
+                          <strong>{ranking.displayName}</strong>
+                          <div className="ceremony-meta">
+                            <span>{ranking.score} คะแนน</span>
+                            {ranking.currentStreak >= 2 ? (
+                              <span className="pill pill-streak">Hot {ranking.currentStreak}</span>
+                            ) : null}
+                          </div>
+                          {ranking.rank === 1 ? <span className="ceremony-champion-label">Champion</span> : null}
+                        </article>
+                      ))}
+                    </div>
+
+                    <section className="final-top-five-list">
+                      <div className="panel-header">
+                        <span className="eyebrow">อันดับ</span>
+                        <h2>Top 5</h2>
+                      </div>
+                      <div className="rank-list rank-list-top-five">
+                        {topFive.map((ranking, index) => (
+                          <div
+                            className={`rank-row rank-row-highlight rank-row-enter ${
+                              ranking.rank === 1 ? 'rank-row-winner' : ''
                             }`.trim()}
                             key={ranking.participantId}
-                            style={{ animationDelay: `${(ranking.rank - 1) * 90}ms` }}
+                            style={{ animationDelay: `${220 + index * 80}ms` }}
                           >
-                            <span className="leaderboard-rank">#{ranking.rank}</span>
+                            <span>#{ranking.rank}</span>
                             <strong>{ranking.displayName}</strong>
-                            <div className="leaderboard-meta">
-                              <span>{ranking.score} คะแนน</span>
-                            </div>
-                          </article>
-                        ))}
-                      </div>
-
-                      {podiumRemainder.length > 0 ? (
-                        <div className="rank-list">
-                          {podiumRemainder.map((ranking, index) => (
-                            <div
-                              className="rank-row rank-row-highlight rank-row-enter"
-                              key={ranking.participantId}
-                              style={{ animationDelay: `${260 + index * 70}ms` }}
-                            >
-                              <span>#{ranking.rank}</span>
-                              <strong>{ranking.displayName}</strong>
+                            <div className="rank-row-meta">
+                              {ranking.currentStreak >= 2 ? (
+                                <span className="pill pill-streak">Hot {ranking.currentStreak}</span>
+                              ) : null}
                               <span>{ranking.score}</span>
                             </div>
-                          ))}
-                        </div>
-                      ) : null}
-                    </>
-                  ) : (
+                          </div>
+                        ))}
+                      </div>
+                    </section>
+                  </>
+                ) : (
+                  <section className="host-panel side-panel-card embedded-panel embedded-panel-compact">
                     <p className="side-note">ยังไม่มีคะแนน</p>
-                  )}
-                </section>
-
-                <section className="host-panel side-panel-card embedded-panel">
-                  <div className="panel-header">
-                    <span className="eyebrow">สรุป</span>
-                    <h2>ภาพรวม</h2>
-                  </div>
-                  <div className="summary-grid">
-                    <article className="summary-card summary-card-enter" style={{ animationDelay: '60ms' }}>
-                      <strong>ผู้เล่น</strong>
-                      <p>{view?.summary.totalParticipants ?? 0}</p>
-                    </article>
-                    <article className="summary-card summary-card-enter" style={{ animationDelay: '120ms' }}>
-                      <strong>ยากสุด</strong>
-                      <p>{view?.summary.hardestQuestion ?? '-'}</p>
-                    </article>
-                    <article className="summary-card summary-card-enter" style={{ animationDelay: '180ms' }}>
-                      <strong>เด่นสุด</strong>
-                      <p>{view?.summary.strongestTopic ?? '-'}</p>
-                    </article>
-                    <article className="summary-card summary-card-enter" style={{ animationDelay: '240ms' }}>
-                      <strong>อ่อนสุด</strong>
-                      <p>{view?.summary.weakestTopic ?? '-'}</p>
-                    </article>
-                  </div>
-                </section>
+                  </section>
+                )}
               </div>
               </div>
             ) : null}
