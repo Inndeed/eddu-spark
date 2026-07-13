@@ -6,10 +6,13 @@ import { joinSession } from '../lib/api'
 import { toLocalizedError } from '../lib/errors'
 import { getPlayerRecord, setPlayerRecord } from '../lib/storage'
 
+const normalizeJoinCodeInput = (value: string) =>
+  value.toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 6)
+
 export function PlayerNamePage() {
   const navigate = useNavigate()
   const { joinCode = '' } = useParams()
-  const normalizedJoinCode = joinCode.toUpperCase()
+  const normalizedJoinCode = normalizeJoinCodeInput(joinCode)
   const remembered = useMemo(() => getPlayerRecord('recent') ?? null, [])
   const [displayName, setDisplayName] = useState(remembered?.displayName ?? '')
   const [loading, setLoading] = useState(false)

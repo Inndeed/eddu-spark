@@ -95,6 +95,8 @@ interface SubmissionRow {
 const nowIso = () => new Date().toISOString()
 const clone = <T>(value: T): T => JSON.parse(JSON.stringify(value)) as T
 const normalizeText = (value: string) => value.trim().replace(/\s+/g, ' ')
+export const normalizeJoinCode = (value: string) =>
+  value.toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 6)
 const normalizeImageReference = (value: string | null | undefined) => value?.trim() || null
 const isExternalImageUrl = (value: string) => /^https?:\/\//i.test(value)
 const toId = () => randomUUID()
@@ -872,10 +874,11 @@ export class SessionStore {
   }
 
   private async loadSessionByJoinCode(joinCode: string) {
+    const normalizedJoinCode = normalizeJoinCode(joinCode)
     const { data: sessionRows, error } = await this.supabase
       .from('live_sessions')
       .select('*')
-      .eq('join_code', joinCode.toUpperCase())
+      .eq('join_code', normalizedJoinCode)
       .limit(1)
 
     if (error) {

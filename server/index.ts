@@ -5,7 +5,7 @@ import express from 'express'
 import { WebSocket, WebSocketServer } from 'ws'
 
 import type { QuizSet } from '../src/lib/types.js'
-import { SessionStore } from './session-store.js'
+import { normalizeJoinCode, SessionStore } from './session-store.js'
 import {
   createServerAuthClient,
   createServerSupabaseClient,
@@ -50,9 +50,10 @@ const wss = new WebSocketServer({ server, path: '/ws' })
 const isProduction = process.env.NODE_ENV === 'production'
 
 const broadcastSession = (joinCode: string) => {
+  const normalizedJoinCode = normalizeJoinCode(joinCode)
   const payload = JSON.stringify({
     type: 'session_updated',
-    joinCode,
+    joinCode: normalizedJoinCode,
     at: new Date().toISOString(),
   })
 
@@ -60,7 +61,7 @@ const broadcastSession = (joinCode: string) => {
     const socket = client as SocketWithChannels
     if (
       client.readyState === WebSocket.OPEN &&
-      socket.channels?.has(`session:${joinCode}`)
+      socket.channels?.has(`session:${normalizedJoinCode}`)
     ) {
       client.send(payload)
     }
@@ -256,7 +257,7 @@ app.get('/api/host/sessions/:joinCode', requireHostAuth, async (request, respons
   }
 
   try {
-    const view = await store.buildHostView(String(request.params.joinCode))
+    const view = await store.buildHostView(normalizeJoinCode(String(request.params.joinCode)))
     response.json(view)
   } catch (error) {
     handleError(response, error)
@@ -274,7 +275,7 @@ app.post(
 
     try {
       const session = await store.applyHostAction(
-        String(request.params.joinCode),
+        normalizeJoinCode(String(request.params.joinCode)),
         String(request.body?.action ?? ''),
       )
       broadcastSession(session.joinCode)
@@ -292,7 +293,7 @@ app.post('/api/play/join', async (request, response) => {
   }
 
   try {
-    const joinCode = String(request.body?.joinCode ?? '').toUpperCase()
+    const joinCode = normalizeJoinCode(String(request.body?.joinCode ?? ''))
     const displayName = String(request.body?.displayName ?? '')
     const participant = await store.joinPlayer(joinCode, displayName)
     broadcastSession(joinCode)
@@ -311,7 +312,7 @@ app.get('/api/play/sessions/:joinCode', async (request, response) => {
   try {
     const participantId = String(request.query.participantId ?? '')
     const view = await store.buildPlayerView(
-      String(request.params.joinCode),
+      normalizeJoinCode(String(request.params.joinCode)),
       participantId,
     )
     response.json(view)
@@ -329,12 +330,13 @@ app.post('/api/play/sessions/:joinCode/submit', async (request, response) => {
   try {
     const participantId = String(request.body?.participantId ?? '')
     const selectedChoiceId = String(request.body?.selectedChoiceId ?? '')
+    const joinCode = normalizeJoinCode(String(request.params.joinCode))
     const submission = await store.submitAnswer(
-      String(request.params.joinCode),
+      joinCode,
       participantId,
       selectedChoiceId,
     )
-    broadcastSession(String(request.params.joinCode).toUpperCase())
+    broadcastSession(joinCode)
     response.json(submission)
   } catch (error) {
     handleError(response, error)
@@ -352,7 +354,7 @@ wss.on('connection', (socket: SocketWithChannels) => {
       }
 
       if (message.type === 'subscribe' && message.joinCode) {
-        socket.channels?.add(`session:${message.joinCode.toUpperCase()}`)
+        socket.channels?.add(`session:${normalizeJoinCode(message.joinCode)}`)
       }
     } catch {
       socket.send(JSON.stringify({ type: 'error', message: 'Invalid message' }))

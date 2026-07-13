@@ -3,11 +3,14 @@ import { Link, useNavigate } from 'react-router-dom'
 
 import { BrandLogo } from '../components/BrandLogo'
 
+const normalizeJoinCodeInput = (value: string) =>
+  value.toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 6)
+
 export function PlayerJoinPage() {
   const navigate = useNavigate()
   const [joinCode, setJoinCode] = useState('')
   const [error, setError] = useState<string | null>(null)
-  const normalizedCode = joinCode.trim().toUpperCase().slice(0, 6)
+  const normalizedCode = normalizeJoinCodeInput(joinCode)
   const codeCells = Array.from({ length: 6 }, (_, index) => normalizedCode[index] ?? '')
   const isCodeComplete = normalizedCode.length === 6
 
@@ -44,11 +47,10 @@ export function PlayerJoinPage() {
               autoComplete="off"
               autoFocus
               inputMode="text"
-              maxLength={6}
               placeholder="A1B2C3"
               value={normalizedCode}
               onChange={(event) => {
-                setJoinCode(event.target.value.toUpperCase())
+                setJoinCode(normalizeJoinCodeInput(event.target.value))
                 setError(null)
               }}
             />
