@@ -3,6 +3,7 @@ import { WebSocket } from 'ws'
 
 import type { HostSessionView, PlayerSessionView, QuizSet } from '../src/lib/types.js'
 import './load-env.js'
+import { discoverPublicSupabaseConfig } from './public-supabase-config.js'
 
 const DEFAULT_BASE_URL = 'https://eddu-spark-production.up.railway.app'
 
@@ -14,6 +15,18 @@ const smokeHostEmail = process.env.SMOKE_HOST_EMAIL ?? ''
 const smokeHostPassword = process.env.SMOKE_HOST_PASSWORD ?? ''
 const requestedQuizSetId = process.env.SMOKE_QUIZ_SET_ID ?? ''
 const shouldCheckCapacity = /^(1|true|yes)$/i.test(process.env.SMOKE_CAPACITY_CHECK ?? '')
+
+const resolveSupabasePublicConfig = async () => {
+  if (supabaseUrl && supabaseAnonKey) {
+    return {
+      anonKey: supabaseAnonKey,
+      source: 'env',
+      url: supabaseUrl,
+    }
+  }
+
+  return discoverPublicSupabaseConfig(baseUrl)
+}
 
 const fail = (message: string) => {
   console.error(`FAIL ${message}`)
@@ -143,12 +156,12 @@ const waitForSessionUpdate = async (socket: WebSocket, label: string) => {
 }
 
 const signInHost = async () => {
-  requireEnv(supabaseUrl, 'SUPABASE_URL or VITE_SUPABASE_URL')
-  requireEnv(supabaseAnonKey, 'SUPABASE_ANON_KEY or VITE_SUPABASE_ANON_KEY')
+  const supabaseConfig = await resolveSupabasePublicConfig()
   requireEnv(smokeHostEmail, 'SMOKE_HOST_EMAIL')
   requireEnv(smokeHostPassword, 'SMOKE_HOST_PASSWORD')
+  pass(`Supabase public config resolved from ${supabaseConfig.source}`)
 
-  const client = createClient(supabaseUrl, supabaseAnonKey, {
+  const client = createClient(supabaseConfig.url, supabaseConfig.anonKey, {
     auth: {
       autoRefreshToken: false,
       persistSession: false,

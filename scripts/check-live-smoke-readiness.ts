@@ -1,20 +1,30 @@
 import './load-env.js'
+import { discoverPublicSupabaseConfig } from './public-supabase-config.js'
 
 const DEFAULT_BASE_URL = 'https://eddu-spark-production.up.railway.app'
 
 const baseUrl = (process.argv[2] || process.env.APP_BASE_URL || DEFAULT_BASE_URL).replace(/\/$/, '')
 
-const supabaseUrl = process.env.SUPABASE_URL ?? process.env.VITE_SUPABASE_URL ?? ''
-const supabaseAnonKey = process.env.SUPABASE_ANON_KEY ?? process.env.VITE_SUPABASE_ANON_KEY ?? ''
+const envSupabaseUrl = process.env.SUPABASE_URL ?? process.env.VITE_SUPABASE_URL ?? ''
+const envSupabaseAnonKey = process.env.SUPABASE_ANON_KEY ?? process.env.VITE_SUPABASE_ANON_KEY ?? ''
+const discoveredSupabaseConfig =
+  envSupabaseUrl && envSupabaseAnonKey
+    ? null
+    : await discoverPublicSupabaseConfig(baseUrl).catch(() => null)
+const hasSupabasePublicConfig = Boolean(
+  (envSupabaseUrl && envSupabaseAnonKey) || discoveredSupabaseConfig,
+)
+const supabasePublicConfigSource =
+  envSupabaseUrl && envSupabaseAnonKey
+    ? 'env'
+    : discoveredSupabaseConfig
+      ? discoveredSupabaseConfig.source
+      : 'missing'
 
 const requiredEnv = [
   {
-    label: 'SUPABASE_URL or VITE_SUPABASE_URL',
-    present: Boolean(supabaseUrl),
-  },
-  {
-    label: 'SUPABASE_ANON_KEY or VITE_SUPABASE_ANON_KEY',
-    present: Boolean(supabaseAnonKey),
+    label: 'Supabase public config from env or deployed asset',
+    present: hasSupabasePublicConfig,
   },
   {
     label: 'SMOKE_HOST_EMAIL',
@@ -35,6 +45,7 @@ const optionalEnv = [
 const maskStatus = (key: string) => (process.env[key] ? 'set' : 'missing')
 
 console.log(`Checking live smoke readiness for ${baseUrl}`)
+console.log(`Supabase public config source: ${supabasePublicConfigSource}`)
 
 requiredEnv.forEach((item) => {
   console.log(`${item.label}: ${item.present ? 'set' : 'missing'}`)
