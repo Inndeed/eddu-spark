@@ -12,6 +12,7 @@ const supabaseAnonKey = process.env.SUPABASE_ANON_KEY ?? process.env.VITE_SUPABA
 const smokeHostEmail = process.env.SMOKE_HOST_EMAIL ?? ''
 const smokeHostPassword = process.env.SMOKE_HOST_PASSWORD ?? ''
 const requestedQuizSetId = process.env.SMOKE_QUIZ_SET_ID ?? ''
+const shouldCheckCapacity = /^(1|true|yes)$/i.test(process.env.SMOKE_CAPACITY_CHECK ?? '')
 
 const fail = (message: string) => {
   console.error(`FAIL ${message}`)
@@ -199,6 +200,76 @@ type JoinPayload = {
   joinCode: string
 }
 
+const launchQuizSession = (quizSetId: string, token: string) =>
+  requestJson<LaunchSessionPayload>(
+    '/api/sessions',
+    {
+      method: 'POST',
+      body: JSON.stringify({ quizSetId }),
+    },
+    token,
+  )
+
+const finishSession = (sessionJoinCode: string, token: string) =>
+  requestJson(
+    `/api/host/sessions/${sessionJoinCode}/actions`,
+    {
+      method: 'POST',
+      body: JSON.stringify({ action: 'finish' }),
+    },
+    token,
+  )
+
+const joinSmokePlayer = (sessionJoinCode: string, displayName: string) =>
+  requestJson<JoinPayload>('/api/play/join', {
+    method: 'POST',
+    body: JSON.stringify({ joinCode: sessionJoinCode, displayName }),
+  })
+
+const runCapacityCheck = async (quizSetId: string, token: string) => {
+  let capacityJoinCode: string | null = null
+
+  try {
+    const capacitySession = await launchQuizSession(quizSetId, token)
+    capacityJoinCode = capacitySession.joinCode
+    const nameSeed = `Smoke Capacity ${Date.now().toString(36)}`
+
+    for (let start = 0; start < 100; start += 10) {
+      await Promise.all(
+        Array.from({ length: 10 }, (_, index) =>
+          joinSmokePlayer(capacityJoinCode!, `${nameSeed} ${start + index + 1}`),
+        ),
+      )
+    }
+
+    const capacityView = await requestJson<HostSessionView>(
+      `/api/host/sessions/${capacityJoinCode}`,
+      undefined,
+      token,
+    )
+
+    if (capacityView.session.participants.length !== 100) {
+      throw new Error(`Capacity room has ${capacityView.session.participants.length} players, expected 100`)
+    }
+
+    await expectJsonError(
+      '/api/play/join',
+      409,
+      /เต็ม|full|100/i,
+      {
+        method: 'POST',
+        body: JSON.stringify({ joinCode: capacityJoinCode, displayName: `${nameSeed} 101` }),
+      },
+    )
+
+    pass('room capacity accepts 100 players and rejects player 101')
+  } finally {
+    if (capacityJoinCode) {
+      await finishSession(capacityJoinCode, token).catch(() => null)
+    }
+  }
+}
+
 let joinCode: string | null = null
 let hostToken: string | null = null
 
@@ -210,14 +281,13 @@ try {
   const quizSet = pickQuizSet(bootstrap.quizSets)
   pass(`host library loaded quiz "${quizSet.title}"`)
 
-  const launchedSession = await requestJson<LaunchSessionPayload>(
-    '/api/sessions',
-    {
-      method: 'POST',
-      body: JSON.stringify({ quizSetId: quizSet.id }),
-    },
-    hostToken,
-  )
+  if (shouldCheckCapacity) {
+    await runCapacityCheck(quizSet.id, hostToken)
+  } else {
+    pass('room capacity check skipped; set SMOKE_CAPACITY_CHECK=true to run it')
+  }
+
+  const launchedSession = await launchQuizSession(quizSet.id, hostToken)
   joinCode = launchedSession.joinCode
   pass(`host launched room ${joinCode}`)
 
@@ -225,10 +295,7 @@ try {
   pass('WebSocket subscribed to the live room')
 
   const playerName = `Smoke ${Date.now().toString(36)}`
-  const joinedPlayer = await requestJson<JoinPayload>('/api/play/join', {
-    method: 'POST',
-    body: JSON.stringify({ joinCode, displayName: playerName }),
-  })
+  const joinedPlayer = await joinSmokePlayer(joinCode, playerName)
   await waitForSessionUpdate(socket, 'player join broadcast')
   pass('first player joined with name-only public flow')
 
@@ -244,10 +311,7 @@ try {
   pass('duplicate player names are rejected')
 
   const secondPlayerName = `${playerName} B`
-  const joinedSecondPlayer = await requestJson<JoinPayload>('/api/play/join', {
-    method: 'POST',
-    body: JSON.stringify({ joinCode, displayName: secondPlayerName }),
-  })
+  const joinedSecondPlayer = await joinSmokePlayer(joinCode, secondPlayerName)
   await waitForSessionUpdate(socket, 'second player join broadcast')
   pass('second player joined the same room')
 
@@ -354,14 +418,7 @@ try {
   }
   pass('leaderboard shows player rankings')
 
-  await requestJson(
-    `/api/host/sessions/${joinCode}/actions`,
-    {
-      method: 'POST',
-      body: JSON.stringify({ action: 'finish' }),
-    },
-    hostToken,
-  )
+  await finishSession(joinCode, hostToken)
   await waitForSessionUpdate(socket, 'finish broadcast')
   socket.close()
 
@@ -376,13 +433,6 @@ try {
   fail(error instanceof Error ? error.message : 'live smoke check failed')
 } finally {
   if (joinCode && hostToken) {
-    await requestJson(
-      `/api/host/sessions/${joinCode}/actions`,
-      {
-        method: 'POST',
-        body: JSON.stringify({ action: 'finish' }),
-      },
-      hostToken,
-    ).catch(() => null)
+    await finishSession(joinCode, hostToken).catch(() => null)
   }
 }
