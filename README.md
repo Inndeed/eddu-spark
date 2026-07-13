@@ -93,6 +93,30 @@ The production service uses:
 - `npm run start` as the start command
 - `/api/health` as the health check path
 
+Current production URL:
+
+- `https://eddu-spark-production.up.railway.app`
+
+Public smoke check after each deploy:
+
+```bash
+npm run smoke:public
+```
+
+To check a different deployment URL:
+
+```bash
+npm run smoke:public -- https://your-railway-domain.up.railway.app
+```
+
+The smoke check verifies:
+
+- `/api/health` returns `status: ok`
+- the server is running in Supabase-backed mode
+- `APP_BASE_URL` matches the public URL
+- the landing page references built JS/CSS assets
+- the built assets are reachable
+
 ## Vercel note
 
 Vercel is useful here as a secondary helper for previews or future refactors, but the intended v1 production shape remains Railway-first because the app depends on a long-running live session engine plus WebSocket fanout.
@@ -121,7 +145,7 @@ Vercel is useful here as a secondary helper for previews or future refactors, bu
 - Host APIs require a valid Supabase session plus a matching active row in `public.host_users`.
 - Player flow remains account-free and uses `code -> name -> play`.
 - The Node server remains the authoritative source for timers, scoring, and session progression.
-- This build is prepared for internet deployment, but it still requires real Supabase and Railway credentials before it can be launched publicly.
+- The app is designed to run publicly as one Railway service. Full host/player game verification still requires a real host account and a live session, while `npm run smoke:public` covers public health and asset rollout.
 
 ## Production checklist
 
