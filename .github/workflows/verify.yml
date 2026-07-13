@@ -23,6 +23,14 @@ on:
         options:
           - "false"
           - "true"
+      run_supabase_check:
+        description: Run the Supabase schema and Storage readiness check
+        required: false
+        default: "false"
+        type: choice
+        options:
+          - "false"
+          - "true"
       run_capacity_check:
         description: Include the optional 100-player room capacity check in live smoke
         required: false
@@ -90,6 +98,30 @@ jobs:
         env:
           EXPECTED_COMMIT_SHA: ${{ inputs.expected_commit_sha }}
         run: npm run smoke:public -- "${{ inputs.public_base_url }}"
+
+  supabase-readiness:
+    name: Supabase readiness
+    if: github.event_name == 'workflow_dispatch' && inputs.run_supabase_check == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install
+        run: npm ci
+
+      - name: Check Supabase schema and Storage
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+        run: npm run check:supabase
 
   live-smoke:
     name: Authenticated live smoke
