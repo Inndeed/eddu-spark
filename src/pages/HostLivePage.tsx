@@ -227,11 +227,11 @@ export function HostLivePage() {
 
   return (
     <main className="app-shell host-live-shell host-live-shell-immersive">
-      <aside className="host-topbar host-live-rail">
+      <aside className="host-live-rail" aria-label="Host controls">
         <BrandLogo compact to="/host" />
         <div className="header-actions host-live-rail-actions">
           <button className="button button-ghost" onClick={() => void toggleFullscreen()} type="button">
-            {fullscreenActive ? 'ย่อจอ' : 'เต็มจอ'}
+            {fullscreenActive ? 'ย่อ' : 'เต็มจอ'}
           </button>
           <SoundToggle muted={muted} onToggle={toggleMuted} />
           <button className="button button-ghost" onClick={() => void signOutHostSession()} type="button">

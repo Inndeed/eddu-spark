@@ -860,29 +860,31 @@ label {
 .host-live-shell-immersive {
   width: min(100%, calc(100% - 18px));
   min-height: 100dvh;
-  padding: 9px 0;
-  grid-template-columns: 96px minmax(0, 1fr);
+  padding: 8px 0;
+  grid-template-columns: 78px minmax(0, 1fr);
   align-items: stretch;
-  gap: 10px;
+  gap: 8px;
 }
 
 .host-live-main {
   display: grid;
   gap: 8px;
   min-width: 0;
-  min-height: calc(100dvh - 18px);
+  min-height: calc(100dvh - 16px);
 }
 
 .host-live-rail {
   display: grid;
-  align-content: start;
+  align-content: space-between;
   justify-items: stretch;
-  gap: 10px;
-  padding: 10px 8px;
+  gap: 8px;
+  padding: 8px 6px;
   position: sticky;
-  top: 9px;
-  min-height: calc(100dvh - 18px);
-  border-radius: 22px;
+  top: 8px;
+  min-height: calc(100dvh - 16px);
+  border-radius: 20px;
+  background: rgba(23, 20, 16, 0.9);
+  border: 1px solid rgba(255, 247, 232, 0.08);
 }
 
 .host-live-rail .brand-logo {
@@ -891,26 +893,46 @@ label {
 
 .host-live-rail .brand-logo-badge {
   width: 100%;
-  min-height: 56px;
-  padding: 0.48rem 0.38rem;
-  border-radius: 18px;
+  min-height: 46px;
+  padding: 0.4rem 0.28rem;
+  border-radius: 15px;
+}
+
+.host-live-rail .brand-mark {
+  width: 100%;
+  padding: 0.42rem 0.24rem;
+  border-radius: 15px;
+}
+
+.host-live-rail .brand-logo img {
+  width: 100%;
+  min-width: 0;
 }
 
 .host-live-rail-actions {
   flex-direction: column;
   align-items: stretch;
-  gap: 8px;
+  gap: 6px;
 }
 
 .host-live-rail-actions .button,
 .host-live-rail-actions .sound-toggle {
   width: 100%;
   justify-content: center;
-  min-height: 38px;
-  padding: 0.5rem 0.42rem;
-  border-radius: 14px;
-  font-size: 0.72rem;
+  min-height: 34px;
+  padding: 0.42rem 0.3rem;
+  border-radius: 13px;
+  font-size: 0.66rem;
   line-height: 1.05;
+}
+
+.host-live-rail-actions .sound-toggle {
+  gap: 4px;
+}
+
+.host-live-rail-actions .sound-toggle-dot {
+  width: 8px;
+  height: 8px;
 }
 
 .host-live-shell-state {
@@ -940,7 +962,7 @@ label {
 }
 
 .live-stage-panel-full {
-  min-height: calc(100dvh - 18px);
+  min-height: calc(100dvh - 16px);
 }
 
 @media (min-width: 721px) {
@@ -1009,8 +1031,8 @@ label {
 }
 
 .compact-stage-header {
-  padding: 8px 10px;
-  border-radius: 18px;
+  padding: 6px 8px;
+  border-radius: 16px;
   background: rgba(255, 247, 232, 0.06);
   border: 1px solid rgba(255, 247, 232, 0.08);
 }
@@ -1077,21 +1099,21 @@ label {
 }
 
 .lobby-stage {
-  min-height: calc(100dvh - 18px);
+  min-height: calc(100dvh - 16px);
   grid-template-rows: minmax(0, 1fr) auto;
   gap: 16px;
   padding: 20px;
 }
 
 .kahoot-stage-focus {
-  min-height: calc(100dvh - 18px);
+  min-height: calc(100dvh - 16px);
   grid-template-rows: auto auto minmax(0, 1fr);
   gap: 8px;
   padding: 12px;
 }
 
 .results-stage {
-  min-height: calc(100dvh - 18px);
+  min-height: calc(100dvh - 16px);
   grid-template-rows: auto minmax(0, 1fr);
   gap: 8px;
   padding: 12px;
@@ -1128,14 +1150,14 @@ label {
 
 .stage-tension-bar {
   position: relative;
-  height: 14px;
+  height: 10px;
   border-radius: 999px;
   background: rgba(255, 255, 255, 0.08);
   overflow: hidden;
 }
 
 .question-stage-tension-bar {
-  height: 5px;
+  height: 4px;
 }
 
 .stage-tension-bar span {
@@ -2229,24 +2251,24 @@ label {
 
 @media (min-width: 721px) and (max-width: 1040px) {
   .host-live-shell-immersive {
-    grid-template-columns: 82px minmax(0, 1fr);
+    grid-template-columns: 72px minmax(0, 1fr);
     gap: 8px;
   }
 
   .host-live-rail {
-    min-height: calc(100dvh - 18px);
-    padding: 8px 6px;
+    min-height: calc(100dvh - 16px);
+    padding: 7px 5px;
   }
 
   .host-live-rail .brand-logo-badge {
-    min-height: 48px;
+    min-height: 42px;
     border-radius: 16px;
   }
 
   .host-live-rail-actions .button,
   .host-live-rail-actions .sound-toggle {
-    min-height: 34px;
-    font-size: 0.66rem;
+    min-height: 32px;
+    font-size: 0.62rem;
   }
 
   .lobby-hero {
@@ -2319,6 +2341,15 @@ label {
     padding: 14px 0 36px;
   }
 
+  .host-live-shell-immersive {
+    min-height: 100dvh;
+    height: auto;
+    grid-template-columns: 1fr;
+    grid-template-rows: auto minmax(0, 1fr);
+    gap: 10px;
+    overflow: visible;
+  }
+
   .host-topbar,
   .kahoot-stage-header,
   .library-card-top,
@@ -2333,12 +2364,44 @@ label {
   }
 
   .host-live-rail {
-    grid-template-columns: 1fr;
+    position: static;
+    min-height: auto;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    grid-template-columns: none;
+    gap: 10px;
+    padding: 8px;
+    border-radius: 18px;
   }
 
   .host-live-rail-actions {
-    flex-direction: column;
-    justify-content: stretch;
+    flex-direction: row;
+    justify-content: flex-end;
+    align-items: center;
+    gap: 6px;
+    flex-wrap: wrap;
+  }
+
+  .host-live-rail .brand-logo {
+    width: auto;
+    flex: 0 0 auto;
+  }
+
+  .host-live-rail .brand-mark {
+    width: auto;
+    padding: 0.36rem 0.48rem;
+  }
+
+  .host-live-rail .brand-logo img {
+    width: 98px;
+  }
+
+  .host-live-rail-actions .button,
+  .host-live-rail-actions .sound-toggle {
+    width: auto;
+    min-height: 32px;
+    padding: 0.38rem 0.52rem;
   }
 
   .join-qr-panel p {
