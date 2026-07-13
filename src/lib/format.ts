@@ -1,4 +1,4 @@
-import type { QuizMode, SessionStatus } from './types'
+import type { SessionStatus } from './types'
 
 const dateTimeFormatter = new Intl.DateTimeFormat('th-TH', {
   dateStyle: 'short',
@@ -6,14 +6,6 @@ const dateTimeFormatter = new Intl.DateTimeFormat('th-TH', {
 })
 
 export const formatDateTime = (value: string) => dateTimeFormatter.format(new Date(value))
-
-export const modeLabel = (mode: QuizMode) => {
-  if (mode === 'knowledge_check') {
-    return 'ควิซ'
-  }
-
-  return 'ควิซ'
-}
 
 export const statusLabel = (status: SessionStatus) => {
   if (status === 'lobby') {

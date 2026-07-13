@@ -70,7 +70,6 @@ export interface LiveSession {
   quizSetTitle: string
   joinCode: string
   status: SessionStatus
-  showLeaderboardEveryRound: boolean
   scoringMode: 'correct_plus_speed'
   createdAt: string
   updatedAt: string

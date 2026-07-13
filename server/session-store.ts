@@ -961,7 +961,6 @@ export class SessionStore {
       quizSetTitle: sessionRow.quiz_set_title,
       joinCode: sessionRow.join_code,
       status: sessionRow.status,
-      showLeaderboardEveryRound: sessionRow.show_leaderboard_every_round,
       scoringMode: sessionRow.scoring_mode,
       createdAt: sessionRow.created_at,
       updatedAt: sessionRow.updated_at,
