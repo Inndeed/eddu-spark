@@ -12,6 +12,7 @@
     "host:create": "tsx scripts/create-host-user.ts",
     "smoke:public": "tsx scripts/smoke-public.ts",
     "audit:product": "tsx scripts/audit-product-surface.ts",
+    "check:supabase": "tsx scripts/check-supabase-readiness.ts",
     "verify:release": "npm run audit:product && npm run build && npm run lint && npm run smoke:public",
     "lint": "oxlint",
     "preview": "vite preview"

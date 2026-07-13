@@ -119,6 +119,14 @@ npm run audit:product
 
 This audit guards against old public-facing product concepts returning by accident, such as old product naming, team fields, multi-mode labels, or the removed leaderboard-every-round toggle.
 
+Supabase readiness check:
+
+```bash
+npm run check:supabase
+```
+
+This read-only check requires `SUPABASE_URL`, `SUPABASE_ANON_KEY`, and `SUPABASE_SERVICE_ROLE_KEY`. It verifies the expected tables, `quiz_questions.image_path`, `quiz_questions.image_alt`, and the public `question-images` Storage bucket.
+
 To check a different deployment URL:
 
 ```bash
@@ -173,3 +181,4 @@ Vercel is useful here as a secondary helper for previews or future refactors, bu
 - Supabase must include `quiz_questions.image_path` and `quiz_questions.image_alt` before question image upload is verified in production.
 - Create at least one active host user in `public.host_users` using `npm run host:create`.
 - The `question-images` Supabase Storage bucket must exist as a public bucket, or the deployed app must be able to create it on boot with the service role.
+- Run `npm run check:supabase` from a configured environment before a live workshop.
