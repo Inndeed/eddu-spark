@@ -103,6 +103,48 @@ const verifyPublicAssets = async () => {
   ])
 }
 
+const fetchAssetText = async (asset: string) => {
+  const response = await fetch(`${baseUrl}/${asset}`)
+  if (!response.ok) {
+    throw new Error(`${asset} returned ${response.status}`)
+  }
+
+  return response.text()
+}
+
+const verifyHostLiveDeployedLayout = async (assets: string[]) => {
+  const cssAssets = assets.filter((asset) => asset.endsWith('.css'))
+  const jsAssets = assets.filter((asset) => asset.endsWith('.js'))
+
+  if (cssAssets.length === 0 || jsAssets.length === 0) {
+    throw new Error('landing HTML is missing CSS or JS assets')
+  }
+
+  const [cssText, jsText] = await Promise.all([
+    Promise.all(cssAssets.map(fetchAssetText)).then((items) => items.join('\n')),
+    Promise.all(jsAssets.map(fetchAssetText)).then((items) => items.join('\n')),
+  ])
+
+  const compactCss = cssText.replace(/\s+/g, '')
+  const expectedRailLayout = 'grid-template-columns:78pxminmax(0,1fr)'
+
+  if (!compactCss.includes(expectedRailLayout)) {
+    throw new Error('deployed CSS does not include the compact Host Live left rail layout')
+  }
+
+  if (!cssText.includes('host-live-rail') || !cssText.includes('position:sticky')) {
+    throw new Error('deployed CSS does not include the Host Live rail styles')
+  }
+
+  if (!jsText.includes('host-live-rail')) {
+    throw new Error('deployed JS does not render the Host Live rail')
+  }
+
+  if (jsText.includes('host-topbar host-live-rail')) {
+    throw new Error('deployed JS still mixes the old host topbar with the live rail')
+  }
+}
+
 const verifyWebSocket = async () => {
   const socket = new WebSocket(wsUrl)
 
@@ -178,6 +220,9 @@ try {
     }),
   )
   pass('built assets are reachable')
+
+  await verifyHostLiveDeployedLayout(assets)
+  pass('Host Live deployed assets keep controls in the compact side rail')
 
   await verifyPublicAssets()
   pass('brand, icon, and workshop audio assets are reachable')
