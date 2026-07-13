@@ -73,6 +73,36 @@ const expectJsonStatus = async (
   }
 }
 
+const expectPublicAsset = async (
+  path: string,
+  expectedContentType: string,
+  minBytes: number,
+) => {
+  const response = await fetch(`${baseUrl}${path}`)
+  if (!response.ok) {
+    throw new Error(`${path} returned ${response.status}`)
+  }
+
+  const contentType = response.headers.get('content-type') ?? ''
+  if (!contentType.includes(expectedContentType)) {
+    throw new Error(`${path} returned ${contentType}, expected ${expectedContentType}`)
+  }
+
+  const bytes = (await response.arrayBuffer()).byteLength
+  if (bytes < minBytes) {
+    throw new Error(`${path} looks too small (${bytes} bytes)`)
+  }
+}
+
+const verifyPublicAssets = async () => {
+  await Promise.all([
+    expectPublicAsset('/eddu-wordmark.svg', 'image/svg+xml', 500),
+    expectPublicAsset('/favicon.svg', 'image/svg+xml', 200),
+    expectPublicAsset('/icons.svg', 'image/svg+xml', 500),
+    expectPublicAsset('/audio/workshop-loop.wav', 'audio/wav', 1000),
+  ])
+}
+
 const verifyWebSocket = async () => {
   const socket = new WebSocket(wsUrl)
 
@@ -148,6 +178,9 @@ try {
     }),
   )
   pass('built assets are reachable')
+
+  await verifyPublicAssets()
+  pass('brand, icon, and workshop audio assets are reachable')
 
   const deepLinkPaths = ['/play', '/play/join/SMOKE1', '/host', '/host/live/SMOKE1']
   await Promise.all(

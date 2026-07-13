@@ -116,6 +116,7 @@ The smoke check verifies:
 - `APP_BASE_URL` matches the public URL
 - the landing page references built JS/CSS assets
 - the built assets are reachable
+- brand, icon, and workshop audio assets are reachable
 - public SPA deep links return the app shell, including `/play`, `/play/join/:joinCode`, `/host`, and `/host/live/:joinCode`
 - key API routes return JSON instead of falling through to HTML, including public player session/join errors and host auth gating
 - the public `/ws` WebSocket endpoint opens, accepts a session subscription message, and returns a protocol error for invalid messages
