@@ -124,7 +124,7 @@ GitHub verification:
 
 - Pushes and pull requests run `audit:product`, `typecheck:scripts`, `build`, and `lint`.
 - The public Railway smoke check can be run manually from GitHub Actions with `run_public_smoke=true`.
-- The authenticated host/player live smoke check can be run manually with `run_live_smoke=true` after adding the required GitHub secrets.
+- The authenticated host/player live smoke check can be run manually with `run_live_smoke=true` after adding the required GitHub secrets; it runs `check:live-smoke` before creating a room.
 - Add `expected_commit_sha` in the manual workflow when you want to prove Railway is serving a specific release commit.
 - Supabase readiness is intentionally not part of the default CI because it requires production secrets.
 

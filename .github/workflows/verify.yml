@@ -108,6 +108,17 @@ jobs:
       - name: Install
         run: npm ci
 
+      - name: Check live smoke readiness
+        env:
+          APP_BASE_URL: ${{ inputs.public_base_url }}
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+          SMOKE_HOST_EMAIL: ${{ secrets.SMOKE_HOST_EMAIL }}
+          SMOKE_HOST_PASSWORD: ${{ secrets.SMOKE_HOST_PASSWORD }}
+          SMOKE_QUIZ_SET_ID: ${{ secrets.SMOKE_QUIZ_SET_ID }}
+          SMOKE_CAPACITY_CHECK: ${{ inputs.run_capacity_check }}
+        run: npm run check:live-smoke -- "${{ inputs.public_base_url }}"
+
       - name: Smoke host/player live flow
         env:
           APP_BASE_URL: ${{ inputs.public_base_url }}
