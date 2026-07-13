@@ -15,6 +15,18 @@ on:
         options:
           - "false"
           - "true"
+      run_live_smoke:
+        description: Run the authenticated host/player live smoke check
+        required: false
+        default: "false"
+        type: choice
+        options:
+          - "false"
+          - "true"
+      public_base_url:
+        description: Optional public base URL override
+        required: false
+        default: ""
       expected_commit_sha:
         description: Optional deployed commit SHA to verify
         required: false
@@ -66,4 +78,31 @@ jobs:
       - name: Smoke public deployment
         env:
           EXPECTED_COMMIT_SHA: ${{ inputs.expected_commit_sha }}
-        run: npm run smoke:public
+        run: npm run smoke:public -- "${{ inputs.public_base_url }}"
+
+  live-smoke:
+    name: Authenticated live smoke
+    if: github.event_name == 'workflow_dispatch' && inputs.run_live_smoke == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install
+        run: npm ci
+
+      - name: Smoke host/player live flow
+        env:
+          APP_BASE_URL: ${{ inputs.public_base_url }}
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+          SMOKE_HOST_EMAIL: ${{ secrets.SMOKE_HOST_EMAIL }}
+          SMOKE_HOST_PASSWORD: ${{ secrets.SMOKE_HOST_PASSWORD }}
+          SMOKE_QUIZ_SET_ID: ${{ secrets.SMOKE_QUIZ_SET_ID }}
+        run: npm run smoke:live
