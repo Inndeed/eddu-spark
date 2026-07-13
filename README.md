@@ -172,7 +172,7 @@ SUPABASE_ANON_KEY=... \
 npm run smoke:live
 ```
 
-You can also put those values in `.env` or `.env.local`. This launches a real room from the first available quiz set, joins two public players, rejects a duplicate name, opens one question, rejects a duplicate submission, submits both players, verifies WebSocket broadcasts, shows the leaderboard, and finishes the room. Use `SMOKE_QUIZ_SET_ID` when you want to target a specific quiz set. Set `SMOKE_CAPACITY_CHECK=true` to also launch a separate room, join 100 players, and verify that player 101 is rejected. For GitHub Actions, set these secrets: `SUPABASE_URL`, `SUPABASE_ANON_KEY`, `SMOKE_HOST_EMAIL`, `SMOKE_HOST_PASSWORD`, and optionally `SMOKE_QUIZ_SET_ID`; then enable `run_capacity_check=true` when you want the 100-player check.
+You can also put those values in `.env` or `.env.local`. `check:live-smoke` and `smoke:live` accept either `SUPABASE_URL` / `SUPABASE_ANON_KEY` or `VITE_SUPABASE_URL` / `VITE_SUPABASE_ANON_KEY`. This launches a real room from the first available quiz set, joins two public players, rejects a duplicate name, opens one question, rejects a duplicate submission, submits both players, verifies WebSocket broadcasts, shows the leaderboard, and finishes the room. Use `SMOKE_QUIZ_SET_ID` when you want to target a specific quiz set. Set `SMOKE_CAPACITY_CHECK=true` to also launch a separate room, join 100 players, and verify that player 101 is rejected. For GitHub Actions, set these secrets: `SUPABASE_URL`, `SUPABASE_ANON_KEY`, `SMOKE_HOST_EMAIL`, `SMOKE_HOST_PASSWORD`, and optionally `SMOKE_QUIZ_SET_ID`; then enable `run_capacity_check=true` when you want the 100-player check.
 
 The smoke check verifies:
 

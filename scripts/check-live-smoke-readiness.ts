@@ -4,11 +4,26 @@ const DEFAULT_BASE_URL = 'https://eddu-spark-production.up.railway.app'
 
 const baseUrl = (process.argv[2] || process.env.APP_BASE_URL || DEFAULT_BASE_URL).replace(/\/$/, '')
 
+const supabaseUrl = process.env.SUPABASE_URL ?? process.env.VITE_SUPABASE_URL ?? ''
+const supabaseAnonKey = process.env.SUPABASE_ANON_KEY ?? process.env.VITE_SUPABASE_ANON_KEY ?? ''
+
 const requiredEnv = [
-  'SUPABASE_URL',
-  'SUPABASE_ANON_KEY',
-  'SMOKE_HOST_EMAIL',
-  'SMOKE_HOST_PASSWORD',
+  {
+    label: 'SUPABASE_URL or VITE_SUPABASE_URL',
+    present: Boolean(supabaseUrl),
+  },
+  {
+    label: 'SUPABASE_ANON_KEY or VITE_SUPABASE_ANON_KEY',
+    present: Boolean(supabaseAnonKey),
+  },
+  {
+    label: 'SMOKE_HOST_EMAIL',
+    present: Boolean(process.env.SMOKE_HOST_EMAIL),
+  },
+  {
+    label: 'SMOKE_HOST_PASSWORD',
+    present: Boolean(process.env.SMOKE_HOST_PASSWORD),
+  },
 ] as const
 
 const optionalEnv = [
@@ -21,15 +36,17 @@ const maskStatus = (key: string) => (process.env[key] ? 'set' : 'missing')
 
 console.log(`Checking live smoke readiness for ${baseUrl}`)
 
-requiredEnv.forEach((key) => {
-  console.log(`${key}: ${maskStatus(key)}`)
+requiredEnv.forEach((item) => {
+  console.log(`${item.label}: ${item.present ? 'set' : 'missing'}`)
 })
 
 optionalEnv.forEach((key) => {
   console.log(`${key}: ${maskStatus(key)} (optional)`)
 })
 
-const missingRequired = requiredEnv.filter((key) => !process.env[key])
+const missingRequired = requiredEnv
+  .filter((item) => !item.present)
+  .map((item) => item.label)
 
 const response = await fetch(`${baseUrl}/api/health`)
 if (!response.ok) {
