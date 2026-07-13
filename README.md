@@ -145,6 +145,7 @@ The smoke check verifies:
 - `/api/health` returns `status: ok`
 - the server is running in Supabase-backed mode
 - `APP_BASE_URL` matches the public URL
+- release metadata is exposed when available, including app `version` and platform `commitSha`
 - the landing page references built JS/CSS assets
 - the built assets are reachable
 - brand, icon, and workshop audio assets are reachable

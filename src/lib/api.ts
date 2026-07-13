@@ -25,6 +25,8 @@ export interface AppHealthData {
   status: 'ok' | 'setup_required'
   mode: 'supabase' | 'setup_required'
   appBaseUrl: string | null
+  version: string
+  commitSha: string | null
 }
 
 const request = async <T>(

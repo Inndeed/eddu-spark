@@ -186,6 +186,8 @@ type HealthPayload = {
   status: string
   mode: string
   appBaseUrl: string | null
+  version?: string
+  commitSha?: string | null
 }
 
 try {
@@ -200,6 +202,26 @@ try {
     fail(`APP_BASE_URL mismatch: ${health.appBaseUrl}`)
   } else {
     pass('APP_BASE_URL matches public URL')
+  }
+
+  if (health.version) {
+    if (!/^\d+\.\d+\.\d+/.test(health.version)) {
+      fail(`health version looks invalid: ${health.version}`)
+    } else {
+      pass(`release metadata exposes version ${health.version}`)
+    }
+  } else {
+    pass('release metadata version is not exposed yet on this deployment')
+  }
+
+  if (health.commitSha) {
+    if (!/^[\da-f]{7,40}$/i.test(health.commitSha)) {
+      fail(`health commitSha looks invalid: ${health.commitSha}`)
+    } else {
+      pass(`release metadata exposes commit ${health.commitSha.slice(0, 7)}`)
+    }
+  } else {
+    pass('release metadata commit is not exposed by this deployment environment')
   }
 
   const html = await requestText('/')

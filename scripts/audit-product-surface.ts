@@ -62,6 +62,7 @@ if (failures.length > 0) {
 
 const hostLivePage = await readFile(path.join(rootDir, 'src/pages/HostLivePage.tsx'), 'utf8')
 const globalCss = await readFile(path.join(rootDir, 'src/index.css'), 'utf8')
+const serverIndex = await readFile(path.join(rootDir, 'server/index.ts'), 'utf8')
 
 const hostLiveLayoutChecks: Array<{ passed: boolean; label: string }> = [
   {
@@ -78,7 +79,18 @@ const hostLiveLayoutChecks: Array<{ passed: boolean; label: string }> = [
   },
 ]
 
-hostLiveLayoutChecks.forEach(({ passed, label }) => {
+const productionReadinessChecks: Array<{ passed: boolean; label: string }> = [
+  {
+    passed: serverIndex.includes('version: APP_VERSION'),
+    label: 'Health endpoint exposes the app version for release verification',
+  },
+  {
+    passed: serverIndex.includes('commitSha: COMMIT_SHA'),
+    label: 'Health endpoint exposes the runtime commit sha when the platform provides it',
+  },
+]
+
+;[...hostLiveLayoutChecks, ...productionReadinessChecks].forEach(({ passed, label }) => {
   if (!passed) {
     failures.push(label)
   }

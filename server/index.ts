@@ -14,6 +14,14 @@ import {
 
 const PORT = Number(process.env.PORT ?? 8787)
 const APP_BASE_URL = process.env.APP_BASE_URL ?? ''
+const APP_VERSION = process.env.npm_package_version ?? '0.1.0'
+const COMMIT_SHA =
+  process.env.RAILWAY_GIT_COMMIT_SHA ??
+  process.env.GITHUB_SHA ??
+  process.env.VERCEL_GIT_COMMIT_SHA ??
+  process.env.SOURCE_VERSION ??
+  process.env.COMMIT_SHA ??
+  null
 const store = new SessionStore()
 
 type SocketWithChannels = WebSocket & {
@@ -153,6 +161,8 @@ app.get('/api/health', (_request, response) => {
     status: hasSupabaseServerConfig() ? 'ok' : 'setup_required',
     mode: hasSupabaseServerConfig() ? 'supabase' : 'setup_required',
     appBaseUrl: APP_BASE_URL || null,
+    version: APP_VERSION,
+    commitSha: COMMIT_SHA,
   })
 })
 
