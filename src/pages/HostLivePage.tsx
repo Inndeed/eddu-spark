@@ -294,11 +294,11 @@ export function HostLivePage() {
 
           {showQuestion && currentQuestion ? (
             <div className="kahoot-stage kahoot-stage-focus stage-animate-in">
-              <div className="kahoot-stage-header question-stage-header">
-                <div>
+              <div className="kahoot-stage-header question-stage-header compact-stage-header">
+                <div className="question-stage-counter">
                   <span className="eyebrow">ข้อ</span>
                   <h2>
-                    {view!.session.currentQuestionIndex + 1} / {view!.quizSet.questions.length}
+                    {view!.session.currentQuestionIndex + 1}/{view!.quizSet.questions.length}
                   </h2>
                 </div>
                 <div className="question-stage-header-actions">
@@ -374,12 +374,22 @@ export function HostLivePage() {
 
           {showReveal && closedQuestion && closedQuestionStats ? (
             <div className="kahoot-stage results-stage stage-animate-in">
-              <div className="kahoot-stage-header">
-                <div>
+              <div className="kahoot-stage-header reveal-stage-header compact-stage-header">
+                <div className="reveal-stage-title">
                   <span className="eyebrow">เฉลย</span>
                   <h2>
-                    {view!.session.lastClosedQuestionIndex! + 1} / {view!.quizSet.questions.length}
+                    {view!.session.lastClosedQuestionIndex! + 1}/{view!.quizSet.questions.length}
                   </h2>
+                  {correctRevealChoice ? (
+                    <div className="reveal-spotlight stage-animate-in">
+                      <div className={`reveal-spotlight-glyph ${answerClassNames[closedQuestion.choices.findIndex((choice) => choice.id === correctRevealChoice.id)]}`}>
+                        <ChoiceGlyph index={closedQuestion.choices.findIndex((choice) => choice.id === correctRevealChoice.id)} />
+                      </div>
+                      <div className="reveal-spotlight-copy">
+                        <span className="eyebrow">ถูก</span>
+                      </div>
+                    </div>
+                  ) : null}
                 </div>
                 <div className="reveal-stage-header-actions">
                   <div className="stage-progress-pill">
@@ -395,18 +405,6 @@ export function HostLivePage() {
                   </button>
                 </div>
               </div>
-              {correctRevealChoice ? (
-                <div className="reveal-spotlight stage-animate-in">
-                  <div className={`reveal-spotlight-glyph ${answerClassNames[closedQuestion.choices.findIndex((choice) => choice.id === correctRevealChoice.id)]}`}>
-                    <ChoiceGlyph index={closedQuestion.choices.findIndex((choice) => choice.id === correctRevealChoice.id)} />
-                  </div>
-                  <div className="reveal-spotlight-copy">
-                    <span className="eyebrow">เฉลย</span>
-                    <strong>ถูก</strong>
-                  </div>
-                </div>
-              ) : null}
-
               <div
                 className={`host-question-stage reveal-question-stage ${
                   closedQuestion.imageUrl ? 'reveal-question-stage-with-image' : 'host-question-stage-no-image'
