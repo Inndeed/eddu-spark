@@ -63,6 +63,9 @@ if (failures.length > 0) {
 const hostLivePage = await readFile(path.join(rootDir, 'src/pages/HostLivePage.tsx'), 'utf8')
 const globalCss = await readFile(path.join(rootDir, 'src/index.css'), 'utf8')
 const serverIndex = await readFile(path.join(rootDir, 'server/index.ts'), 'utf8')
+const sessionStore = await readFile(path.join(rootDir, 'server/session-store.ts'), 'utf8')
+const playerJoinPage = await readFile(path.join(rootDir, 'src/pages/PlayerJoinPage.tsx'), 'utf8')
+const playerNamePage = await readFile(path.join(rootDir, 'src/pages/PlayerNamePage.tsx'), 'utf8')
 
 const hostLiveLayoutChecks: Array<{ passed: boolean; label: string }> = [
   {
@@ -98,7 +101,36 @@ const productionReadinessChecks: Array<{ passed: boolean; label: string }> = [
   },
 ]
 
-;[...hostLiveLayoutChecks, ...productionReadinessChecks].forEach(({ passed, label }) => {
+const joinCodeResilienceChecks: Array<{ passed: boolean; label: string }> = [
+  {
+    passed: /replace\(\s*\/\[\^A-Z0-9\]\/g,\s*''\s*\)\.slice\(0,\s*6\)/.test(playerJoinPage),
+    label: 'Player code entry strips pasted spaces and separators before limiting to six characters',
+  },
+  {
+    passed: !/maxLength=\{?6\}?/.test(playerJoinPage),
+    label: 'Player code entry does not truncate pasted room codes before normalization',
+  },
+  {
+    passed: /export const normalizeJoinCode/.test(sessionStore) &&
+      /replace\(\s*\/\[\^A-Z0-9\]\/g,\s*''\s*\)\.slice\(0,\s*6\)/.test(sessionStore),
+    label: 'Server exposes the same resilient join-code normalization',
+  },
+  {
+    passed: serverIndex.includes("socket.channels?.add(`session:${normalizeJoinCode(message.joinCode)}`)") &&
+      serverIndex.includes("const normalizedJoinCode = normalizeJoinCode(joinCode)"),
+    label: 'WebSocket and broadcast paths use normalized join codes',
+  },
+  {
+    passed: playerNamePage.includes('const normalizedJoinCode = normalizeJoinCodeInput(joinCode)'),
+    label: 'Deep-link player name route normalizes join codes before API calls',
+  },
+]
+
+;[
+  ...hostLiveLayoutChecks,
+  ...productionReadinessChecks,
+  ...joinCodeResilienceChecks,
+].forEach(({ passed, label }) => {
   if (!passed) {
     failures.push(label)
   }
