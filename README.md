@@ -103,7 +103,7 @@ Release verification:
 npm run verify:release
 ```
 
-This runs the product surface audit, production build, lint, and public smoke check in one pass.
+This runs the product surface audit, script typecheck, production build, lint, and public smoke check in one pass.
 
 Public smoke check only:
 
@@ -122,7 +122,7 @@ It also guards the Host Live projector layout so the controls stay in the compac
 
 GitHub verification:
 
-- Pushes and pull requests run `audit:product`, `build`, and `lint`.
+- Pushes and pull requests run `audit:product`, `typecheck:scripts`, `build`, and `lint`.
 - The public Railway smoke check can be run manually from GitHub Actions with `run_public_smoke=true`.
 - The authenticated host/player live smoke check can be run manually with `run_live_smoke=true` after adding the required GitHub secrets.
 - Add `expected_commit_sha` in the manual workflow when you want to prove Railway is serving a specific release commit.

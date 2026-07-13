@@ -37,7 +37,7 @@ const supabase = createClient(
 
 const checks: Array<{
   label: string
-  run: () => Promise<unknown>
+  run: () => unknown
 }> = [
   {
     label: 'host_users table',

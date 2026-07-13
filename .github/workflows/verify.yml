@@ -52,6 +52,9 @@ jobs:
       - name: Product surface audit
         run: npm run audit:product
 
+      - name: Typecheck scripts
+        run: npm run typecheck:scripts
+
       - name: Build
         run: npm run build
 
