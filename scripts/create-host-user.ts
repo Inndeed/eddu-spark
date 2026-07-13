@@ -1,3 +1,5 @@
+import './load-env.js'
+
 import { createServerSupabaseClient } from '../server/supabase.js'
 
 const parseFlag = (flag: string) => {

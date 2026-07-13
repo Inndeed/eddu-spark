@@ -2,6 +2,7 @@ import { createClient } from '@supabase/supabase-js'
 import { WebSocket } from 'ws'
 
 import type { HostSessionView, PlayerSessionView, QuizSet } from '../src/lib/types.js'
+import './load-env.js'
 
 const DEFAULT_BASE_URL = 'https://eddu-spark-production.up.railway.app'
 

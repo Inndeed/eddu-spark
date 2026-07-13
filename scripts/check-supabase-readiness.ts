@@ -1,14 +1,6 @@
-import { existsSync } from 'node:fs'
-
 import { createClient } from '@supabase/supabase-js'
 
-type LoadableProcess = typeof process & {
-  loadEnvFile?: (path?: string) => void
-}
-
-if (existsSync('.env')) {
-  ;(process as LoadableProcess).loadEnvFile?.('.env')
-}
+import './load-env.js'
 
 const requiredEnv = [
   'SUPABASE_URL',

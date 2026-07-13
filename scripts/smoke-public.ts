@@ -1,5 +1,7 @@
 import { WebSocket } from 'ws'
 
+import './load-env.js'
+
 const DEFAULT_BASE_URL = 'https://eddu-spark-production.up.railway.app'
 
 const baseUrl = (process.argv[2] || process.env.APP_BASE_URL || DEFAULT_BASE_URL).replace(/\/$/, '')
