@@ -861,7 +861,7 @@ label {
   width: min(100%, calc(100% - 12px));
   min-height: 100dvh;
   padding: 6px 0;
-  grid-template-columns: 70px minmax(0, 1fr);
+  grid-template-columns: clamp(58px, 4.2vw, 68px) minmax(0, 1fr);
   align-items: stretch;
   gap: 6px;
 }
@@ -877,13 +877,13 @@ label {
   display: grid;
   align-content: space-between;
   justify-items: stretch;
-  gap: 6px;
-  padding: 7px 5px;
+  gap: 5px;
+  padding: 6px 4px;
   position: sticky;
   top: 6px;
   height: calc(100dvh - 12px);
   min-height: calc(100dvh - 12px);
-  border-radius: 18px;
+  border-radius: 16px;
   background: rgba(23, 20, 16, 0.9);
   border: 1px solid rgba(255, 247, 232, 0.08);
   z-index: 5;
@@ -902,8 +902,8 @@ label {
 
 .host-live-rail .brand-mark {
   width: 100%;
-  padding: 0.36rem 0.2rem;
-  border-radius: 14px;
+  padding: 0.32rem 0.18rem;
+  border-radius: 12px;
 }
 
 .host-live-rail .brand-logo img {
@@ -915,17 +915,17 @@ label {
   display: grid;
   flex-direction: column;
   align-items: stretch;
-  gap: 5px;
+  gap: 4px;
 }
 
 .host-live-rail-actions .button,
 .host-live-rail-actions .sound-toggle {
   width: 100%;
   justify-content: center;
-  min-height: 31px;
-  padding: 0.36rem 0.24rem;
-  border-radius: 12px;
-  font-size: 0.58rem;
+  min-height: 29px;
+  padding: 0.32rem 0.2rem;
+  border-radius: 11px;
+  font-size: 0.55rem;
   line-height: 1.05;
   white-space: normal;
 }

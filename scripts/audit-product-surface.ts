@@ -81,8 +81,8 @@ const hostLiveLayoutChecks: Array<{ passed: boolean; label: string }> = [
     label: 'Host Live rail is not mixed with the old topbar class',
   },
   {
-    passed: /grid-template-columns:\s*70px\s+minmax\(0,\s*1fr\)/.test(globalCss),
-    label: 'Host Live desktop layout reserves a compact left rail',
+    passed: /grid-template-columns:\s*clamp\(58px,\s*4\.2vw,\s*68px\)\s+minmax\(0,\s*1fr\)/.test(globalCss),
+    label: 'Host Live desktop layout reserves a compact left rail instead of a topbar',
   },
   {
     passed: /grid-template-columns:\s*minmax\(420px,\s*1\.28fr\)\s+minmax\(320px,\s*0\.72fr\)/.test(globalCss),
@@ -134,10 +134,20 @@ const joinCodeResilienceChecks: Array<{ passed: boolean; label: string }> = [
     label: 'Deep-link player name route normalizes join codes before API calls',
   },
   {
+    passed: playerNamePage.includes("setError('รหัสห้องไม่ถูกต้อง')") &&
+      playerNamePage.includes('disabled={loading || !normalizedDisplayName || !isJoinCodeComplete}'),
+    label: 'Deep-link player name route blocks incomplete join codes before submit',
+  },
+  {
     passed: playerSessionPage.includes('const normalizedJoinCode = normalizeJoinCode(joinCode ??') &&
       playerSessionPage.includes('fetchPlayerSession(normalizedJoinCode, participantId)') &&
       playerSessionPage.includes('submitAnswer(normalizedJoinCode, participantId, choiceId)'),
     label: 'Player session route normalizes join codes before reconnect, fetch, and submit',
+  },
+  {
+    passed: playerSessionPage.includes('if (!isJoinCodeComplete)') &&
+      playerSessionPage.includes('รหัสห้องไม่ถูกต้อง'),
+    label: 'Player session route blocks incomplete join codes before reconnect',
   },
   {
     passed: clientStorage.includes('normalizeJoinCode(record.joinCode)') &&

@@ -5,7 +5,7 @@ import { BrandLogo } from '../components/BrandLogo'
 import { ChoiceGlyph } from '../components/ChoiceGlyph'
 import { fetchPlayerSession, submitAnswer } from '../lib/api'
 import { toLocalizedError } from '../lib/errors'
-import { normalizeJoinCode } from '../lib/join-code'
+import { isCompleteJoinCode, normalizeJoinCode } from '../lib/join-code'
 import { useSessionChannel } from '../lib/live'
 import { getPlayerRecord, setPlayerRecord } from '../lib/storage'
 import type { PlayerSessionView } from '../lib/types'
@@ -15,6 +15,7 @@ const answerClassNames = ['answer-red', 'answer-orange', 'answer-yellow', 'answe
 export function PlayerSessionPage() {
   const { joinCode } = useParams()
   const normalizedJoinCode = normalizeJoinCode(joinCode ?? '')
+  const isJoinCodeComplete = isCompleteJoinCode(normalizedJoinCode)
   const location = useLocation()
   const query = new URLSearchParams(location.search)
   const queryParticipantId = query.get('participantId')
@@ -37,7 +38,7 @@ export function PlayerSessionPage() {
   const lockTimeoutRef = useRef<number | null>(null)
 
   const loadSession = useCallback(async () => {
-    if (!normalizedJoinCode || !participantId) {
+    if (!isJoinCodeComplete || !participantId) {
       setLoading(false)
       return
     }
@@ -80,7 +81,7 @@ export function PlayerSessionPage() {
     } finally {
       setLoading(false)
     }
-  }, [normalizedJoinCode, participantId])
+  }, [isJoinCodeComplete, normalizedJoinCode, participantId])
 
   useEffect(() => {
     void loadSession()
@@ -135,7 +136,21 @@ export function PlayerSessionPage() {
     }
   }
 
-  if (!participantId || !normalizedJoinCode) {
+  if (!isJoinCodeComplete) {
+    return (
+      <main className="player-live-shell">
+        <section className="player-full-panel">
+          <BrandLogo compact className="player-brand-mark" />
+          <h1>รหัสห้องไม่ถูกต้อง</h1>
+          <Link className="button button-primary" to="/play">
+            ใส่รหัสใหม่
+          </Link>
+        </section>
+      </main>
+    )
+  }
+
+  if (!participantId) {
     return (
       <main className="player-live-shell">
         <section className="player-full-panel">

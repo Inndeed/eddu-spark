@@ -4,7 +4,7 @@ import { Link, useNavigate, useParams } from 'react-router-dom'
 import { BrandLogo } from '../components/BrandLogo'
 import { joinSession } from '../lib/api'
 import { toLocalizedError } from '../lib/errors'
-import { normalizeJoinCode } from '../lib/join-code'
+import { isCompleteJoinCode, normalizeJoinCode } from '../lib/join-code'
 import { getPlayerRecord, setPlayerRecord } from '../lib/storage'
 
 export function PlayerNamePage() {
@@ -16,10 +16,16 @@ export function PlayerNamePage() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const codeCells = Array.from({ length: 6 }, (_, index) => normalizedJoinCode[index] ?? '')
+  const isJoinCodeComplete = isCompleteJoinCode(normalizedJoinCode)
   const normalizedDisplayName = displayName.trim()
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault()
+    if (!isJoinCodeComplete) {
+      setError('รหัสห้องไม่ถูกต้อง')
+      return
+    }
+
     if (!normalizedDisplayName) {
       setError('ใส่ชื่อก่อนเข้าเล่น')
       return
@@ -61,6 +67,7 @@ export function PlayerNamePage() {
             ))}
           </div>
         </div>
+        {!isJoinCodeComplete ? <p className="error-text error-text-centered">รหัสห้องไม่ถูกต้อง</p> : null}
         <form className="entry-form" onSubmit={handleSubmit}>
           <div className="entry-player-badge">
             <span className="eyebrow">ชื่อ</span>
@@ -81,7 +88,7 @@ export function PlayerNamePage() {
           </label>
           <button
             className="button button-primary button-block"
-            disabled={loading || !normalizedDisplayName}
+            disabled={loading || !normalizedDisplayName || !isJoinCodeComplete}
             type="submit"
           >
             {loading ? 'กำลังเข้า...' : 'เข้าเล่น'}
