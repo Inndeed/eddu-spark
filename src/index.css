@@ -301,6 +301,7 @@ label {
   align-items: center;
 }
 
+.poster-frame,
 .poster-hero {
   position: relative;
   min-height: min(86vh, 880px);
@@ -313,9 +314,33 @@ label {
     var(--bg);
 }
 
-.poster-center {
+.poster-frame {
+  width: 100%;
+}
+
+.poster-frame-content {
   position: relative;
   z-index: 2;
+  min-height: inherit;
+}
+
+.poster-frame-page {
+  min-height: min(88vh, 960px);
+}
+
+.poster-frame-entry .poster-frame-content,
+.poster-frame-host .poster-frame-content,
+.poster-frame-player-live .poster-frame-content,
+.poster-frame-live-shell .poster-frame-content {
+  padding: 28px;
+}
+
+.poster-frame-home .poster-frame-content {
+  padding: 0;
+}
+
+.poster-center {
+  position: relative;
   min-height: inherit;
   display: grid;
   align-content: center;
@@ -858,9 +883,9 @@ label {
 }
 
 .host-live-shell-immersive {
-  width: min(100%, calc(100% - 12px));
-  min-height: 100dvh;
-  padding: 6px 0;
+  width: 100%;
+  min-height: 100%;
+  padding: 0;
   grid-template-columns: clamp(58px, 4.2vw, 68px) minmax(0, 1fr);
   align-items: stretch;
   gap: 6px;
@@ -1456,6 +1481,29 @@ label {
   font-size: 0.95rem;
 }
 
+.join-url-panel {
+  display: grid;
+  gap: 8px;
+}
+
+.join-url-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.join-url-actions .button {
+  min-height: 38px;
+  padding: 0.5rem 0.8rem;
+}
+
+.join-url-feedback {
+  color: rgba(138, 44, 9, 0.9);
+  font-size: 0.82rem;
+  font-weight: 700;
+}
+
 .join-code-display {
   display: inline-flex;
   justify-content: center;
@@ -1936,13 +1984,9 @@ label {
 }
 
 .player-live-shell {
-  min-height: 100vh;
-  padding: max(16px, env(safe-area-inset-top)) 16px max(16px, env(safe-area-inset-bottom));
+  min-height: 100%;
+  padding: max(12px, env(safe-area-inset-top)) 12px max(12px, env(safe-area-inset-bottom));
   display: grid;
-  background:
-    radial-gradient(circle at top right, rgba(255, 134, 31, 0.28), transparent 24%),
-    radial-gradient(circle at bottom left, rgba(29, 200, 106, 0.22), transparent 24%),
-    #171511;
 }
 
 .player-answer-stage,
@@ -2394,6 +2438,13 @@ label {
 }
 
 @media (min-width: 721px) and (max-width: 1040px) {
+  .poster-frame-entry .poster-frame-content,
+  .poster-frame-host .poster-frame-content,
+  .poster-frame-player-live .poster-frame-content,
+  .poster-frame-live-shell .poster-frame-content {
+    padding: 22px;
+  }
+
   .host-live-shell-immersive {
     grid-template-columns: 66px minmax(0, 1fr);
     gap: 6px;
@@ -2452,6 +2503,17 @@ label {
 }
 
 @media (max-width: 640px) {
+  .poster-frame-page {
+    min-height: calc(100dvh - 16px);
+  }
+
+  .poster-frame-entry .poster-frame-content,
+  .poster-frame-host .poster-frame-content,
+  .poster-frame-player-live .poster-frame-content,
+  .poster-frame-live-shell .poster-frame-content {
+    padding: 18px;
+  }
+
   .entry-card-player {
     padding: 24px 18px 20px;
   }
@@ -2486,8 +2548,20 @@ label {
     padding: 14px 0 36px;
   }
 
+  .poster-frame-page {
+    min-height: calc(100dvh - 16px);
+    border-radius: 30px;
+  }
+
+  .poster-frame-entry .poster-frame-content,
+  .poster-frame-host .poster-frame-content,
+  .poster-frame-player-live .poster-frame-content,
+  .poster-frame-live-shell .poster-frame-content {
+    padding: 16px;
+  }
+
   .host-live-shell-immersive {
-    min-height: 100dvh;
+    min-height: 100%;
     height: auto;
     grid-template-columns: 1fr;
     grid-template-rows: auto minmax(0, 1fr);

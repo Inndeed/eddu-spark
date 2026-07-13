@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 
 import { BrandLogo } from '../components/BrandLogo'
+import { PosterFrame } from '../components/PosterFrame'
 import {
   deleteQuizSet,
   fetchAppHealth,
@@ -334,89 +335,96 @@ export function HostPage() {
 
   if (!configured || appHealth?.status === 'setup_required') {
     return (
-      <main className="app-shell host-shell">
-        <section className="host-panel">
-          <BrandLogo compact to="/host" />
-          <h1>ยังไม่พร้อม</h1>
-          <p>ต้องใส่ env ของ Supabase และ APP_BASE_URL ก่อน</p>
-          <Link className="button button-secondary" to="/">
-            กลับ
-          </Link>
-        </section>
+      <main className="app-shell">
+        <PosterFrame className="poster-frame-page poster-frame-host" contentClassName="host-shell host-shell-auth">
+          <section className="host-panel">
+            <BrandLogo compact to="/host" />
+            <h1>ยังไม่พร้อม</h1>
+            <p>ต้องใส่ env ของ Supabase และ APP_BASE_URL ก่อน</p>
+            <Link className="button button-secondary" to="/">
+              กลับ
+            </Link>
+          </section>
+        </PosterFrame>
       </main>
     )
   }
 
   if (!ready && !session) {
     return (
-      <main className="app-shell host-shell host-shell-auth">
-        <section className="host-panel host-login-panel host-login-panel-loading">
-          <BrandLogo compact />
-          <div className="auth-loading-state">
-            <span className="eyebrow">เข้าใช้</span>
-            <h1>กำลังตรวจสิทธิ์...</h1>
-          </div>
-        </section>
+      <main className="app-shell">
+        <PosterFrame className="poster-frame-page poster-frame-host" contentClassName="host-shell host-shell-auth">
+          <section className="host-panel host-login-panel host-login-panel-loading">
+            <BrandLogo compact />
+            <div className="auth-loading-state">
+              <span className="eyebrow">เข้าใช้</span>
+              <h1>กำลังตรวจสิทธิ์...</h1>
+            </div>
+          </section>
+        </PosterFrame>
       </main>
     )
   }
 
   if (!session) {
     return (
-      <main className="app-shell host-shell host-shell-auth">
-        <section className="host-panel host-login-panel">
-          <BrandLogo compact />
-          <form className="entry-form" onSubmit={handleLogin}>
-            <label>
-              อีเมล
-              <input
-                autoComplete="email"
-                placeholder="host@eddu.org"
-                type="email"
-                value={email}
-                onChange={(event) => setEmail(event.target.value)}
-              />
-            </label>
-            <label>
-              รหัสผ่าน
-              <input
-                autoComplete="current-password"
-                placeholder="รหัสผ่าน"
-                type="password"
-                value={password}
-                onChange={(event) => setPassword(event.target.value)}
-              />
-            </label>
-            <button className="button button-primary button-block" disabled={loading} type="submit">
-              {loading ? 'กำลังเข้า...' : 'เข้าสู่ Host'}
-            </button>
-          </form>
-          {sessionError ? <p className="error-text error-text-centered">{sessionError}</p> : null}
-          {error ? <p className="error-text error-text-centered">{error}</p> : null}
-        </section>
+      <main className="app-shell">
+        <PosterFrame className="poster-frame-page poster-frame-host" contentClassName="host-shell host-shell-auth">
+          <section className="host-panel host-login-panel">
+            <BrandLogo compact />
+            <form className="entry-form" onSubmit={handleLogin}>
+              <label>
+                อีเมล
+                <input
+                  autoComplete="email"
+                  placeholder="host@eddu.org"
+                  type="email"
+                  value={email}
+                  onChange={(event) => setEmail(event.target.value)}
+                />
+              </label>
+              <label>
+                รหัสผ่าน
+                <input
+                  autoComplete="current-password"
+                  placeholder="รหัสผ่าน"
+                  type="password"
+                  value={password}
+                  onChange={(event) => setPassword(event.target.value)}
+                />
+              </label>
+              <button className="button button-primary button-block" disabled={loading} type="submit">
+                {loading ? 'กำลังเข้า...' : 'เข้าสู่ Host'}
+              </button>
+            </form>
+            {sessionError ? <p className="error-text error-text-centered">{sessionError}</p> : null}
+            {error ? <p className="error-text error-text-centered">{error}</p> : null}
+          </section>
+        </PosterFrame>
       </main>
     )
   }
 
   return (
-    <main className="app-shell host-shell">
-      <section className="host-topbar">
-        <BrandLogo compact to="/host" />
-        <div className="header-actions">
-          <div className="host-badge">
-            <strong>{bootstrap?.currentHost?.displayName || session.user.email}</strong>
-            <span>{roleLabel(bootstrap?.currentHost?.role)}</span>
+    <main className="app-shell">
+      <PosterFrame className="poster-frame-page poster-frame-host" contentClassName="host-shell">
+        <section className="host-topbar">
+          <BrandLogo compact to="/host" />
+          <div className="header-actions">
+            <div className="host-badge">
+              <strong>{bootstrap?.currentHost?.displayName || session.user.email}</strong>
+              <span>{roleLabel(bootstrap?.currentHost?.role)}</span>
+            </div>
+            <button className="button button-ghost" onClick={() => void signOutHostSession()} type="button">
+              ออก
+            </button>
           </div>
-          <button className="button button-ghost" onClick={() => void signOutHostSession()} type="button">
-            ออก
-          </button>
-        </div>
-      </section>
+        </section>
 
-      {error ? <p className="error-text">{error}</p> : null}
+        {error ? <p className="error-text">{error}</p> : null}
 
-      {isEditorOpen ? (
-        <section className="host-panel host-editor-panel host-editor-panel-full">
+        {isEditorOpen ? (
+          <section className="host-panel host-editor-panel host-editor-panel-full">
           <div className="panel-header">
             <span className="eyebrow">แก้ไข</span>
             <h2>{draft.title || 'ควิซใหม่'}</h2>
@@ -612,9 +620,9 @@ export function HostPage() {
               {saving ? 'กำลังบันทึก...' : 'บันทึก'}
             </button>
           </div>
-        </section>
-      ) : (
-        <section className="host-panel host-library-panel host-library-panel-full">
+          </section>
+        ) : (
+          <section className="host-panel host-library-panel host-library-panel-full">
           <div className="panel-header panel-header-inline">
             <span className="eyebrow">คลัง</span>
             <h2>ควิซ</h2>
@@ -658,8 +666,9 @@ export function HostPage() {
               </article>
             ))}
           </div>
-        </section>
-      )}
+          </section>
+        )}
+      </PosterFrame>
     </main>
   )
 }

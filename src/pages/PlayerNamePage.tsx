@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 
 import { BrandLogo } from '../components/BrandLogo'
+import { PosterFrame } from '../components/PosterFrame'
 import { joinSession } from '../lib/api'
 import { toLocalizedError } from '../lib/errors'
 import { isCompleteJoinCode, normalizeJoinCode } from '../lib/join-code'
@@ -54,51 +55,53 @@ export function PlayerNamePage() {
   }
 
   return (
-    <main className="app-shell player-entry-shell">
-      <section className="entry-card entry-card-player">
-        <BrandLogo compact />
-        <div className="entry-heading">
-          <span className="eyebrow">ห้อง</span>
-          <div className="entry-pin-preview entry-pin-preview-tight" aria-hidden="true">
-            {codeCells.map((cell, index) => (
-              <span className={`entry-pin-cell ${cell ? 'is-filled' : ''}`.trim()} key={index}>
-                {cell || '•'}
-              </span>
-            ))}
+    <main className="app-shell">
+      <PosterFrame className="poster-frame-page poster-frame-entry" contentClassName="player-entry-shell">
+        <section className="entry-card entry-card-player">
+          <BrandLogo compact />
+          <div className="entry-heading">
+            <span className="eyebrow">ห้อง</span>
+            <div className="entry-pin-preview entry-pin-preview-tight" aria-hidden="true">
+              {codeCells.map((cell, index) => (
+                <span className={`entry-pin-cell ${cell ? 'is-filled' : ''}`.trim()} key={index}>
+                  {cell || '•'}
+                </span>
+              ))}
+            </div>
           </div>
-        </div>
-        {!isJoinCodeComplete ? <p className="error-text error-text-centered">รหัสห้องไม่ถูกต้อง</p> : null}
-        <form className="entry-form" onSubmit={handleSubmit}>
-          <div className="entry-player-badge">
-            <span className="eyebrow">ชื่อ</span>
-            <h1 className="entry-title">ชื่อ</h1>
-          </div>
-          <label>
-            <input
-              aria-label="ชื่อผู้เล่น"
-              autoComplete="name"
-              autoFocus
-              placeholder="Mika"
-              value={displayName}
-              onChange={(event) => {
-                setDisplayName(event.target.value)
-                setError(null)
-              }}
-            />
-          </label>
-          <button
-            className="button button-primary button-block"
-            disabled={loading || !normalizedDisplayName || !isJoinCodeComplete}
-            type="submit"
-          >
-            {loading ? 'กำลังเข้า...' : 'เข้าเล่น'}
-          </button>
-        </form>
-        {error ? <p className="error-text error-text-centered">{error}</p> : null}
-        <Link className="text-link" to="/play">
-          เปลี่ยนรหัส
-        </Link>
-      </section>
+          {!isJoinCodeComplete ? <p className="error-text error-text-centered">รหัสห้องไม่ถูกต้อง</p> : null}
+          <form className="entry-form" onSubmit={handleSubmit}>
+            <div className="entry-player-badge">
+              <span className="eyebrow">ชื่อ</span>
+              <h1 className="entry-title">ชื่อ</h1>
+            </div>
+            <label>
+              <input
+                aria-label="ชื่อผู้เล่น"
+                autoComplete="name"
+                autoFocus
+                placeholder="Mika"
+                value={displayName}
+                onChange={(event) => {
+                  setDisplayName(event.target.value)
+                  setError(null)
+                }}
+              />
+            </label>
+            <button
+              className="button button-primary button-block"
+              disabled={loading || !normalizedDisplayName || !isJoinCodeComplete}
+              type="submit"
+            >
+              {loading ? 'กำลังเข้า...' : 'เข้าเล่น'}
+            </button>
+          </form>
+          {error ? <p className="error-text error-text-centered">{error}</p> : null}
+          <Link className="text-link" to="/play">
+            เปลี่ยนรหัส
+          </Link>
+        </section>
+      </PosterFrame>
     </main>
   )
 }

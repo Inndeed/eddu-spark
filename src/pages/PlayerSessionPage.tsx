@@ -3,6 +3,7 @@ import { Link, useLocation, useParams } from 'react-router-dom'
 
 import { BrandLogo } from '../components/BrandLogo'
 import { ChoiceGlyph } from '../components/ChoiceGlyph'
+import { PosterFrame } from '../components/PosterFrame'
 import { fetchPlayerSession, submitAnswer } from '../lib/api'
 import { toLocalizedError } from '../lib/errors'
 import { isCompleteJoinCode, normalizeJoinCode } from '../lib/join-code'
@@ -138,39 +139,45 @@ export function PlayerSessionPage() {
 
   if (!isJoinCodeComplete) {
     return (
-      <main className="player-live-shell">
-        <section className="player-full-panel">
-          <BrandLogo compact className="player-brand-mark" />
-          <h1>รหัสห้องไม่ถูกต้อง</h1>
-          <Link className="button button-primary" to="/play">
-            ใส่รหัสใหม่
-          </Link>
-        </section>
+      <main className="app-shell">
+        <PosterFrame className="poster-frame-page poster-frame-player-live" contentClassName="player-live-shell">
+          <section className="player-full-panel">
+            <BrandLogo compact className="player-brand-mark" />
+            <h1>รหัสห้องไม่ถูกต้อง</h1>
+            <Link className="button button-primary" to="/play">
+              ใส่รหัสใหม่
+            </Link>
+          </section>
+        </PosterFrame>
       </main>
     )
   }
 
   if (!participantId) {
     return (
-      <main className="player-live-shell">
-        <section className="player-full-panel">
-          <BrandLogo compact className="player-brand-mark" />
-          <h1>ยังไม่พบผู้เล่น</h1>
-          <Link className="button button-primary" to="/play">
-            เข้าใหม่
-          </Link>
-        </section>
+      <main className="app-shell">
+        <PosterFrame className="poster-frame-page poster-frame-player-live" contentClassName="player-live-shell">
+          <section className="player-full-panel">
+            <BrandLogo compact className="player-brand-mark" />
+            <h1>ยังไม่พบผู้เล่น</h1>
+            <Link className="button button-primary" to="/play">
+              เข้าใหม่
+            </Link>
+          </section>
+        </PosterFrame>
       </main>
     )
   }
 
   if (loading && !view) {
     return (
-      <main className="player-live-shell">
-        <section className="player-full-panel">
-          <BrandLogo compact className="player-brand-mark" />
-          <h1>กำลังเชื่อม...</h1>
-        </section>
+      <main className="app-shell">
+        <PosterFrame className="poster-frame-page poster-frame-player-live" contentClassName="player-live-shell">
+          <section className="player-full-panel">
+            <BrandLogo compact className="player-brand-mark" />
+            <h1>กำลังเชื่อม...</h1>
+          </section>
+        </PosterFrame>
       </main>
     )
   }
@@ -206,11 +213,12 @@ export function PlayerSessionPage() {
     !selectedPreviewChoiceId
 
   return (
-    <main className="player-live-shell">
-      {error ? <p className="error-banner">{error}</p> : null}
+    <main className="app-shell">
+      <PosterFrame className="poster-frame-page poster-frame-player-live" contentClassName="player-live-shell">
+        {error ? <p className="error-banner">{error}</p> : null}
 
-      {view?.session.status === 'lobby' ? (
-        <section className="player-full-panel player-wait-panel player-lobby-panel">
+        {view?.session.status === 'lobby' ? (
+          <section className="player-full-panel player-wait-panel player-lobby-panel">
           <BrandLogo compact className="player-brand-mark" />
           <div className="entry-pin-preview entry-pin-preview-tight" aria-hidden="true">
             {codeCells.map((cell, index) => (
@@ -229,11 +237,11 @@ export function PlayerSessionPage() {
               <ChoiceGlyph className="choice-glyph-small" index={index} key={index} />
             ))}
           </div>
-        </section>
-      ) : null}
+          </section>
+        ) : null}
 
-      {isLiveQuestion ? (
-        <section className={`player-answer-stage ${selectedPreviewChoiceId ? 'is-locking' : ''}`.trim()}>
+        {isLiveQuestion ? (
+          <section className={`player-answer-stage ${selectedPreviewChoiceId ? 'is-locking' : ''}`.trim()}>
           {selectedChoiceIndex >= 0 && selectedPreviewChoiceId ? (
             <div className="player-lock-overlay" aria-hidden="true">
               <div className={`player-lock-burst ${answerClassNames[selectedChoiceIndex]}`}>
@@ -259,11 +267,11 @@ export function PlayerSessionPage() {
               </button>
             ))}
           </div>
-        </section>
-      ) : null}
+          </section>
+        ) : null}
 
-      {isWaitingDuringQuestion ? (
-        <section className="player-full-panel player-wait-panel player-wait-panel-compact">
+        {isWaitingDuringQuestion ? (
+          <section className="player-full-panel player-wait-panel player-wait-panel-compact">
           <BrandLogo compact className="player-brand-mark" />
           <span className="eyebrow">ตอบแล้ว</span>
           <h1>รอเฉลย</h1>
@@ -286,11 +294,11 @@ export function PlayerSessionPage() {
             <div className="waiting-block" />
             <div className="waiting-block waiting-block-wide" />
           </div>
-        </section>
-      ) : null}
+          </section>
+        ) : null}
 
-      {view?.session.status === 'question_closed' ? (
-        <section className="player-full-panel player-wait-panel player-wait-panel-compact">
+        {view?.session.status === 'question_closed' ? (
+          <section className="player-full-panel player-wait-panel player-wait-panel-compact">
           <BrandLogo compact className="player-brand-mark" />
           <span className="eyebrow">รอ</span>
           <h1>เตรียมข้อถัดไป</h1>
@@ -308,11 +316,11 @@ export function PlayerSessionPage() {
             <div className="waiting-block" />
             <div className="waiting-block waiting-block-wide" />
           </div>
-        </section>
-      ) : null}
+          </section>
+        ) : null}
 
-      {view?.session.status === 'leaderboard' ? (
-        <section className="player-full-panel player-score-panel player-score-panel-compact">
+        {view?.session.status === 'leaderboard' ? (
+          <section className="player-full-panel player-score-panel player-score-panel-compact">
           <BrandLogo compact className="player-brand-mark" />
           <span className="eyebrow">อันดับ</span>
           <div className="player-rank-hero">
@@ -332,11 +340,11 @@ export function PlayerSessionPage() {
               </div>
             ))}
           </div>
-        </section>
-      ) : null}
+          </section>
+        ) : null}
 
-      {view?.session.status === 'finished' ? (
-        <section className="player-full-panel player-score-panel player-score-panel-compact">
+        {view?.session.status === 'finished' ? (
+          <section className="player-full-panel player-score-panel player-score-panel-compact">
           <BrandLogo compact className="player-brand-mark" />
           <span className="eyebrow">จบเกม</span>
           <div className="player-rank-hero">
@@ -346,8 +354,9 @@ export function PlayerSessionPage() {
           <Link className="button button-secondary" to="/play">
             เล่นอีกครั้ง
           </Link>
-        </section>
-      ) : null}
+          </section>
+        ) : null}
+      </PosterFrame>
     </main>
   )
 }

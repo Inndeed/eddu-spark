@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom'
 
 import { BrandLogo } from '../components/BrandLogo'
+import { PosterFrame } from '../components/PosterFrame'
 import { SoundToggle } from '../components/SoundToggle'
 import { useQuizAudio } from '../lib/audio'
 
@@ -9,10 +10,7 @@ export function HomePage() {
 
   return (
     <main className="app-shell home-shell">
-      <section className="poster-hero">
-        <div className="poster-rail poster-rail-left" />
-        <div className="poster-rail poster-rail-right" />
-        <div className="poster-center">
+      <PosterFrame className="poster-hero poster-frame-home" contentClassName="poster-center">
           <BrandLogo />
           <div className="hero-title-block">
             <span className="eyebrow hero-eyebrow">Eddu</span>
@@ -26,11 +24,8 @@ export function HomePage() {
               เข้าเล่น
             </Link>
           </div>
-        </div>
-        <div className="hero-corner hero-corner-orange" />
-        <div className="hero-corner hero-corner-yellow" />
         <SoundToggle className="hero-sound" muted={muted} onToggle={toggleMuted} />
-      </section>
+      </PosterFrame>
     </main>
   )
 }

@@ -4,6 +4,7 @@ import QRCode from 'qrcode'
 
 import { BrandLogo } from '../components/BrandLogo'
 import { ChoiceGlyph } from '../components/ChoiceGlyph'
+import { PosterFrame } from '../components/PosterFrame'
 import { SoundToggle } from '../components/SoundToggle'
 import { fetchAppHealth, fetchHostSession, sendHostAction } from '../lib/api'
 import { useQuizAudio } from '../lib/audio'
@@ -29,6 +30,7 @@ export function HostLivePage() {
   const [qrCodeUrl, setQrCodeUrl] = useState<string | null>(null)
   const [fullscreenActive, setFullscreenActive] = useState(false)
   const [failedImageUrls, setFailedImageUrls] = useState<Record<string, boolean>>({})
+  const [copyState, setCopyState] = useState<'idle' | 'success' | 'error'>('idle')
 
   const loadSession = useCallback(async () => {
     if (!joinCode || !session) {
@@ -99,6 +101,20 @@ export function HostLivePage() {
     }
   }, [])
 
+  useEffect(() => {
+    if (copyState === 'idle') {
+      return
+    }
+
+    const timeout = window.setTimeout(() => {
+      setCopyState('idle')
+    }, 1800)
+
+    return () => {
+      window.clearTimeout(timeout)
+    }
+  }, [copyState])
+
   const countdown = useCountdown(view?.session.questionEndsAt ?? null)
 
   const handleAction = async (action: string) => {
@@ -143,20 +159,36 @@ export function HostLivePage() {
     })
   }
 
+  const handleCopyJoinUrl = async () => {
+    if (!joinUrl) {
+      setCopyState('error')
+      return
+    }
+
+    try {
+      await navigator.clipboard.writeText(joinUrl)
+      setCopyState('success')
+    } catch {
+      setCopyState('error')
+    }
+  }
+
   const renderHostLiveState = (title: string, actionLabel?: string) => (
-    <main className="app-shell host-live-shell host-live-shell-state">
-      <section className="host-panel host-state-panel">
-        <BrandLogo compact to="/host" />
-        <div className="auth-loading-state">
-          <span className="eyebrow">Live</span>
-          <h1>{title}</h1>
-        </div>
-        {actionLabel ? (
-          <Link className="button button-primary" to="/host">
-            {actionLabel}
-          </Link>
-        ) : null}
-      </section>
+    <main className="app-shell">
+      <PosterFrame className="poster-frame-page poster-frame-live-shell" contentClassName="host-live-shell host-live-shell-state">
+        <section className="host-panel host-state-panel">
+          <BrandLogo compact to="/host" />
+          <div className="auth-loading-state">
+            <span className="eyebrow">Live</span>
+            <h1>{title}</h1>
+          </div>
+          {actionLabel ? (
+            <Link className="button button-primary" to="/host">
+              {actionLabel}
+            </Link>
+          ) : null}
+        </section>
+      </PosterFrame>
     </main>
   )
 
@@ -218,25 +250,26 @@ export function HostLivePage() {
     : 0
 
   return (
-    <main className="app-shell host-live-shell host-live-shell-immersive">
-      <aside className="host-live-rail" aria-label="Host controls">
-        <BrandLogo compact to="/host" />
-        <div className="header-actions host-live-rail-actions">
-          <button className="button button-ghost" onClick={() => void toggleFullscreen()} type="button">
-            {fullscreenActive ? 'ย่อ' : 'เต็มจอ'}
-          </button>
-          <SoundToggle muted={muted} onToggle={toggleMuted} />
-          <button className="button button-ghost" onClick={() => void signOutHostSession()} type="button">
-            ออก
-          </button>
-        </div>
-      </aside>
+    <main className="app-shell">
+      <PosterFrame className="poster-frame-page poster-frame-live-shell" contentClassName="host-live-shell host-live-shell-immersive">
+        <aside className="host-live-rail" aria-label="Host controls">
+          <BrandLogo compact to="/host" />
+          <div className="header-actions host-live-rail-actions">
+            <button className="button button-ghost" onClick={() => void toggleFullscreen()} type="button">
+              {fullscreenActive ? 'ย่อ' : 'เต็มจอ'}
+            </button>
+            <SoundToggle muted={muted} onToggle={toggleMuted} />
+            <button className="button button-ghost" onClick={() => void signOutHostSession()} type="button">
+              ออก
+            </button>
+          </div>
+        </aside>
 
-      <section className="host-live-main">
-        {error ? <p className="error-text">{error}</p> : null}
+        <section className="host-live-main">
+          {error ? <p className="error-text">{error}</p> : null}
 
-        <section className="live-grid live-grid-single">
-          <div className="live-stage-panel live-stage-panel-full">
+          <section className="live-grid live-grid-single">
+            <div className="live-stage-panel live-stage-panel-full">
           {showLobby ? (
             <div className="kahoot-stage lobby-stage stage-animate-in">
               <div className="lobby-hero">
@@ -244,7 +277,21 @@ export function HostLivePage() {
                   <span className="eyebrow">เข้า</span>
                   <div className="join-code-display">{view?.session.joinCode}</div>
                   {qrCodeUrl ? <img alt="QR code for joining the room" src={qrCodeUrl} /> : null}
-                  <p>{joinUrl.replace(/^https?:\/\//, '')}</p>
+                  <div className="join-url-panel">
+                    <p>{joinUrl.replace(/^https?:\/\//, '')}</p>
+                    <div className="join-url-actions">
+                      <button
+                        className="button button-secondary button-inline"
+                        onClick={() => void handleCopyJoinUrl()}
+                        type="button"
+                      >
+                        {copyState === 'success' ? 'คัดลอกแล้ว' : 'คัดลอกลิงก์'}
+                      </button>
+                      {copyState === 'error' ? (
+                        <span className="join-url-feedback">คัดลอกไม่สำเร็จ</span>
+                      ) : null}
+                    </div>
+                  </div>
                 </div>
 
                 <div className="lobby-players-panel">
@@ -616,9 +663,10 @@ export function HostLivePage() {
               </div>
               </div>
             ) : null}
-          </div>
+            </div>
+          </section>
         </section>
-      </section>
+      </PosterFrame>
     </main>
   )
 }
