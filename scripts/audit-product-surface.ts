@@ -74,8 +74,16 @@ const hostLiveLayoutChecks: Array<{ passed: boolean; label: string }> = [
     label: 'Host Live rail is not mixed with the old topbar class',
   },
   {
-    passed: /grid-template-columns:\s*78px\s+minmax\(0,\s*1fr\)/.test(globalCss),
+    passed: /grid-template-columns:\s*70px\s+minmax\(0,\s*1fr\)/.test(globalCss),
     label: 'Host Live desktop layout reserves a compact left rail',
+  },
+  {
+    passed: /grid-template-columns:\s*minmax\(420px,\s*1\.28fr\)\s+minmax\(320px,\s*0\.72fr\)/.test(globalCss),
+    label: 'Reveal layout prioritizes the image area over secondary cards',
+  },
+  {
+    passed: /min-height:\s*clamp\(66px,\s*11\.4vh,\s*94px\)/.test(globalCss),
+    label: 'Host answer cards are compact enough for a no-scroll projection stage',
   },
 ]
 
