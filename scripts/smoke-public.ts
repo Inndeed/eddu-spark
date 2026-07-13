@@ -31,6 +31,28 @@ const requestJson = async <T>(path: string) => {
   return (await response.json()) as T
 }
 
+const expectJsonStatus = async (
+  path: string,
+  expectedStatus: number,
+  init?: RequestInit,
+) => {
+  const response = await fetch(`${baseUrl}${path}`, init)
+  const contentType = response.headers.get('content-type') ?? ''
+
+  if (response.status !== expectedStatus) {
+    throw new Error(`${path} returned ${response.status}, expected ${expectedStatus}`)
+  }
+
+  if (!contentType.includes('application/json')) {
+    throw new Error(`${path} did not return JSON`)
+  }
+
+  const payload = (await response.json()) as { error?: unknown }
+  if (typeof payload.error !== 'string' || payload.error.length === 0) {
+    throw new Error(`${path} did not return a JSON error payload`)
+  }
+}
+
 type HealthPayload = {
   status: string
   mode: string
@@ -81,6 +103,20 @@ try {
     }),
   )
   pass(`SPA deep links return the app shell (${deepLinkPaths.join(', ')})`)
+
+  await expectJsonStatus('/api/play/sessions/SMOKE1', 404)
+  await expectJsonStatus('/api/play/join', 404, {
+    method: 'POST',
+    headers: {
+      'content-type': 'application/json',
+    },
+    body: JSON.stringify({
+      joinCode: 'SMOKE1',
+      displayName: 'Smoke Tester',
+    }),
+  })
+  await expectJsonStatus('/api/host/bootstrap', 401)
+  pass('public/host API routes return expected JSON status responses')
 } catch (error) {
   fail(error instanceof Error ? error.message : 'smoke check failed')
 }
