@@ -15,23 +15,29 @@ export function PlayerNamePage() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const codeCells = Array.from({ length: 6 }, (_, index) => normalizedJoinCode[index] ?? '')
+  const normalizedDisplayName = displayName.trim()
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault()
+    if (!normalizedDisplayName) {
+      setError('ใส่ชื่อก่อนเข้าเล่น')
+      return
+    }
+
     setLoading(true)
     setError(null)
 
     try {
-      const payload = await joinSession(normalizedJoinCode, displayName)
+      const payload = await joinSession(normalizedJoinCode, normalizedDisplayName)
       setPlayerRecord({
         joinCode: payload.joinCode,
         participantId: payload.participantId,
-        displayName,
+        displayName: normalizedDisplayName,
       })
       setPlayerRecord({
         joinCode: 'recent',
         participantId: payload.participantId,
-        displayName,
+        displayName: normalizedDisplayName,
       })
       navigate(`/play/session/${payload.joinCode}?participantId=${payload.participantId}`)
     } catch (joinError) {
@@ -66,10 +72,17 @@ export function PlayerNamePage() {
               autoFocus
               placeholder="Mika"
               value={displayName}
-              onChange={(event) => setDisplayName(event.target.value)}
+              onChange={(event) => {
+                setDisplayName(event.target.value)
+                setError(null)
+              }}
             />
           </label>
-          <button className="button button-primary button-block" disabled={loading} type="submit">
+          <button
+            className="button button-primary button-block"
+            disabled={loading || !normalizedDisplayName}
+            type="submit"
+          >
             {loading ? 'กำลังเข้า...' : 'เข้าเล่น'}
           </button>
         </form>

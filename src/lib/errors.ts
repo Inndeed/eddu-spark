@@ -18,8 +18,12 @@ export const localizeErrorMessage = (message: string) => {
     return 'บัญชีนี้ยังไม่มีสิทธิ์เข้าใช้งาน Host'
   }
 
-  if (lower.includes('supabase browser configuration is missing')) {
-    return 'การตั้งค่า Supabase ของเบราว์เซอร์ยังไม่ครบ'
+  if (
+    lower.includes('supabase browser configuration is missing') ||
+    lower.includes('supabase server configuration is missing') ||
+    lower.includes('set supabase_url')
+  ) {
+    return 'ระบบยังไม่พร้อมใช้งาน'
   }
 
   if (lower.includes('unable to reach server') || lower.includes('request failed')) {
