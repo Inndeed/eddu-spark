@@ -87,13 +87,41 @@ Recommended deploy flow:
 5. Set `APP_BASE_URL` to that generated Railway URL.
 6. Trigger a redeploy after env vars are saved.
 
+### Public App URL
+
+Use the root Railway domain as the user-facing app URL:
+
+- `https://eddu-spark-production.up.railway.app/`
+
+Use this URL when:
+
+- opening the app in a browser
+- sharing the main app entry with internal users
+- deriving player-facing links such as `/play` and `/play/join/:joinCode`
+
+Do not share `/api/health` as the app link. That endpoint is not a web page.
+
+### Ops / Health URL
+
+This endpoint is for Railway and verification tools only:
+
+- `https://eddu-spark-production.up.railway.app/api/health`
+
+Use it only for:
+
+- Railway health checks
+- smoke verification
+- debugging deploy status
+
+If someone opens this URL directly, JSON is the expected result.
+
 The production service uses:
 
 - `npm run build` during build
 - `npm run start` as the start command
 - `/api/health` as the health check path
 
-Current production URL:
+Current production app URL:
 
 - `https://eddu-spark-production.up.railway.app`
 
@@ -187,6 +215,11 @@ The smoke check verifies:
 - key API routes return JSON instead of falling through to HTML, including public player session/join errors and host auth gating
 - the public `/ws` WebSocket endpoint opens, accepts a session subscription message, and returns a protocol error for invalid messages
 
+Important:
+
+- open the root URL when you want to use the app
+- use `/api/health` only when you intentionally want machine-readable deploy status
+
 ## Vercel note
 
 Vercel is useful here as a secondary helper for previews or future refactors, but the intended v1 production shape remains Railway-first because the app depends on a long-running live session engine plus WebSocket fanout.
@@ -220,6 +253,7 @@ Vercel is useful here as a secondary helper for previews or future refactors, bu
 ## Production checklist
 
 - Railway envs must include `SUPABASE_URL`, `SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY`, `VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY`, `APP_BASE_URL`, and `NODE_ENV=production`.
+- `APP_BASE_URL` must be the public root URL, for example `https://eddu-spark-production.up.railway.app`, not `/api/health`.
 - Supabase must include `quiz_questions.image_path` and `quiz_questions.image_alt` before question image upload is verified in production.
 - Create at least one active host user in `public.host_users` using `npm run host:create`.
 - The `question-images` Supabase Storage bucket must exist as a public bucket, or the deployed app must be able to create it on boot with the service role.
