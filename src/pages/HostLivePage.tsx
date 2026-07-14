@@ -249,7 +249,7 @@ export function HostLivePage() {
     (questionStat) => questionStat.questionId === closedQuestion?.id,
   )
   const topFive = view?.rankings.slice(0, 5) ?? []
-  const ceremonyPlayers = [3, 2, 1]
+  const ceremonyPlayers = [2, 1, 3]
     .map((rank) => topFive.find((entry) => entry.rank === rank))
     .filter((ranking): ranking is NonNullable<(typeof topFive)[number]> => Boolean(ranking))
   const participants = [...(view?.session.participants ?? [])].sort((left, right) =>
@@ -592,17 +592,17 @@ export function HostLivePage() {
 
               <div className="final-ceremony-stage">
                 {topFive.length > 0 ? (
-                  <>
-                    <div className={`ceremony-podium ceremony-podium-${ceremonyPlayers.length}`.trim()}>
-                      {ceremonyPlayers.map((ranking, index) => (
-                        <article
-                          className={`ceremony-card ceremony-card-rank-${ranking.rank} ceremony-card-enter ${
-                            ranking.rank === 1 ? 'ceremony-card-champion' : ''
-                          }`.trim()}
-                          key={ranking.participantId}
-                          style={{ animationDelay: `${index * 520}ms` }}
-                        >
-                          {ranking.rank === 1 ? (
+                  <div className={`ceremony-podium ceremony-podium-${ceremonyPlayers.length}`.trim()}>
+                    {ceremonyPlayers.map((ranking, index) => (
+                      <article
+                        className={`ceremony-card ceremony-card-rank-${ranking.rank} ceremony-card-enter ${
+                          ranking.rank === 1 ? 'ceremony-card-champion' : ''
+                        }`.trim()}
+                        key={ranking.participantId}
+                        style={{ animationDelay: `${index * 520}ms` }}
+                      >
+                        {ranking.rank === 1 ? (
+                          <>
                             <div className="ceremony-confetti" aria-hidden="true">
                               <span />
                               <span />
@@ -610,48 +610,30 @@ export function HostLivePage() {
                               <span />
                               <span />
                               <span />
+                              <span />
+                              <span />
+                              <span />
+                              <span />
                             </div>
+                            <div className="ceremony-fireworks" aria-hidden="true">
+                              <span />
+                              <span />
+                              <span />
+                            </div>
+                          </>
+                        ) : null}
+                        <span className="ceremony-rank">#{ranking.rank}</span>
+                        <strong>{ranking.displayName}</strong>
+                        <div className="ceremony-meta">
+                          <span>{ranking.score} คะแนน</span>
+                          {ranking.currentStreak >= 2 ? (
+                            <span className="pill pill-streak">🔥 {ranking.currentStreak}</span>
                           ) : null}
-                          <span className="ceremony-rank">#{ranking.rank}</span>
-                          <strong>{ranking.displayName}</strong>
-                          <div className="ceremony-meta">
-                            <span>{ranking.score} คะแนน</span>
-                            {ranking.currentStreak >= 2 ? (
-                              <span className="pill pill-streak">Hot {ranking.currentStreak}</span>
-                            ) : null}
-                          </div>
-                          {ranking.rank === 1 ? <span className="ceremony-champion-label">Champion</span> : null}
-                        </article>
-                      ))}
-                    </div>
-
-                    <section className="final-top-five-list">
-                      <div className="panel-header">
-                        <span className="eyebrow">อันดับ</span>
-                        <h2>Top 5</h2>
-                      </div>
-                      <div className="rank-list rank-list-top-five">
-                        {topFive.map((ranking, index) => (
-                          <div
-                            className={`rank-row rank-row-highlight rank-row-enter ${
-                              ranking.rank === 1 ? 'rank-row-winner' : ''
-                            }`.trim()}
-                            key={ranking.participantId}
-                            style={{ animationDelay: `${220 + index * 80}ms` }}
-                          >
-                            <span>#{ranking.rank}</span>
-                            <strong>{ranking.displayName}</strong>
-                            <div className="rank-row-meta">
-                              {ranking.currentStreak >= 2 ? (
-                                <span className="pill pill-streak">Hot {ranking.currentStreak}</span>
-                              ) : null}
-                              <span>{ranking.score}</span>
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    </section>
-                  </>
+                        </div>
+                        {ranking.rank === 1 ? <span className="ceremony-champion-label">Champion</span> : null}
+                      </article>
+                    ))}
+                  </div>
                 ) : (
                   <section className="host-panel side-panel-card embedded-panel embedded-panel-compact">
                     <p className="side-note">ยังไม่มีคะแนน</p>

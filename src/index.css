@@ -1943,24 +1943,29 @@ label {
 .final-ceremony-stage {
   min-height: 0;
   display: grid;
-  grid-template-rows: minmax(0, 1fr) auto;
-  gap: 12px;
+  align-items: stretch;
+  height: 100%;
 }
 
 .ceremony-podium {
   min-height: 0;
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 14px;
+  gap: 18px;
   align-items: end;
+  height: 100%;
 }
 
 .ceremony-podium-1 {
   grid-template-columns: minmax(0, 1fr);
+  max-width: min(520px, 100%);
+  margin: 0 auto;
 }
 
 .ceremony-podium-2 {
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: minmax(0, 0.82fr) minmax(0, 1.18fr);
+  max-width: min(980px, 100%);
+  margin: 0 auto;
 }
 
 .ceremony-card {
@@ -1969,8 +1974,8 @@ label {
   display: grid;
   align-content: end;
   gap: 10px;
-  min-height: 240px;
-  padding: 18px 18px 20px;
+  min-height: 300px;
+  padding: 22px 22px 24px;
   border-radius: 28px;
   border: 1px solid rgba(255, 247, 232, 0.1);
   background:
@@ -1982,24 +1987,29 @@ label {
 }
 
 .ceremony-card-rank-1 {
-  min-height: 320px;
+  min-height: 460px;
   background:
-    radial-gradient(circle at top center, rgba(255, 224, 94, 0.22), transparent 42%),
-    linear-gradient(180deg, rgba(255, 247, 232, 0.1), rgba(255, 247, 232, 0.04)),
-    rgba(255, 247, 232, 0.06);
-  border-color: rgba(255, 224, 94, 0.34);
+    radial-gradient(circle at top center, rgba(255, 224, 94, 0.3), transparent 44%),
+    linear-gradient(180deg, rgba(255, 247, 232, 0.14), rgba(255, 247, 232, 0.04)),
+    rgba(255, 247, 232, 0.08);
+  border-color: rgba(255, 224, 94, 0.42);
+  order: 2;
 }
 
 .ceremony-card-rank-2 {
-  min-height: 280px;
+  min-height: 340px;
+  order: 1;
 }
 
 .ceremony-card-rank-3 {
-  min-height: 250px;
+  min-height: 320px;
+  order: 3;
 }
 
 .ceremony-card-champion {
-  box-shadow: 0 28px 44px rgba(255, 224, 94, 0.18);
+  box-shadow:
+    0 32px 54px rgba(255, 224, 94, 0.22),
+    0 0 0 4px rgba(255, 224, 94, 0.12);
 }
 
 .ceremony-rank {
@@ -2013,6 +2023,15 @@ label {
   line-height: 1;
 }
 
+.ceremony-card-rank-1 .ceremony-rank {
+  font-size: clamp(3.4rem, 6vw, 5.8rem);
+}
+
+.ceremony-card-rank-1 strong {
+  font-size: clamp(1.5rem, 2.8vw, 2.6rem);
+  line-height: 0.92;
+}
+
 .ceremony-meta {
   display: flex;
   align-items: center;
@@ -2022,13 +2041,13 @@ label {
 
 .ceremony-champion-label {
   position: absolute;
-  top: 16px;
-  right: 16px;
-  padding: 0.35rem 0.62rem;
+  top: 18px;
+  right: 18px;
+  padding: 0.46rem 0.88rem;
   border-radius: 999px;
-  background: rgba(255, 224, 94, 0.16);
+  background: rgba(255, 224, 94, 0.2);
   color: var(--yellow);
-  font-size: 0.7rem;
+  font-size: 0.78rem;
   letter-spacing: 0.16em;
   text-transform: uppercase;
 }
@@ -2043,10 +2062,10 @@ label {
   position: absolute;
   top: -12%;
   width: 10px;
-  height: 26px;
+  height: 30px;
   border-radius: 999px;
   opacity: 0;
-  animation: confetti-fall 1400ms ease-in infinite;
+  animation: confetti-fall 1500ms ease-in infinite;
 }
 
 .ceremony-confetti span:nth-child(1) {
@@ -2085,13 +2104,73 @@ label {
   animation-delay: 980ms;
 }
 
-.final-top-five-list {
-  display: grid;
-  gap: 10px;
-  padding: 16px 18px;
-  border-radius: 24px;
-  background: rgba(255, 247, 232, 0.05);
-  border: 1px solid rgba(255, 247, 232, 0.08);
+.ceremony-confetti span:nth-child(7) {
+  left: 18%;
+  background: var(--orange);
+  animation-delay: 220ms;
+}
+
+.ceremony-confetti span:nth-child(8) {
+  left: 36%;
+  background: rgba(255, 247, 232, 0.9);
+  animation-delay: 620ms;
+}
+
+.ceremony-confetti span:nth-child(9) {
+  left: 58%;
+  background: var(--green);
+  animation-delay: 1080ms;
+}
+
+.ceremony-confetti span:nth-child(10) {
+  left: 74%;
+  background: #ff6868;
+  animation-delay: 420ms;
+}
+
+.ceremony-fireworks {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.ceremony-fireworks span {
+  position: absolute;
+  width: 170px;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  opacity: 0;
+  mix-blend-mode: screen;
+  animation: champion-burst 1800ms ease-out infinite;
+}
+
+.ceremony-fireworks span:nth-child(1) {
+  top: 10%;
+  left: 8%;
+  background:
+    radial-gradient(circle, rgba(255, 224, 94, 0.45) 0 6%, transparent 7% 100%),
+    conic-gradient(from 0deg, rgba(255, 224, 94, 0.9), rgba(255, 145, 0, 0), rgba(255, 224, 94, 0.9));
+  animation-delay: 220ms;
+}
+
+.ceremony-fireworks span:nth-child(2) {
+  top: 4%;
+  right: 10%;
+  width: 150px;
+  background:
+    radial-gradient(circle, rgba(255, 247, 232, 0.42) 0 6%, transparent 7% 100%),
+    conic-gradient(from 45deg, rgba(255, 104, 104, 0.88), rgba(255, 145, 0, 0), rgba(255, 104, 104, 0.88));
+  animation-delay: 760ms;
+}
+
+.ceremony-fireworks span:nth-child(3) {
+  top: 18%;
+  left: 46%;
+  width: 132px;
+  background:
+    radial-gradient(circle, rgba(41, 210, 116, 0.42) 0 6%, transparent 7% 100%),
+    conic-gradient(from 90deg, rgba(41, 210, 116, 0.86), rgba(255, 145, 0, 0), rgba(41, 210, 116, 0.86));
+  animation-delay: 1080ms;
 }
 
 .rank-list-top-five {
@@ -2188,6 +2267,27 @@ label {
 
   100% {
     transform: translate3d(-10px, 260px, 0) rotate(180deg);
+    opacity: 0;
+  }
+}
+
+@keyframes champion-burst {
+  0% {
+    transform: scale(0.2);
+    opacity: 0;
+  }
+
+  18% {
+    opacity: 0.7;
+  }
+
+  58% {
+    transform: scale(1);
+    opacity: 0.22;
+  }
+
+  100% {
+    transform: scale(1.22);
     opacity: 0;
   }
 }
