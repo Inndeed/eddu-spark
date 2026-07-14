@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react'
-import { Link, useNavigate, useParams } from 'react-router-dom'
+import { useNavigate, useParams } from 'react-router-dom'
 
 import { BrandLogo } from '../components/BrandLogo'
 import { PosterFrame } from '../components/PosterFrame'
@@ -73,14 +73,13 @@ export function PlayerNamePage() {
           <form className="entry-form" onSubmit={handleSubmit}>
             <div className="entry-player-badge">
               <span className="eyebrow">ชื่อ</span>
-              <h1 className="entry-title">ชื่อ</h1>
             </div>
             <label>
               <input
                 aria-label="ชื่อผู้เล่น"
                 autoComplete="name"
                 autoFocus
-                placeholder="Mika"
+                placeholder="ใส่ชื่อที่นี่"
                 value={displayName}
                 onChange={(event) => {
                   setDisplayName(event.target.value)
@@ -97,9 +96,6 @@ export function PlayerNamePage() {
             </button>
           </form>
           {error ? <p className="error-text error-text-centered">{error}</p> : null}
-          <Link className="text-link" to="/play">
-            เปลี่ยนรหัส
-          </Link>
         </section>
       </PosterFrame>
     </main>

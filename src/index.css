@@ -42,13 +42,18 @@
 html,
 body,
 #root {
+  height: 100%;
   min-height: 100%;
   margin: 0;
+  overflow: hidden;
+  overscroll-behavior: none;
 }
 
 body {
-  min-height: 100vh;
+  height: 100dvh;
+  min-height: 100dvh;
   color: var(--text);
+  overflow: hidden;
 }
 
 body::before {
@@ -147,10 +152,13 @@ label {
 
 .app-shell {
   width: min(1280px, calc(100% - 24px));
+  height: 100dvh;
+  max-height: 100dvh;
   margin: 0 auto;
-  padding: 18px 0 48px;
+  padding: 12px 0;
   position: relative;
   z-index: 1;
+  overflow: hidden;
 }
 
 .eyebrow {
@@ -304,7 +312,8 @@ label {
 .poster-frame,
 .poster-hero {
   position: relative;
-  min-height: min(86vh, 880px);
+  min-height: 100%;
+  height: 100%;
   border-radius: 42px;
   overflow: hidden;
   border: 1px solid var(--line);
@@ -321,11 +330,14 @@ label {
 .poster-frame-content {
   position: relative;
   z-index: 2;
-  min-height: inherit;
+  min-height: 100%;
+  height: 100%;
+  overflow: hidden;
 }
 
 .poster-frame-page {
-  min-height: min(88vh, 960px);
+  min-height: 100%;
+  height: 100%;
 }
 
 .poster-frame-entry .poster-frame-content,
@@ -447,10 +459,15 @@ label {
 .host-shell {
   display: grid;
   gap: 18px;
+  grid-template-rows: auto minmax(0, 1fr);
+  min-height: 100%;
+  height: 100%;
+  overflow: hidden;
 }
 
 .host-shell-auth {
-  min-height: calc(100dvh - 36px);
+  min-height: 100%;
+  height: 100%;
   align-content: center;
   justify-items: center;
 }
@@ -521,9 +538,11 @@ label {
 
 .host-login-panel,
 .player-entry-shell {
-  min-height: calc(100dvh - 36px);
+  min-height: 100%;
+  height: 100%;
   display: grid;
   place-items: center;
+  overflow: hidden;
 }
 
 .host-shell-auth .host-login-panel {
@@ -699,6 +718,12 @@ label {
 .side-panel-card {
   display: grid;
   gap: 18px;
+}
+
+.host-editor-panel,
+.host-library-panel {
+  min-height: 0;
+  overflow: auto;
 }
 
 .host-library-panel-full,
@@ -886,32 +911,36 @@ label {
   width: 100%;
   min-height: 100%;
   padding: 0;
-  grid-template-columns: clamp(58px, 4.2vw, 68px) minmax(0, 1fr);
+  grid-template-columns: clamp(88px, 6.2vw, 104px) minmax(0, 1fr);
   align-items: stretch;
   gap: 6px;
+  overflow: hidden;
 }
 
 .host-live-main {
   display: grid;
   gap: 6px;
   min-width: 0;
-  min-height: calc(100dvh - 12px);
+  min-height: 0;
+  height: 100%;
+  overflow: hidden;
 }
 
 .host-live-rail {
   display: grid;
   align-content: space-between;
   justify-items: stretch;
-  gap: 5px;
-  padding: 6px 4px;
+  gap: 8px;
+  padding: 8px 6px;
   position: sticky;
   top: 6px;
   height: calc(100dvh - 12px);
   min-height: calc(100dvh - 12px);
-  border-radius: 16px;
+  border-radius: 20px;
   background: rgba(23, 20, 16, 0.9);
   border: 1px solid rgba(255, 247, 232, 0.08);
   z-index: 5;
+  overflow: hidden;
 }
 
 .host-live-rail .brand-logo {
@@ -920,15 +949,15 @@ label {
 
 .host-live-rail .brand-logo-badge {
   width: 100%;
-  min-height: 40px;
-  padding: 0.34rem 0.22rem;
-  border-radius: 14px;
+  min-height: 58px;
+  padding: 0.44rem 0.36rem;
+  border-radius: 18px;
 }
 
 .host-live-rail .brand-mark {
   width: 100%;
-  padding: 0.32rem 0.18rem;
-  border-radius: 12px;
+  padding: 0.42rem 0.28rem;
+  border-radius: 15px;
 }
 
 .host-live-rail .brand-logo img {
@@ -938,30 +967,31 @@ label {
 
 .host-live-rail-actions {
   display: grid;
-  flex-direction: column;
   align-items: stretch;
-  gap: 4px;
+  align-content: end;
+  gap: 6px;
+  min-height: 0;
 }
 
 .host-live-rail-actions .button,
 .host-live-rail-actions .sound-toggle {
   width: 100%;
   justify-content: center;
-  min-height: 29px;
-  padding: 0.32rem 0.2rem;
-  border-radius: 11px;
-  font-size: 0.55rem;
-  line-height: 1.05;
+  min-height: 42px;
+  padding: 0.5rem 0.36rem;
+  border-radius: 14px;
+  font-size: 0.72rem;
+  line-height: 1.12;
   white-space: normal;
 }
 
 .host-live-rail-actions .sound-toggle {
-  gap: 3px;
+  gap: 5px;
 }
 
 .host-live-rail-actions .sound-toggle-dot {
-  width: 8px;
-  height: 8px;
+  width: 9px;
+  height: 9px;
 }
 
 .host-live-shell-state {
@@ -991,7 +1021,9 @@ label {
 }
 
 .live-stage-panel-full {
-  min-height: calc(100dvh - 16px);
+  min-height: 0;
+  height: 100%;
+  overflow: hidden;
 }
 
 @media (min-width: 721px) {
@@ -1203,15 +1235,16 @@ label {
 }
 
 .host-question-stage {
-  display: grid;
+  display: flex;
+  flex-direction: column;
   gap: 10px;
   min-height: 0;
-  align-content: start;
+  height: 100%;
+  align-content: stretch;
 }
 
 .host-question-stage-no-image {
-  align-content: start;
-  grid-template-rows: auto auto;
+  justify-content: flex-start;
 }
 
 .stage-image-frame {
@@ -1261,6 +1294,8 @@ label {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 8px;
+  margin-top: auto;
+  align-self: stretch;
 }
 
 .host-answer-card {
@@ -1445,12 +1480,17 @@ label {
 }
 
 .player-bubble {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 42px;
   padding: 0.78rem 1rem;
   border-radius: 999px;
   background: linear-gradient(135deg, rgba(255, 247, 232, 0.16), rgba(255, 247, 232, 0.08));
   border: 1px solid rgba(255, 247, 232, 0.1);
   color: var(--text);
   font-weight: 700;
+  line-height: 1.1;
   animation: bubble-pop 260ms ease-out, bubble-float 4.5s ease-in-out infinite;
 }
 
@@ -1654,6 +1694,7 @@ label {
 }
 
 .reveal-question-stage {
+  display: grid;
   gap: 8px;
   min-height: 0;
   align-content: stretch;
@@ -1704,25 +1745,90 @@ label {
 .leaderboard-stage-grid {
   display: grid;
   gap: 12px;
-  align-items: start;
+  align-items: center;
 }
 
 .leaderboard-stage-grid-single {
   grid-template-columns: minmax(0, 1fr);
   min-height: 0;
+  height: 100%;
+  place-items: center;
 }
 
 .leaderboard-summary-panel {
   display: grid;
-  gap: 12px;
+  gap: 16px;
   min-height: 0;
+  width: min(860px, 100%);
+  margin: 0 auto;
+  align-content: center;
 }
 
-.leaderboard-podium {
+.leaderboard-scoreboard {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 10px;
-  align-items: end;
+}
+
+.leaderboard-scoreboard-head,
+.leaderboard-scoreboard-row {
+  display: grid;
+  grid-template-columns: 88px minmax(0, 1.7fr) minmax(110px, 0.72fr) minmax(150px, 0.88fr);
+  align-items: center;
+  gap: 14px;
+}
+
+.leaderboard-scoreboard-head {
+  padding: 0 18px;
+  color: var(--yellow);
+  font-family: var(--display);
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.leaderboard-scoreboard-body {
+  display: grid;
+  gap: 10px;
+}
+
+.leaderboard-scoreboard-row {
+  padding: 1rem 1.1rem;
+  border-radius: 20px;
+  border: 1px solid rgba(255, 247, 232, 0.1);
+  background: rgba(255, 247, 232, 0.06);
+}
+
+.leaderboard-scoreboard-row.is-top-rank {
+  background:
+    radial-gradient(circle at top right, rgba(255, 224, 94, 0.14), transparent 42%),
+    rgba(255, 247, 232, 0.08);
+  border-color: rgba(255, 224, 94, 0.26);
+}
+
+.leaderboard-scoreboard-rank,
+.leaderboard-scoreboard-score {
+  font-family: var(--display);
+  font-size: clamp(1rem, 1.4vw, 1.22rem);
+  font-weight: 800;
+}
+
+.leaderboard-scoreboard-name {
+  font-size: clamp(1rem, 1.3vw, 1.18rem);
+  line-height: 1.08;
+  overflow-wrap: anywhere;
+}
+
+.leaderboard-scoreboard-streak {
+  display: inline-flex;
+  justify-content: flex-start;
+  min-height: 34px;
+}
+
+.leaderboard-scoreboard-streak-slot {
+  display: inline-flex;
+  min-width: 76px;
+  min-height: 34px;
 }
 
 .leaderboard-card {
@@ -1985,8 +2091,10 @@ label {
 
 .player-live-shell {
   min-height: 100%;
+  height: 100%;
   padding: max(12px, env(safe-area-inset-top)) 12px max(12px, env(safe-area-inset-bottom));
   display: grid;
+  overflow: hidden;
 }
 
 .player-answer-stage,
@@ -2446,25 +2554,25 @@ label {
   }
 
   .host-live-shell-immersive {
-    grid-template-columns: 66px minmax(0, 1fr);
+    grid-template-columns: 84px minmax(0, 1fr);
     gap: 6px;
   }
 
   .host-live-rail {
     height: calc(100dvh - 12px);
     min-height: calc(100dvh - 12px);
-    padding: 6px 4px;
+    padding: 7px 5px;
   }
 
   .host-live-rail .brand-logo-badge {
-    min-height: 38px;
-    border-radius: 14px;
+    min-height: 48px;
+    border-radius: 16px;
   }
 
   .host-live-rail-actions .button,
   .host-live-rail-actions .sound-toggle {
-    min-height: 30px;
-    font-size: 0.55rem;
+    min-height: 36px;
+    font-size: 0.64rem;
   }
 
   .lobby-hero {
@@ -2504,7 +2612,7 @@ label {
 
 @media (max-width: 640px) {
   .poster-frame-page {
-    min-height: calc(100dvh - 16px);
+    min-height: 100%;
   }
 
   .poster-frame-entry .poster-frame-content,
@@ -2520,7 +2628,7 @@ label {
 
   .player-entry-shell,
   .host-shell-auth {
-    min-height: calc(100dvh - 16px);
+    min-height: 100%;
   }
 
   .entry-pin-preview {
@@ -2545,11 +2653,11 @@ label {
 @media (max-width: 720px) {
   .app-shell {
     width: min(100%, calc(100% - 16px));
-    padding: 14px 0 36px;
+    padding: 8px 0;
   }
 
   .poster-frame-page {
-    min-height: calc(100dvh - 16px);
+    min-height: 100%;
     border-radius: 30px;
   }
 
@@ -2562,11 +2670,11 @@ label {
 
   .host-live-shell-immersive {
     min-height: 100%;
-    height: auto;
+    height: 100%;
     grid-template-columns: 1fr;
     grid-template-rows: auto minmax(0, 1fr);
     gap: 10px;
-    overflow: visible;
+    overflow: hidden;
   }
 
   .host-topbar,
@@ -2592,6 +2700,7 @@ label {
     gap: 10px;
     padding: 8px;
     border-radius: 18px;
+    overflow: hidden;
   }
 
   .host-live-rail-actions {
@@ -2619,8 +2728,8 @@ label {
   .host-live-rail-actions .button,
   .host-live-rail-actions .sound-toggle {
     width: auto;
-    min-height: 32px;
-    padding: 0.38rem 0.52rem;
+    min-height: 34px;
+    padding: 0.42rem 0.6rem;
   }
 
   .join-qr-panel p {
@@ -2629,8 +2738,22 @@ label {
 
   .compact-field-grid,
   .host-answer-grid,
-  .summary-grid {
+  .summary-grid,
+  .leaderboard-scoreboard-head,
+  .leaderboard-scoreboard-row {
     grid-template-columns: 1fr;
+  }
+
+  .leaderboard-scoreboard-head {
+    display: none;
+  }
+
+  .leaderboard-scoreboard-row {
+    gap: 8px;
+  }
+
+  .leaderboard-scoreboard-streak {
+    justify-content: flex-start;
   }
 
   .lobby-stage {

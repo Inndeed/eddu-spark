@@ -16,8 +16,6 @@ import { useHostSession } from '../lib/use-host-session'
 import type { AppHealthData } from '../lib/api'
 
 const answerClassNames = ['answer-red', 'answer-orange', 'answer-yellow', 'answer-green'] as const
-const podiumOrder = [1, 0, 2] as const
-
 export function HostLivePage() {
   const { joinCode } = useParams()
   const { configured, session, ready } = useHostSession()
@@ -221,10 +219,6 @@ export function HostLivePage() {
     (questionStat) => questionStat.questionId === closedQuestion?.id,
   )
   const topFive = view?.rankings.slice(0, 5) ?? []
-  const podiumPlayers = podiumOrder
-    .map((index) => topFive[index])
-    .filter((ranking): ranking is NonNullable<(typeof topFive)[number]> => Boolean(ranking))
-  const podiumRemainder = topFive.filter((ranking) => ranking.rank > 3)
   const ceremonyPlayers = [3, 2, 1]
     .map((rank) => topFive.find((entry) => entry.rank === rank))
     .filter((ranking): ranking is NonNullable<(typeof topFive)[number]> => Boolean(ranking))
@@ -513,7 +507,7 @@ export function HostLivePage() {
               <div className="kahoot-stage-header">
                 <div>
                   <span className="eyebrow">สรุป</span>
-                  <h2>หลังข้อนี้</h2>
+                  <h2>สรุปคะแนน</h2>
                 </div>
                 <div className="summary-stage-header-actions">
                   <div className="stage-progress-pill">
@@ -532,44 +526,36 @@ export function HostLivePage() {
               <div className="leaderboard-stage-grid leaderboard-stage-grid-single">
                 {topFive.length > 0 ? (
                   <section className="leaderboard-summary-panel">
-                    <div className="leaderboard-podium">
-                      {podiumPlayers.map((ranking) => (
-                        <article
-                          className={`leaderboard-card leaderboard-card-podium leaderboard-card-enter leaderboard-card-rank-${ranking.rank} ${
-                            ranking.rank === 1 ? 'leaderboard-card-winner' : ''
-                          }`.trim()}
-                          key={ranking.participantId}
-                          style={{ animationDelay: `${(ranking.rank - 1) * 90}ms` }}
-                        >
-                          <span className="leaderboard-rank">#{ranking.rank}</span>
-                          <strong>{ranking.displayName}</strong>
-                          <div className="leaderboard-meta">
-                            <span>{ranking.score} คะแนน</span>
-                            {ranking.currentStreak >= 2 ? (
-                              <span className="pill pill-streak">Hot {ranking.currentStreak}</span>
-                            ) : null}
-                          </div>
-                        </article>
-                      ))}
-                    </div>
+                    <div className="leaderboard-scoreboard">
+                      <div className="leaderboard-scoreboard-head">
+                        <span>No.</span>
+                        <span>ชื่อผู้เล่น</span>
+                        <span>คะแนน</span>
+                        <span>Hot Streak</span>
+                      </div>
 
-                    <div className="rank-list rank-list-top-five">
-                      {podiumRemainder.map((ranking, index) => (
-                        <div
-                          className="rank-row rank-row-highlight rank-row-enter"
-                          key={ranking.participantId}
-                          style={{ animationDelay: `${260 + index * 70}ms` }}
-                        >
-                          <span>#{ranking.rank}</span>
-                          <strong>{ranking.displayName}</strong>
-                          <div className="rank-row-meta">
-                            {ranking.currentStreak >= 2 ? (
-                              <span className="pill pill-streak">Hot {ranking.currentStreak}</span>
-                            ) : null}
-                            <span>{ranking.score}</span>
-                          </div>
-                        </div>
-                      ))}
+                      <div className="leaderboard-scoreboard-body">
+                        {topFive.map((ranking, index) => (
+                          <article
+                            className={`leaderboard-scoreboard-row leaderboard-card-enter ${
+                              ranking.rank === 1 ? 'is-top-rank' : ''
+                            }`.trim()}
+                            key={ranking.participantId}
+                            style={{ animationDelay: `${index * 80}ms` }}
+                          >
+                            <span className="leaderboard-scoreboard-rank">#{ranking.rank}</span>
+                            <strong className="leaderboard-scoreboard-name">{ranking.displayName}</strong>
+                            <span className="leaderboard-scoreboard-score">{ranking.score}</span>
+                            <span className="leaderboard-scoreboard-streak">
+                              {ranking.currentStreak >= 2 ? (
+                                <span className="pill pill-streak">Hot {ranking.currentStreak}</span>
+                              ) : (
+                                <span className="leaderboard-scoreboard-streak-slot" aria-hidden="true" />
+                              )}
+                            </span>
+                          </article>
+                        ))}
+                      </div>
                     </div>
                   </section>
                 ) : (
