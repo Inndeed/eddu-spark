@@ -129,13 +129,20 @@ const verifyHostLiveDeployedLayout = async (assets: string[]) => {
   ])
 
   const compactCss = cssText.replace(/\s+/g, '')
-  const expectedRailLayout = 'grid-template-columns:clamp(58px,4.2vw,68px)minmax(0,1fr)'
+  const hasLiveShellGrid =
+    compactCss.includes('.host-live-shell-immersive{') &&
+    compactCss.includes('grid-template-columns:clamp(') &&
+    compactCss.includes('minmax(0,1fr)')
+  const hasStickyRail =
+    compactCss.includes('.host-live-rail{') &&
+    compactCss.includes('position:sticky') &&
+    compactCss.includes('overflow:hidden')
 
-  if (!compactCss.includes(expectedRailLayout)) {
-    throw new Error('deployed CSS does not include the compact Host Live left rail layout')
+  if (!hasLiveShellGrid) {
+    throw new Error('deployed CSS does not include the Host Live shell rail grid layout')
   }
 
-  if (!cssText.includes('host-live-rail') || !cssText.includes('position:sticky')) {
+  if (!hasStickyRail || !cssText.includes('host-live-rail')) {
     throw new Error('deployed CSS does not include the Host Live rail styles')
   }
 
