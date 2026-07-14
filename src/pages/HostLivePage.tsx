@@ -171,6 +171,36 @@ export function HostLivePage() {
     }
   }
 
+  const renderStageImageSlot = ({
+    imageUrl,
+    imageAlt,
+    prompt,
+    variant,
+  }: {
+    imageUrl: string | null
+    imageAlt: string | null
+    prompt: string
+    variant: 'question' | 'reveal'
+  }) => {
+    const shouldRenderImage = imageUrl && !failedImageUrls[imageUrl]
+
+    return (
+      <div
+        className={`stage-image-frame stage-image-frame-${variant} ${
+          shouldRenderImage ? 'has-image' : 'is-empty'
+        }`.trim()}
+      >
+        {shouldRenderImage ? (
+          <img
+            alt={imageAlt ?? prompt}
+            onError={() => registerImageFailure(imageUrl)}
+            src={imageUrl}
+          />
+        ) : null}
+      </div>
+    )
+  }
+
   const renderHostLiveState = (title: string, actionLabel?: string) => (
     <main className="app-shell">
       <PosterFrame className="poster-frame-page poster-frame-live-shell" contentClassName="host-live-shell host-live-shell-state">
@@ -247,15 +277,17 @@ export function HostLivePage() {
     <main className="app-shell">
       <PosterFrame className="poster-frame-page poster-frame-live-shell" contentClassName="host-live-shell host-live-shell-immersive">
         <aside className="host-live-rail" aria-label="Host controls">
-          <BrandLogo compact to="/host" />
-          <div className="header-actions host-live-rail-actions">
-            <button className="button button-ghost" onClick={() => void toggleFullscreen()} type="button">
-              {fullscreenActive ? 'ย่อ' : 'เต็มจอ'}
-            </button>
-            <SoundToggle muted={muted} onToggle={toggleMuted} />
-            <button className="button button-ghost" onClick={() => void signOutHostSession()} type="button">
-              ออก
-            </button>
+          <div className="host-live-rail-stack">
+            <BrandLogo compact to="/host" />
+            <div className="header-actions host-live-rail-actions">
+              <button className="button button-ghost" onClick={() => void toggleFullscreen()} type="button">
+                {fullscreenActive ? 'ย่อ' : 'เต็มจอ'}
+              </button>
+              <SoundToggle muted={muted} onToggle={toggleMuted} />
+              <button className="button button-ghost" onClick={() => void signOutHostSession()} type="button">
+                ออก
+              </button>
+            </div>
           </div>
         </aside>
 
@@ -272,7 +304,6 @@ export function HostLivePage() {
                   <div className="join-code-display">{view?.session.joinCode}</div>
                   {qrCodeUrl ? <img alt="QR code for joining the room" src={qrCodeUrl} /> : null}
                   <div className="join-url-panel">
-                    <p>{joinUrl.replace(/^https?:\/\//, '')}</p>
                     <div className="join-url-actions">
                       <button
                         className="button button-secondary button-inline"
@@ -367,25 +398,16 @@ export function HostLivePage() {
               <div
                 className={`host-question-stage ${currentQuestion.imageUrl ? '' : 'host-question-stage-no-image'}`.trim()}
               >
-                {currentQuestion.imageUrl ? (
-                  failedImageUrls[currentQuestion.imageUrl] ? (
-                    <div className="stage-image-empty">
-                      <span>ภาพไม่พร้อมแสดงผล</span>
-                    </div>
-                  ) : (
-                    <div className="stage-image-frame">
-                      <img
-                        alt={currentQuestion.imageAlt ?? currentQuestion.prompt}
-                        onError={() => registerImageFailure(currentQuestion.imageUrl!)}
-                        src={currentQuestion.imageUrl}
-                      />
-                    </div>
-                  )
-                ) : null}
-
                 <div className="stage-question-copy stage-question-copy-hero">
                   <p>{currentQuestion.prompt}</p>
                 </div>
+
+                {renderStageImageSlot({
+                  imageUrl: currentQuestion.imageUrl,
+                  imageAlt: currentQuestion.imageAlt,
+                  prompt: currentQuestion.prompt,
+                  variant: 'question',
+                })}
 
                 <div className="host-answer-grid">
                   {currentQuestion.choices.map((choice, index) => (
@@ -430,27 +452,16 @@ export function HostLivePage() {
                   closedQuestion.imageUrl ? 'reveal-question-stage-with-image' : 'host-question-stage-no-image'
                 }`.trim()}
               >
-                <div className={`reveal-media-column ${closedQuestion.imageUrl ? 'reveal-media-column-with-image' : ''}`.trim()}>
-                  {closedQuestion.imageUrl ? (
-                    failedImageUrls[closedQuestion.imageUrl] ? (
-                      <div className="stage-image-empty stage-image-empty-reveal">
-                        <span>ภาพไม่พร้อมแสดงผล</span>
-                      </div>
-                    ) : (
-                      <div className="stage-image-frame stage-image-frame-reveal">
-                        <img
-                          alt={closedQuestion.imageAlt ?? closedQuestion.prompt}
-                          onError={() => registerImageFailure(closedQuestion.imageUrl!)}
-                          src={closedQuestion.imageUrl}
-                        />
-                      </div>
-                    )
-                  ) : null}
-
-                  <div className="stage-question-copy stage-question-copy-reveal">
-                    <p>{closedQuestion.prompt}</p>
-                  </div>
+                <div className="stage-question-copy stage-question-copy-hero stage-question-copy-reveal">
+                  <p>{closedQuestion.prompt}</p>
                 </div>
+
+                {renderStageImageSlot({
+                  imageUrl: closedQuestion.imageUrl,
+                  imageAlt: closedQuestion.imageAlt,
+                  prompt: closedQuestion.prompt,
+                  variant: 'reveal',
+                })}
 
                 <div className="host-answer-grid host-answer-grid-reveal">
                   {closedQuestion.choices.map((choice, index) => {
