@@ -133,16 +133,18 @@ const verifyHostLiveDeployedLayout = async (assets: string[]) => {
     compactCss.includes('.host-live-shell-immersive{') &&
     compactCss.includes('grid-template-columns:clamp(') &&
     compactCss.includes('minmax(0,1fr)')
-  const hasStickyRail =
+  const hasHostLiveRailBlock =
     compactCss.includes('.host-live-rail{') &&
-    compactCss.includes('position:sticky') &&
+    (compactCss.includes('position:relative') || compactCss.includes('position:sticky')) &&
+    compactCss.includes('height:100%') &&
+    compactCss.includes('min-height:0') &&
     compactCss.includes('overflow:hidden')
 
   if (!hasLiveShellGrid) {
     throw new Error('deployed CSS does not include the Host Live shell rail grid layout')
   }
 
-  if (!hasStickyRail || !cssText.includes('host-live-rail')) {
+  if (!hasHostLiveRailBlock || !cssText.includes('host-live-rail')) {
     throw new Error('deployed CSS does not include the Host Live rail styles')
   }
 
