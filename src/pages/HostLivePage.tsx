@@ -559,7 +559,7 @@ export function HostLivePage() {
                             <span className="leaderboard-scoreboard-score">{ranking.score}</span>
                             <span className="leaderboard-scoreboard-streak">
                               {ranking.currentStreak >= 2 ? (
-                                <span className="pill pill-streak">Hot {ranking.currentStreak}</span>
+                                <span className="pill pill-streak">🔥 {ranking.currentStreak}</span>
                               ) : (
                                 <span className="leaderboard-scoreboard-streak-slot" aria-hidden="true" />
                               )}

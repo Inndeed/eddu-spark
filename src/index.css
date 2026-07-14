@@ -933,10 +933,11 @@ label {
   justify-items: stretch;
   gap: 8px;
   padding: 8px 6px;
-  position: sticky;
-  top: 6px;
-  height: calc(100dvh - 12px);
-  min-height: calc(100dvh - 12px);
+  position: relative;
+  top: 0;
+  height: 100%;
+  min-height: 0;
+  max-height: 100%;
   border-radius: 20px;
   background: rgba(23, 20, 16, 0.9);
   border: 1px solid rgba(255, 247, 232, 0.08);
@@ -947,6 +948,7 @@ label {
 .host-live-rail-stack {
   display: grid;
   align-content: start;
+  grid-auto-rows: max-content;
   gap: 8px;
   min-height: 0;
   width: 100%;
@@ -978,6 +980,7 @@ label {
   display: grid;
   align-items: stretch;
   align-content: start;
+  justify-items: stretch;
   gap: 6px;
   min-height: 0;
 }
@@ -990,7 +993,7 @@ label {
   padding: 0.5rem 0.36rem;
   border-radius: 14px;
   font-size: 0.72rem;
-  line-height: 1.12;
+  line-height: 1.16;
   white-space: normal;
 }
 
@@ -1245,11 +1248,12 @@ label {
 
 .host-question-stage {
   display: grid;
-  grid-template-rows: auto minmax(0, 1fr) auto;
-  gap: 10px;
+  grid-template-rows: auto minmax(116px, 1fr) minmax(156px, auto);
+  gap: 8px;
   min-height: 0;
   height: 100%;
   align-content: stretch;
+  overflow: hidden;
 }
 
 .host-question-stage-no-image {
@@ -1257,9 +1261,9 @@ label {
 }
 
 .stage-image-frame {
-  min-height: clamp(170px, 24vh, 250px);
+  min-height: clamp(108px, 18vh, 220px);
   height: 100%;
-  max-height: min(31vh, 280px);
+  max-height: min(24vh, 220px);
   overflow: hidden;
   display: grid;
   place-items: center;
@@ -1294,8 +1298,8 @@ label {
 }
 
 .stage-question-copy p {
-  font-size: clamp(1.08rem, 1.82vw, 1.58rem);
-  line-height: 1.06;
+  font-size: clamp(1rem, 1.6vw, 1.4rem);
+  line-height: 1.04;
   font-weight: 700;
   overflow-wrap: anywhere;
 }
@@ -1305,7 +1309,7 @@ label {
 }
 
 .stage-question-copy-hero p {
-  font-size: clamp(1.1rem, 1.92vw, 1.72rem);
+  font-size: clamp(1.04rem, 1.72vw, 1.56rem);
 }
 
 .stage-question-copy-reveal {
@@ -1313,19 +1317,22 @@ label {
 }
 
 .stage-question-copy-reveal p {
-  font-size: clamp(1.1rem, 1.92vw, 1.72rem);
+  font-size: clamp(1.04rem, 1.72vw, 1.56rem);
 }
 
 .host-answer-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-rows: repeat(2, minmax(0, 1fr));
   gap: 8px;
+  min-height: 0;
   align-self: stretch;
   align-content: end;
 }
 
 .host-answer-card {
-  min-height: clamp(66px, 11.4vh, 94px);
+  min-height: 0;
+  height: 100%;
   padding: 8px 10px;
   border-radius: 18px;
   display: grid;
@@ -1346,7 +1353,7 @@ label {
 }
 
 .host-answer-card strong {
-  font-size: clamp(0.9rem, 1.18vw, 1.08rem);
+  font-size: clamp(0.86rem, 1.02vw, 1rem);
   line-height: 1.08;
   overflow-wrap: anywhere;
   display: -webkit-box;
@@ -1374,7 +1381,8 @@ label {
 }
 
 .host-answer-grid-reveal .host-answer-card {
-  min-height: clamp(64px, 11.6vh, 86px);
+  min-height: 0;
+  height: 100%;
   gap: 6px;
   padding: 8px 10px;
 }
@@ -1509,14 +1517,15 @@ label {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-height: 42px;
-  padding: 0.78rem 1rem;
+  min-height: 44px;
+  padding: 0.82rem 1.08rem;
   border-radius: 999px;
   background: linear-gradient(135deg, rgba(255, 247, 232, 0.16), rgba(255, 247, 232, 0.08));
   border: 1px solid rgba(255, 247, 232, 0.1);
   color: var(--text);
   font-weight: 700;
-  line-height: 1.1;
+  line-height: 1.2;
+  overflow-wrap: anywhere;
   animation: bubble-pop 260ms ease-out, bubble-float 4.5s ease-in-out infinite;
 }
 
@@ -1734,8 +1743,8 @@ label {
 }
 
 .stage-image-frame-reveal {
-  min-height: clamp(170px, 24vh, 250px);
-  max-height: min(31vh, 280px);
+  min-height: clamp(108px, 18vh, 220px);
+  max-height: min(24vh, 220px);
 }
 
 .stage-image-frame-reveal img {
@@ -2676,8 +2685,8 @@ label {
   }
 
   .host-live-rail {
-    height: calc(100dvh - 12px);
-    min-height: calc(100dvh - 12px);
+    height: 100%;
+    min-height: 0;
     padding: 7px 5px;
   }
 
@@ -2718,8 +2727,8 @@ label {
 
   .stage-image-frame-reveal,
   .stage-image-empty-reveal {
-    min-height: clamp(170px, 24vh, 240px);
-    max-height: min(30vh, 270px);
+    min-height: clamp(104px, 17vh, 210px);
+    max-height: min(22vh, 210px);
   }
 
   .stage-image-frame-reveal img {
@@ -2810,6 +2819,7 @@ label {
   .host-live-rail {
     position: static;
     min-height: auto;
+    height: auto;
     display: block;
     grid-template-columns: none;
     gap: 10px;
