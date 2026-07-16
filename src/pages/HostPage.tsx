@@ -97,6 +97,8 @@ export function HostPage() {
   const [uploadingQuestionId, setUploadingQuestionId] = useState<string | null>(null)
   const [manualImageUrls, setManualImageUrls] = useState<Record<string, string>>({})
   const [isEditorOpen, setIsEditorOpen] = useState(false)
+  const [draggingQuestionId, setDraggingQuestionId] = useState<string | null>(null)
+  const [dragOverQuestionId, setDragOverQuestionId] = useState<string | null>(null)
 
   const liveSetupReady = configured && appHealth?.status !== 'setup_required'
 
@@ -198,9 +200,35 @@ export function HostPage() {
     })
   }
 
+  const reorderQuestions = useCallback((fromId: string, toId: string) => {
+    if (fromId === toId) {
+      return
+    }
+
+    setDraft((current) => {
+      const fromIndex = current.questions.findIndex((question) => question.id === fromId)
+      const toIndex = current.questions.findIndex((question) => question.id === toId)
+
+      if (fromIndex < 0 || toIndex < 0 || fromIndex === toIndex) {
+        return current
+      }
+
+      const nextQuestions = [...current.questions]
+      const [movedQuestion] = nextQuestions.splice(fromIndex, 1)
+      nextQuestions.splice(toIndex, 0, movedQuestion)
+
+      return {
+        ...current,
+        questions: nextQuestions,
+      }
+    })
+  }, [])
+
   const startNewQuiz = () => {
     setDraft(createDraft())
     setManualImageUrls({})
+    setDraggingQuestionId(null)
+    setDragOverQuestionId(null)
     setIsEditorOpen(true)
   }
 
@@ -214,6 +242,8 @@ export function HostPage() {
         ]),
       ),
     )
+    setDraggingQuestionId(null)
+    setDragOverQuestionId(null)
     setIsEditorOpen(true)
   }
 
@@ -331,6 +361,41 @@ export function HostPage() {
     } finally {
       setDeleting(false)
     }
+  }
+
+  const handleQuestionDragStart = (event: React.DragEvent<HTMLElement>, questionId: string) => {
+    event.dataTransfer.effectAllowed = 'move'
+    event.dataTransfer.setData('text/plain', questionId)
+    setDraggingQuestionId(questionId)
+    setDragOverQuestionId(questionId)
+  }
+
+  const handleQuestionDragEnter = (questionId: string) => {
+    if (!draggingQuestionId || draggingQuestionId === questionId) {
+      return
+    }
+
+    setDragOverQuestionId(questionId)
+  }
+
+  const handleQuestionDrop = (event: React.DragEvent<HTMLElement>, questionId: string) => {
+    event.preventDefault()
+
+    const fromId = draggingQuestionId || event.dataTransfer.getData('text/plain')
+    if (!fromId) {
+      setDraggingQuestionId(null)
+      setDragOverQuestionId(null)
+      return
+    }
+
+    reorderQuestions(fromId, questionId)
+    setDraggingQuestionId(null)
+    setDragOverQuestionId(null)
+  }
+
+  const clearQuestionDragState = () => {
+    setDraggingQuestionId(null)
+    setDragOverQuestionId(null)
   }
 
   if (!configured || appHealth?.status === 'setup_required') {
@@ -453,10 +518,30 @@ export function HostPage() {
 
           <div className="question-stack">
             {draft.questions.map((question, index) => (
-              <article className="question-card" key={question.id}>
+              <article
+                aria-grabbed={draggingQuestionId === question.id}
+                className={`question-card ${
+                  draggingQuestionId === question.id ? 'question-card-dragging' : ''
+                } ${dragOverQuestionId === question.id && draggingQuestionId !== question.id ? 'question-card-drop-target' : ''}`.trim()}
+                draggable
+                key={question.id}
+                onDragEnd={clearQuestionDragState}
+                onDragEnter={() => handleQuestionDragEnter(question.id)}
+                onDragOver={(event) => {
+                  event.preventDefault()
+                  if (draggingQuestionId !== question.id) {
+                    event.dataTransfer.dropEffect = 'move'
+                  }
+                }}
+                onDragStart={(event) => handleQuestionDragStart(event, question.id)}
+                onDrop={(event) => handleQuestionDrop(event, question.id)}
+              >
                 <div className="question-header">
-                  <div>
+                  <div className="question-header-main">
                     <span className="eyebrow">Q{index + 1}</span>
+                    <span className="question-drag-handle" title="ลากสลับคำถาม" aria-label="ลากสลับคำถาม">
+                      ลากสลับ
+                    </span>
                     <h3>{question.prompt || 'คำถามใหม่'}</h3>
                   </div>
                   <button className="mini-button" onClick={() => removeQuestion(question.id)} type="button">
@@ -613,7 +698,14 @@ export function HostPage() {
                 {deleting ? 'กำลังลบ...' : 'ลบควิซ'}
               </button>
             ) : null}
-            <button className="button button-ghost" onClick={() => setIsEditorOpen(false)} type="button">
+            <button
+              className="button button-ghost"
+              onClick={() => {
+                clearQuestionDragState()
+                setIsEditorOpen(false)
+              }}
+              type="button"
+            >
               กลับไปคลัง
             </button>
             <button className="button button-primary" disabled={saving} onClick={handleSave} type="button">
