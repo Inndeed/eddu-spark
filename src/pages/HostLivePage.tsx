@@ -65,9 +65,9 @@ export function HostLivePage() {
   const showReveal = sessionStatus === 'question_closed'
   const showLeaderboard = sessionStatus === 'leaderboard'
   const showFinished = sessionStatus === 'finished'
-  const { muted, playCue, toggleMuted } = useQuizAudio(Boolean(view), showLobby ? 'lobbyLoop' : null)
-
   const countdown = useCountdown(view?.session.questionEndsAt ?? null)
+  const backgroundTrack = showLobby ? 'lobbyLoop' : showQuestion && countdown > 5 ? 'questionLoop' : null
+  const { muted, playCue, toggleMuted } = useQuizAudio(Boolean(view), backgroundTrack)
 
   const loadSession = useCallback(async () => {
     if (!joinCode || !session) {

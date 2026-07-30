@@ -5,6 +5,7 @@ const FADE_STEP_MS = 40
 
 export const QUIZ_AUDIO_ASSETS = {
   lobbyLoop: '/audio/lobby-loop.mp3',
+  questionLoop: '/audio/question-loop.mp3',
   gameStart: '/audio/game-start.mp3',
   countdownUrgent: '/audio/countdown-urgent.mp3',
   timeUp: '/audio/time-up.mp3',
@@ -13,8 +14,14 @@ export const QUIZ_AUDIO_ASSETS = {
   awardChampion: '/audio/award-champion.mp3',
 } as const
 
-export type QuizBackgroundTrack = 'lobbyLoop'
+export type QuizBackgroundTrack = 'lobbyLoop' | 'questionLoop'
 export type QuizAudioCue = Exclude<keyof typeof QUIZ_AUDIO_ASSETS, QuizBackgroundTrack>
+
+const BACKGROUND_TRACKS = new Set<QuizBackgroundTrack>(['lobbyLoop', 'questionLoop'])
+const BACKGROUND_VOLUME: Record<QuizBackgroundTrack, number> = {
+  lobbyLoop: 0.28,
+  questionLoop: 0.2,
+}
 
 const CUE_VOLUME: Record<QuizAudioCue, number> = {
   gameStart: 0.68,
@@ -51,7 +58,7 @@ export function useQuizAudio(
     const audio = new Audio(QUIZ_AUDIO_ASSETS[backgroundTrack])
     audio.loop = true
     audio.preload = 'auto'
-    audio.volume = 0.28
+    audio.volume = BACKGROUND_VOLUME[backgroundTrack]
     backgroundAudioRef.current = audio
 
     if (!muted) {
@@ -84,7 +91,7 @@ export function useQuizAudio(
 
     const preloadAudio = () => {
       Object.entries(QUIZ_AUDIO_ASSETS).forEach(([key, src]) => {
-        if (key === 'lobbyLoop') {
+        if (BACKGROUND_TRACKS.has(key as QuizBackgroundTrack)) {
           return
         }
 
