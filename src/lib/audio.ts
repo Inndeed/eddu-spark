@@ -23,6 +23,11 @@ const BACKGROUND_VOLUME: Record<QuizBackgroundTrack, number> = {
   questionLoop: 0.2,
 }
 
+const BACKGROUND_LOOP_POINTS: Partial<Record<QuizBackgroundTrack, { startSec: number; endSec: number }>> = {
+  // The source lobby loop has a long quiet tail. Jump before that tail so the lobby stays alive.
+  lobbyLoop: { startSec: 0, endSec: 32.1 },
+}
+
 const CUE_VOLUME: Record<QuizAudioCue, number> = {
   gameStart: 0.68,
   countdownUrgent: 0.58,
@@ -56,16 +61,31 @@ export function useQuizAudio(
     }
 
     const audio = new Audio(QUIZ_AUDIO_ASSETS[backgroundTrack])
-    audio.loop = true
+    const loopPoint = BACKGROUND_LOOP_POINTS[backgroundTrack]
+    audio.loop = !loopPoint
     audio.preload = 'auto'
     audio.volume = BACKGROUND_VOLUME[backgroundTrack]
     backgroundAudioRef.current = audio
+
+    const handleLoopBoundary = () => {
+      if (!loopPoint || audio.currentTime < loopPoint.endSec) {
+        return
+      }
+
+      audio.currentTime = loopPoint.startSec
+      if (!audio.paused && !muted) {
+        void audio.play().catch(() => undefined)
+      }
+    }
+
+    audio.addEventListener('timeupdate', handleLoopBoundary)
 
     if (!muted) {
       void audio.play().catch(() => undefined)
     }
 
     return () => {
+      audio.removeEventListener('timeupdate', handleLoopBoundary)
       let nextVolume = audio.volume
       const fadeTimer = window.setInterval(() => {
         nextVolume = Math.max(0, nextVolume - 0.08)

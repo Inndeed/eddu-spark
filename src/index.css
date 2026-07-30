@@ -972,7 +972,7 @@ label {
   width: 100%;
   min-height: 100%;
   padding: 0;
-  grid-template-columns: clamp(104px, 7.2vw, 124px) minmax(0, 1fr);
+  grid-template-columns: clamp(118px, 8vw, 142px) minmax(0, 1fr);
   align-items: stretch;
   gap: 6px;
   overflow: hidden;
@@ -991,14 +991,14 @@ label {
   display: grid;
   align-content: start;
   justify-items: stretch;
-  gap: 10px;
-  padding: 10px 7px;
+  gap: 12px;
+  padding: clamp(10px, 1.3vh, 14px) 10px;
   position: relative;
   top: 0;
   height: 100%;
   min-height: 0;
   max-height: 100%;
-  border-radius: 20px;
+  border-radius: 22px;
   background: rgba(23, 20, 16, 0.9);
   border: 1px solid rgba(255, 247, 232, 0.08);
   z-index: 5;
@@ -1009,7 +1009,7 @@ label {
   display: grid;
   align-content: start;
   grid-auto-rows: max-content;
-  gap: 12px;
+  gap: clamp(12px, 1.8vh, 18px);
   min-height: 0;
   width: 100%;
 }
@@ -1020,8 +1020,8 @@ label {
 
 .host-live-rail .brand-logo-badge {
   width: 100%;
-  min-height: 58px;
-  padding: 0.44rem 0.36rem;
+  min-height: clamp(60px, 6.8vh, 76px);
+  padding: 0.5rem 0.42rem;
   border-radius: 18px;
 }
 
@@ -1041,24 +1041,28 @@ label {
   align-items: stretch;
   align-content: start;
   justify-items: stretch;
-  gap: 10px;
+  gap: clamp(10px, 1.6vh, 16px);
   min-height: 0;
   width: 100%;
 }
 
 .host-live-rail-actions .button,
 .host-live-rail-actions .sound-toggle {
+  box-sizing: border-box;
+  display: inline-flex;
+  align-items: center;
   width: 100%;
   justify-content: center;
-  min-height: 58px;
-  padding: 0.68rem 0.56rem;
-  border-radius: 21px;
+  min-height: unset;
+  height: clamp(62px, 7.4vh, 82px);
+  padding: 0.64rem 0.58rem;
+  border-radius: 24px;
   background:
     linear-gradient(180deg, rgba(255, 247, 232, 0.1), rgba(255, 247, 232, 0.03)),
     rgba(255, 247, 232, 0.045);
   border: 1px solid rgba(255, 247, 232, 0.16);
   color: var(--cream);
-  font-size: 0.92rem;
+  font-size: clamp(0.9rem, 0.92vw, 1.04rem);
   font-weight: 900;
   line-height: 1.08;
   white-space: nowrap;
@@ -1073,12 +1077,12 @@ label {
 }
 
 .host-live-rail-actions .sound-toggle {
-  gap: 6px;
+  gap: 8px;
 }
 
 .host-live-rail-actions .sound-toggle-dot {
-  width: 9px;
-  height: 9px;
+  width: 11px;
+  height: 11px;
 }
 
 .host-live-shell-state {
@@ -1248,11 +1252,12 @@ label {
 }
 
 .lobby-stage {
-  min-height: calc(100dvh - 16px);
-  grid-template-rows: minmax(0, 1fr) auto;
-  gap: 14px;
-  padding: 22px;
-  align-content: stretch;
+  min-height: 0;
+  height: 100%;
+  grid-template-rows: minmax(0, 1fr);
+  gap: 0;
+  padding: clamp(16px, 2.4vh, 24px) 22px;
+  align-content: center;
 }
 
 .kahoot-stage-focus {
@@ -1561,7 +1566,8 @@ label {
 
 .lobby-hero {
   min-height: 0;
-  height: 100%;
+  height: calc(100% - clamp(12px, 2vh, 22px));
+  align-self: center;
   align-items: stretch;
 }
 
@@ -1621,8 +1627,8 @@ label {
 .join-qr-panel {
   display: grid;
   grid-template-rows: auto auto auto auto;
-  gap: clamp(10px, 1.6vh, 18px);
-  padding: clamp(20px, 3vh, 34px) 18px;
+  gap: clamp(8px, 1.3vh, 16px);
+  padding: clamp(18px, 2.7vh, 30px) 18px;
   align-content: center;
   border-radius: 28px;
   background:
@@ -1633,7 +1639,7 @@ label {
 }
 
 .join-qr-panel-wide {
-  align-content: stretch;
+  align-content: center;
   min-width: 0;
   min-height: 100%;
 }
