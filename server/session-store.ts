@@ -19,7 +19,9 @@ import { createServerSupabaseClient } from './supabase.js'
 
 const JOIN_CODE_ALPHABET = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'
 const MAX_PLAYERS_PER_SESSION = 100
+const MIN_QUESTION_TIME_SEC = 5
 const DEFAULT_QUESTION_TIME_SEC = 15
+const MAX_QUESTION_TIME_SEC = 120
 const HOT_STREAK_BONUS = 100
 const QUESTION_IMAGE_BUCKET = 'question-images'
 const ALLOWED_IMAGE_TYPES = new Map<string, string>([
@@ -100,6 +102,10 @@ export const normalizeJoinCode = (value: string) =>
 const normalizeImageReference = (value: string | null | undefined) => value?.trim() || null
 const isExternalImageUrl = (value: string) => /^https?:\/\//i.test(value)
 const toId = () => randomUUID()
+const normalizeQuestionTimeSec = (value: number) => {
+  const roundedValue = Number.isFinite(value) ? Math.round(value) : DEFAULT_QUESTION_TIME_SEC
+  return Math.max(MIN_QUESTION_TIME_SEC, Math.min(MAX_QUESTION_TIME_SEC, roundedValue))
+}
 
 const buildJoinCode = () =>
   Array.from({ length: 6 }, () => {
@@ -133,7 +139,7 @@ const createQuestion = (
     prompt,
     choices: mappedChoices,
     correctChoiceId: mappedChoices[correctChoiceIndex]?.id ?? mappedChoices[0].id,
-    timeLimitSec: Math.min(timeLimitSec, DEFAULT_QUESTION_TIME_SEC),
+    timeLimitSec: normalizeQuestionTimeSec(timeLimitSec),
     explanation,
     facilitatorPrompt,
     themeTag,
@@ -1032,7 +1038,7 @@ export class SessionStore {
       prompt,
       choices: toQuestionTuple(choices),
       correctChoiceId,
-      timeLimitSec: Math.max(10, Math.min(DEFAULT_QUESTION_TIME_SEC, question.timeLimitSec || DEFAULT_QUESTION_TIME_SEC)),
+      timeLimitSec: normalizeQuestionTimeSec(question.timeLimitSec),
       explanation,
       facilitatorPrompt,
       themeTag,
@@ -1059,7 +1065,7 @@ export class SessionStore {
       status: 'question_open',
       current_question_index: nextIndex,
       question_started_at: new Date(startedAt).toISOString(),
-      question_ends_at: new Date(startedAt + Math.min(nextQuestion.timeLimitSec, DEFAULT_QUESTION_TIME_SEC) * 1000).toISOString(),
+      question_ends_at: new Date(startedAt + normalizeQuestionTimeSec(nextQuestion.timeLimitSec) * 1000).toISOString(),
       updated_at: nowIso(),
     }
   }

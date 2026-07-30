@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import QRCode from 'qrcode'
 
@@ -7,7 +7,7 @@ import { ChoiceGlyph } from '../components/ChoiceGlyph'
 import { PosterFrame } from '../components/PosterFrame'
 import { SoundToggle } from '../components/SoundToggle'
 import { fetchAppHealth, fetchHostSession, sendHostAction } from '../lib/api'
-import { useQuizAudio } from '../lib/audio'
+import { useQuizAudio, type QuizAudioCue } from '../lib/audio'
 import { toLocalizedError } from '../lib/errors'
 import { percentLabel } from '../lib/format'
 import { useCountdown, useSessionChannel } from '../lib/live'
@@ -19,7 +19,6 @@ const answerClassNames = ['answer-red', 'answer-orange', 'answer-yellow', 'answe
 export function HostLivePage() {
   const { joinCode } = useParams()
   const { configured, session, ready } = useHostSession()
-  const { muted, toggleMuted } = useQuizAudio(true)
   const [appHealth, setAppHealth] = useState<AppHealthData | null>(null)
   const [view, setView] = useState<Awaited<ReturnType<typeof fetchHostSession>> | null>(null)
   const [loading, setLoading] = useState(true)
@@ -29,6 +28,46 @@ export function HostLivePage() {
   const [fullscreenActive, setFullscreenActive] = useState(false)
   const [failedImageUrls, setFailedImageUrls] = useState<Record<string, boolean>>({})
   const [copyState, setCopyState] = useState<'idle' | 'success' | 'error'>('idle')
+  const urgentCueQuestionKeyRef = useRef<string | null>(null)
+  const timeUpCueQuestionKeyRef = useRef<string | null>(null)
+  const finalAwardAudioKeyRef = useRef<string | null>(null)
+
+  const sessionStatus = view?.session.status ?? 'lobby'
+  const currentQuestion =
+    view && view.session.currentQuestionIndex >= 0
+      ? view.quizSet.questions[view.session.currentQuestionIndex]
+      : null
+  const closedQuestion =
+    view && view.session.lastClosedQuestionIndex !== null
+      ? view.quizSet.questions[view.session.lastClosedQuestionIndex]
+      : null
+  const closedQuestionStats = view?.questionStats.find(
+    (questionStat) => questionStat.questionId === closedQuestion?.id,
+  )
+  const topFive = useMemo(() => view?.rankings.slice(0, 5) ?? [], [view?.rankings])
+  const topEight = useMemo(() => view?.rankings.slice(0, 8) ?? [], [view?.rankings])
+  const ceremonyPlayers = useMemo(
+    () =>
+      [2, 1, 3]
+        .map((rank) => topEight.find((entry) => entry.rank === rank))
+        .filter((ranking): ranking is NonNullable<(typeof topEight)[number]> => Boolean(ranking)),
+    [topEight],
+  )
+  const otherFinalRankings = useMemo(
+    () => topEight.filter((ranking) => ranking.rank >= 4 && ranking.rank <= 8),
+    [topEight],
+  )
+  const participants = [...(view?.session.participants ?? [])].sort((left, right) =>
+    left.joinedAt.localeCompare(right.joinedAt),
+  )
+  const showLobby = sessionStatus === 'lobby'
+  const showQuestion = sessionStatus === 'question_open'
+  const showReveal = sessionStatus === 'question_closed'
+  const showLeaderboard = sessionStatus === 'leaderboard'
+  const showFinished = sessionStatus === 'finished'
+  const { muted, playCue, toggleMuted } = useQuizAudio(Boolean(view), showLobby ? 'lobbyLoop' : null)
+
+  const countdown = useCountdown(view?.session.questionEndsAt ?? null)
 
   const loadSession = useCallback(async () => {
     if (!joinCode || !session) {
@@ -113,11 +152,70 @@ export function HostLivePage() {
     }
   }, [copyState])
 
-  const countdown = useCountdown(view?.session.questionEndsAt ?? null)
+  useEffect(() => {
+    if (!showQuestion || !currentQuestion) {
+      urgentCueQuestionKeyRef.current = null
+      timeUpCueQuestionKeyRef.current = null
+      return
+    }
+
+    const questionAudioKey = `${currentQuestion.id}:${view?.session.questionStartedAt ?? ''}`
+
+    if (
+      countdown > 0 &&
+      countdown <= 5 &&
+      urgentCueQuestionKeyRef.current !== questionAudioKey
+    ) {
+      urgentCueQuestionKeyRef.current = questionAudioKey
+      playCue('countdownUrgent')
+    }
+
+    if (countdown === 0 && timeUpCueQuestionKeyRef.current !== questionAudioKey) {
+      timeUpCueQuestionKeyRef.current = questionAudioKey
+      playCue('timeUp')
+    }
+  }, [countdown, currentQuestion, playCue, showQuestion, view?.session.questionStartedAt])
+
+  useEffect(() => {
+    if (!showFinished || !view) {
+      finalAwardAudioKeyRef.current = null
+      return
+    }
+
+    const finalAudioKey = `${view.session.id}:${view.session.updatedAt}`
+    if (finalAwardAudioKeyRef.current === finalAudioKey) {
+      return
+    }
+
+    finalAwardAudioKeyRef.current = finalAudioKey
+    const awardSequence = [
+      { cue: 'awardThird', delayMs: 260, rank: 3 },
+      { cue: 'awardSecond', delayMs: 1300, rank: 2 },
+      { cue: 'awardChampion', delayMs: 2450, rank: 1 },
+    ] satisfies Array<{ cue: QuizAudioCue; delayMs: number; rank: number }>
+
+    const availableAwardSequence = awardSequence.filter((item) =>
+      topEight.some((ranking) => ranking.rank === item.rank),
+    )
+
+    const timers = availableAwardSequence.map((item) =>
+      window.setTimeout(() => {
+        playCue(item.cue)
+      }, item.delayMs),
+    )
+
+    return () => {
+      timers.forEach((timer) => window.clearTimeout(timer))
+    }
+  }, [playCue, showFinished, topEight, view])
 
   const handleAction = async (action: string) => {
     if (!joinCode) {
       return
+    }
+
+    if (action === 'advance' && showLobby) {
+      playCue('gameStart')
     }
 
     setWorkingAction(action)
@@ -236,30 +334,6 @@ export function HostLivePage() {
     return renderHostLiveState('กำลังโหลดหน้า Live...')
   }
 
-  const sessionStatus = view?.session.status ?? 'lobby'
-  const currentQuestion =
-    view && view.session.currentQuestionIndex >= 0
-      ? view.quizSet.questions[view.session.currentQuestionIndex]
-      : null
-  const closedQuestion =
-    view && view.session.lastClosedQuestionIndex !== null
-      ? view.quizSet.questions[view.session.lastClosedQuestionIndex]
-      : null
-  const closedQuestionStats = view?.questionStats.find(
-    (questionStat) => questionStat.questionId === closedQuestion?.id,
-  )
-  const topFive = view?.rankings.slice(0, 5) ?? []
-  const ceremonyPlayers = [2, 1, 3]
-    .map((rank) => topFive.find((entry) => entry.rank === rank))
-    .filter((ranking): ranking is NonNullable<(typeof topFive)[number]> => Boolean(ranking))
-  const participants = [...(view?.session.participants ?? [])].sort((left, right) =>
-    left.joinedAt.localeCompare(right.joinedAt),
-  )
-  const showLobby = sessionStatus === 'lobby'
-  const showQuestion = sessionStatus === 'question_open'
-  const showReveal = sessionStatus === 'question_closed'
-  const showLeaderboard = sessionStatus === 'leaderboard'
-  const showFinished = sessionStatus === 'finished'
   const totalQuestions = view?.quizSet.questions.length ?? 0
   const remainingQuestions = view
     ? Math.max(totalQuestions - ((view.session.lastClosedQuestionIndex ?? -1) + 1), 0)
@@ -592,48 +666,68 @@ export function HostLivePage() {
 
               <div className="final-ceremony-stage">
                 {topFive.length > 0 ? (
-                  <div className={`ceremony-podium ceremony-podium-${ceremonyPlayers.length}`.trim()}>
-                    {ceremonyPlayers.map((ranking, index) => (
-                      <article
-                        className={`ceremony-card ceremony-card-rank-${ranking.rank} ceremony-card-enter ${
-                          ranking.rank === 1 ? 'ceremony-card-champion' : ''
-                        }`.trim()}
-                        key={ranking.participantId}
-                        style={{ animationDelay: `${index * 520}ms` }}
-                      >
-                        {ranking.rank === 1 ? (
-                          <>
-                            <div className="ceremony-confetti" aria-hidden="true">
-                              <span />
-                              <span />
-                              <span />
-                              <span />
-                              <span />
-                              <span />
-                              <span />
-                              <span />
-                              <span />
-                              <span />
-                            </div>
-                            <div className="ceremony-fireworks" aria-hidden="true">
-                              <span />
-                              <span />
-                              <span />
-                            </div>
-                          </>
-                        ) : null}
-                        <span className="ceremony-rank">#{ranking.rank}</span>
-                        <strong>{ranking.displayName}</strong>
-                        <div className="ceremony-meta">
-                          <span>{ranking.score} คะแนน</span>
-                          {ranking.currentStreak >= 2 ? (
-                            <span className="pill pill-streak">🔥 {ranking.currentStreak}</span>
+                  <>
+                    <div className={`ceremony-podium ceremony-podium-${ceremonyPlayers.length}`.trim()}>
+                      {ceremonyPlayers.map((ranking, index) => (
+                        <article
+                          className={`ceremony-card ceremony-card-rank-${ranking.rank} ceremony-card-enter ${
+                            ranking.rank === 1 ? 'ceremony-card-champion' : ''
+                          }`.trim()}
+                          key={ranking.participantId}
+                          style={{ animationDelay: `${index * 520}ms` }}
+                        >
+                          {ranking.rank === 1 ? (
+                            <>
+                              <div className="ceremony-confetti" aria-hidden="true">
+                                <span />
+                                <span />
+                                <span />
+                                <span />
+                                <span />
+                                <span />
+                                <span />
+                                <span />
+                                <span />
+                                <span />
+                              </div>
+                              <div className="ceremony-fireworks" aria-hidden="true">
+                                <span />
+                                <span />
+                                <span />
+                              </div>
+                            </>
                           ) : null}
+                          <span className="ceremony-rank">#{ranking.rank}</span>
+                          <strong>{ranking.displayName}</strong>
+                          <div className="ceremony-meta">
+                            <span>{ranking.score} คะแนน</span>
+                            {ranking.currentStreak >= 2 ? (
+                              <span className="pill pill-streak">🔥 {ranking.currentStreak}</span>
+                            ) : null}
+                          </div>
+                          {ranking.rank === 1 ? <span className="ceremony-champion-label">Champion</span> : null}
+                        </article>
+                      ))}
+                    </div>
+
+                    {otherFinalRankings.length > 0 ? (
+                      <section className="ceremony-other-ranks" aria-label="อันดับอื่น ๆ">
+                        <span className="eyebrow">อันดับอื่น ๆ</span>
+                        <div className="ceremony-other-rank-list">
+                          {otherFinalRankings.map((ranking) => (
+                            <article className="ceremony-other-rank-row" key={ranking.participantId}>
+                              <span>#{ranking.rank}</span>
+                              <strong>{ranking.displayName}</strong>
+                              <span>{ranking.score}</span>
+                              {ranking.currentStreak >= 2 ? (
+                                <span className="pill pill-streak">🔥 {ranking.currentStreak}</span>
+                              ) : null}
+                            </article>
+                          ))}
                         </div>
-                        {ranking.rank === 1 ? <span className="ceremony-champion-label">Champion</span> : null}
-                      </article>
-                    ))}
-                  </div>
+                      </section>
+                    ) : null}
+                  </>
                 ) : (
                   <section className="host-panel side-panel-card embedded-panel embedded-panel-compact">
                     <p className="side-note">ยังไม่มีคะแนน</p>

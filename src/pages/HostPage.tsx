@@ -21,6 +21,15 @@ import type { QuizQuestion, QuizSet } from '../lib/types'
 
 type QuizDraft = Omit<QuizSet, 'createdAt' | 'updatedAt'>
 
+const MIN_QUESTION_TIME_SEC = 5
+const DEFAULT_QUESTION_TIME_SEC = 15
+const MAX_QUESTION_TIME_SEC = 120
+
+const normalizeQuestionTimeSec = (value: number) => {
+  const roundedValue = Number.isFinite(value) ? Math.round(value) : DEFAULT_QUESTION_TIME_SEC
+  return Math.max(MIN_QUESTION_TIME_SEC, Math.min(MAX_QUESTION_TIME_SEC, roundedValue))
+}
+
 const createChoice = (text = '') => ({
   id: crypto.randomUUID(),
   text,
@@ -62,6 +71,14 @@ const toDraft = (quizSet: QuizSet): QuizDraft => ({
   language: quizSet.language,
   mode: 'knowledge_check',
   questions: quizSet.questions,
+})
+
+const normalizeDraftQuestionTimes = (quizSet: QuizDraft): QuizDraft => ({
+  ...quizSet,
+  questions: quizSet.questions.map((question) => ({
+    ...question,
+    timeLimitSec: normalizeQuestionTimeSec(question.timeLimitSec),
+  })),
 })
 
 const readFileAsDataUrl = (file: File) =>
@@ -312,7 +329,9 @@ export function HostPage() {
     setError(null)
 
     try {
-      const payload = await saveQuizSet(draft)
+      const normalizedDraft = normalizeDraftQuestionTimes(draft)
+      setDraft(normalizedDraft)
+      const payload = await saveQuizSet(normalizedDraft)
       setDraft(toDraft(payload))
       await loadBootstrap()
     } catch (saveError) {
@@ -612,16 +631,23 @@ export function HostPage() {
 
                 <div className="field-grid compact-field-grid">
                   <label>
-                    เวลา
+                    เวลา (วินาที)
                     <input
-                      max={15}
-                      min={10}
+                      max={MAX_QUESTION_TIME_SEC}
+                      min={MIN_QUESTION_TIME_SEC}
+                      step={1}
                       type="number"
                       value={question.timeLimitSec}
-                      onChange={(event) =>
-                        handleQuestionChange(question.id, 'timeLimitSec', Number(event.target.value))
-                      }
+                      onChange={(event) => {
+                        const nextValue = event.currentTarget.valueAsNumber
+                        handleQuestionChange(
+                          question.id,
+                          'timeLimitSec',
+                          Number.isFinite(nextValue) ? nextValue : DEFAULT_QUESTION_TIME_SEC,
+                        )
+                      }}
                     />
+                    <span className="field-hint">5-120 วินาที</span>
                   </label>
                   <label>
                     หัวข้อ

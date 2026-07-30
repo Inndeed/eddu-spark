@@ -150,6 +150,12 @@ label {
   font-size: 0.95rem;
 }
 
+.field-hint {
+  color: rgba(255, 250, 242, 0.52);
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+
 .app-shell {
   width: min(1280px, calc(100% - 24px));
   height: 100dvh;
@@ -885,7 +891,19 @@ label {
 .join-qr-panel img {
   width: 100%;
   display: block;
+}
+
+.question-image-block img,
+.stage-image-frame img {
   object-fit: cover;
+}
+
+.join-qr-panel img {
+  object-fit: contain;
+  align-self: center;
+  justify-self: center;
+  min-height: 0;
+  max-height: min(50vh, 540px);
 }
 
 .question-image-block img,
@@ -962,7 +980,7 @@ label {
   width: 100%;
   min-height: 100%;
   padding: 0;
-  grid-template-columns: clamp(88px, 6.2vw, 104px) minmax(0, 1fr);
+  grid-template-columns: clamp(104px, 7.2vw, 124px) minmax(0, 1fr);
   align-items: stretch;
   gap: 6px;
   overflow: hidden;
@@ -982,7 +1000,7 @@ label {
   align-content: start;
   justify-items: stretch;
   gap: 8px;
-  padding: 8px 6px;
+  padding: 9px 8px;
   position: relative;
   top: 0;
   height: 100%;
@@ -999,7 +1017,7 @@ label {
   display: grid;
   align-content: start;
   grid-auto-rows: max-content;
-  gap: 8px;
+  gap: 10px;
   min-height: 0;
   width: 100%;
 }
@@ -1031,20 +1049,21 @@ label {
   align-items: stretch;
   align-content: start;
   justify-items: stretch;
-  gap: 6px;
+  gap: 8px;
   min-height: 0;
+  width: 100%;
 }
 
 .host-live-rail-actions .button,
 .host-live-rail-actions .sound-toggle {
   width: 100%;
   justify-content: center;
-  min-height: 42px;
-  padding: 0.5rem 0.36rem;
-  border-radius: 14px;
-  font-size: 0.72rem;
-  line-height: 1.16;
-  white-space: normal;
+  min-height: 50px;
+  padding: 0.56rem 0.5rem;
+  border-radius: 17px;
+  font-size: 0.82rem;
+  line-height: 1.12;
+  white-space: nowrap;
 }
 
 .host-live-rail-actions .sound-toggle {
@@ -1225,8 +1244,9 @@ label {
 .lobby-stage {
   min-height: calc(100dvh - 16px);
   grid-template-rows: minmax(0, 1fr) auto;
-  gap: 16px;
-  padding: 20px;
+  gap: 14px;
+  padding: 22px;
+  align-content: stretch;
 }
 
 .kahoot-stage-focus {
@@ -1533,7 +1553,7 @@ label {
 
 .lobby-hero {
   min-height: 0;
-  align-items: stretch;
+  align-items: center;
 }
 
 .panel-header-lobby {
@@ -1591,8 +1611,9 @@ label {
 
 .join-qr-panel {
   display: grid;
-  gap: 12px;
-  padding: 18px;
+  grid-template-rows: auto auto minmax(0, 1fr) auto;
+  gap: 14px;
+  padding: clamp(18px, 2.2vh, 28px) 18px;
   border-radius: 28px;
   background:
     linear-gradient(180deg, rgba(255, 255, 255, 0.22), transparent 40%),
@@ -1602,8 +1623,9 @@ label {
 }
 
 .join-qr-panel-wide {
-  align-content: start;
+  align-content: stretch;
   min-width: 0;
+  min-height: 100%;
 }
 
 .join-qr-panel p {
@@ -1616,6 +1638,7 @@ label {
   display: grid;
   gap: 6px;
   justify-items: center;
+  align-self: end;
 }
 
 .join-url-actions {
@@ -2008,6 +2031,8 @@ label {
 .final-ceremony-stage {
   min-height: 0;
   display: grid;
+  grid-template-rows: minmax(0, 1fr) auto;
+  gap: 12px;
   align-items: stretch;
   height: 100%;
 }
@@ -2115,6 +2140,49 @@ label {
   font-size: 0.78rem;
   letter-spacing: 0.16em;
   text-transform: uppercase;
+}
+
+.ceremony-other-ranks {
+  min-height: 0;
+  display: grid;
+  gap: 8px;
+  padding: 10px 12px 12px;
+  border-radius: 22px;
+  border: 1px solid rgba(255, 224, 94, 0.18);
+  background: rgba(18, 15, 12, 0.38);
+}
+
+.ceremony-other-rank-list {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.ceremony-other-rank-row {
+  min-width: 0;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 8px;
+  padding: 0.62rem 0.7rem;
+  border-radius: 16px;
+  border: 1px solid rgba(255, 247, 232, 0.08);
+  background: rgba(255, 247, 232, 0.05);
+  font-weight: 900;
+}
+
+.ceremony-other-rank-row strong {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ceremony-other-rank-row .pill {
+  grid-column: 2 / -1;
+  justify-self: start;
+  padding: 0.28rem 0.56rem;
+  font-size: 0.72rem;
 }
 
 .ceremony-confetti {
@@ -2248,6 +2316,16 @@ label {
   background:
     radial-gradient(circle at right, rgba(255, 224, 94, 0.16), transparent 40%),
     rgba(255, 247, 232, 0.06);
+}
+
+@media (max-height: 820px) {
+  .ceremony-other-rank-row:nth-child(n + 4) {
+    display: none;
+  }
+
+  .ceremony-other-rank-list {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
 }
 
 .player-live-shell {
@@ -2736,14 +2814,14 @@ label {
   }
 
   .host-live-shell-immersive {
-    grid-template-columns: 84px minmax(0, 1fr);
+    grid-template-columns: 98px minmax(0, 1fr);
     gap: 6px;
   }
 
   .host-live-rail {
     height: 100%;
     min-height: 0;
-    padding: 7px 5px;
+    padding: 8px 7px;
   }
 
   .host-live-rail .brand-logo-badge {
@@ -2753,8 +2831,10 @@ label {
 
   .host-live-rail-actions .button,
   .host-live-rail-actions .sound-toggle {
-    min-height: 36px;
-    font-size: 0.64rem;
+    min-height: 44px;
+    padding: 0.5rem 0.42rem;
+    border-radius: 15px;
+    font-size: 0.72rem;
   }
 
   .lobby-hero {
@@ -2764,7 +2844,7 @@ label {
 
   .join-qr-panel {
     gap: 8px;
-    padding: 14px;
+    padding: 16px 14px;
   }
 
   .join-qr-panel p {
