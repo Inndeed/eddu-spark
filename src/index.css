@@ -991,8 +991,8 @@ label {
   display: grid;
   align-content: start;
   justify-items: stretch;
-  gap: 8px;
-  padding: 9px 8px;
+  gap: 10px;
+  padding: 10px 7px;
   position: relative;
   top: 0;
   height: 100%;
@@ -1009,7 +1009,7 @@ label {
   display: grid;
   align-content: start;
   grid-auto-rows: max-content;
-  gap: 10px;
+  gap: 12px;
   min-height: 0;
   width: 100%;
 }
@@ -1041,7 +1041,7 @@ label {
   align-items: stretch;
   align-content: start;
   justify-items: stretch;
-  gap: 8px;
+  gap: 10px;
   min-height: 0;
   width: 100%;
 }
@@ -1050,16 +1050,30 @@ label {
 .host-live-rail-actions .sound-toggle {
   width: 100%;
   justify-content: center;
-  min-height: 50px;
-  padding: 0.56rem 0.5rem;
-  border-radius: 17px;
-  font-size: 0.82rem;
-  line-height: 1.12;
+  min-height: 58px;
+  padding: 0.68rem 0.56rem;
+  border-radius: 21px;
+  background:
+    linear-gradient(180deg, rgba(255, 247, 232, 0.1), rgba(255, 247, 232, 0.03)),
+    rgba(255, 247, 232, 0.045);
+  border: 1px solid rgba(255, 247, 232, 0.16);
+  color: var(--cream);
+  font-size: 0.92rem;
+  font-weight: 900;
+  line-height: 1.08;
   white-space: nowrap;
 }
 
+.host-live-rail-actions .button:hover,
+.host-live-rail-actions .sound-toggle:hover {
+  background:
+    linear-gradient(180deg, rgba(255, 247, 232, 0.16), rgba(255, 247, 232, 0.05)),
+    rgba(255, 247, 232, 0.07);
+  color: var(--cream);
+}
+
 .host-live-rail-actions .sound-toggle {
-  gap: 5px;
+  gap: 6px;
 }
 
 .host-live-rail-actions .sound-toggle-dot {
@@ -2851,10 +2865,10 @@ label {
 
   .host-live-rail-actions .button,
   .host-live-rail-actions .sound-toggle {
-    min-height: 44px;
-    padding: 0.5rem 0.42rem;
-    border-radius: 15px;
-    font-size: 0.72rem;
+    min-height: 50px;
+    padding: 0.56rem 0.46rem;
+    border-radius: 18px;
+    font-size: 0.8rem;
   }
 
   .lobby-hero {
