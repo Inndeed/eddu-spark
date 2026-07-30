@@ -562,9 +562,9 @@ export function HostLivePage() {
                           <strong>{choice.text}</strong>
                         </div>
                         <div className="answer-card-status">
-                          <span className={`pill ${isCorrect ? 'pill-success pill-correct-answer' : 'pill-vote-count'}`.trim()}>
-                            {isCorrect ? 'คำตอบที่ถูก' : `${voteCount} โหวต`}
-                          </span>
+                          {isCorrect ? (
+                            <span className="pill pill-success pill-correct-answer">คำตอบที่ถูก</span>
+                          ) : null}
                         </div>
                         <div className="distribution-bar distribution-bar-answer">
                           <span
