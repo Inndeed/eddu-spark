@@ -1659,7 +1659,8 @@ label {
   display: grid;
   gap: 6px;
   justify-items: center;
-  align-self: center;
+  align-self: end;
+  width: 100%;
 }
 
 .join-url-actions {
@@ -1668,23 +1669,26 @@ label {
   gap: 10px;
   flex-wrap: wrap;
   justify-content: center;
+  width: 100%;
 }
 
 .join-url-actions .button {
-  min-height: 46px;
-  padding: 0.62rem 1rem;
+  min-height: 52px;
+  padding: 0.72rem 1rem;
 }
 
 .join-copy-button {
-  min-width: 148px;
-  background: var(--ink);
-  border-color: rgba(11, 11, 11, 0.18);
+  width: min(100%, 320px);
+  min-width: 0;
+  background: linear-gradient(135deg, var(--orange), #ffb13c);
+  border-color: rgba(255, 132, 31, 0.45);
   color: var(--cream);
-  box-shadow: 0 14px 28px rgba(11, 11, 11, 0.18);
+  font-weight: 900;
+  box-shadow: 0 16px 30px rgba(255, 132, 31, 0.24);
 }
 
 .join-copy-button:hover {
-  background: #1f1c18;
+  background: linear-gradient(135deg, #ff7417, var(--orange));
   color: var(--cream);
 }
 

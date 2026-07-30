@@ -386,7 +386,7 @@ export function HostLivePage() {
                         onClick={() => void handleCopyJoinUrl()}
                         type="button"
                       >
-                        {copyState === 'success' ? 'คัดลอกแล้ว' : 'คัดลอกลิงก์'}
+                        {copyState === 'success' ? 'คัดลอกแล้ว' : 'คัดลอกลิงก์ผู้เล่น'}
                       </button>
                       {copyState === 'error' ? (
                         <span className="join-url-feedback">คัดลอกไม่สำเร็จ</span>
