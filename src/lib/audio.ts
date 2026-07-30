@@ -47,14 +47,43 @@ export function useQuizAudio(
   backgroundTrack: QuizBackgroundTrack | null = 'lobbyLoop',
 ) {
   const [muted, setMuted] = useState(() => getAudioMutedPreference())
+  const mutedRef = useRef(muted)
+  const backgroundTrackRef = useRef<QuizBackgroundTrack | null>(backgroundTrack)
   const backgroundAudioRef = useRef<HTMLAudioElement | null>(null)
   const cueAudioRefs = useRef<Partial<Record<QuizAudioCue, HTMLAudioElement>>>({})
 
-  useEffect(() => {
-    localStorage.setItem(AUDIO_PREF_KEY, muted ? '1' : '0')
-  }, [muted])
+  const preloadCueAudio = useCallback(() => {
+    Object.entries(QUIZ_AUDIO_ASSETS).forEach(([key, src]) => {
+      if (BACKGROUND_TRACKS.has(key as QuizBackgroundTrack)) {
+        return
+      }
+
+      const cueKey = key as QuizAudioCue
+      if (!cueAudioRefs.current[cueKey]) {
+        const cueAudio = new Audio(src)
+        cueAudio.preload = 'auto'
+        cueAudio.volume = CUE_VOLUME[cueKey]
+        cueAudioRefs.current[cueKey] = cueAudio
+      }
+
+      cueAudioRefs.current[cueKey]?.load()
+    })
+  }, [])
+
+  const resumeBackgroundAudio = useCallback(() => {
+    const audio = backgroundAudioRef.current
+    const activeTrack = backgroundTrackRef.current
+    if (!enabled || !audio || !activeTrack) {
+      return
+    }
+
+    audio.volume = BACKGROUND_VOLUME[activeTrack]
+    void audio.play().catch(() => undefined)
+  }, [enabled])
 
   useEffect(() => {
+    backgroundTrackRef.current = backgroundTrack
+
     if (!enabled || !backgroundTrack) {
       backgroundAudioRef.current?.pause()
       return
@@ -73,14 +102,14 @@ export function useQuizAudio(
       }
 
       audio.currentTime = loopPoint.startSec
-      if (!audio.paused && !muted) {
+      if (!audio.paused && !mutedRef.current) {
         void audio.play().catch(() => undefined)
       }
     }
 
     audio.addEventListener('timeupdate', handleLoopBoundary)
 
-    if (!muted) {
+    if (!mutedRef.current) {
       void audio.play().catch(() => undefined)
     }
 
@@ -102,43 +131,44 @@ export function useQuizAudio(
         backgroundAudioRef.current = null
       }
     }
-  }, [backgroundTrack, enabled, muted])
+  }, [backgroundTrack, enabled])
+
+  useEffect(() => {
+    mutedRef.current = muted
+    localStorage.setItem(AUDIO_PREF_KEY, muted ? '1' : '0')
+
+    if (muted) {
+      backgroundAudioRef.current?.pause()
+      return
+    }
+
+    resumeBackgroundAudio()
+  }, [muted, resumeBackgroundAudio])
 
   useEffect(() => {
     if (!enabled) {
       return
     }
 
-    const preloadAudio = () => {
-      Object.entries(QUIZ_AUDIO_ASSETS).forEach(([key, src]) => {
-        if (BACKGROUND_TRACKS.has(key as QuizBackgroundTrack)) {
-          return
-        }
-
-        const cueKey = key as QuizAudioCue
-        if (!cueAudioRefs.current[cueKey]) {
-          const cueAudio = new Audio(src)
-          cueAudio.preload = 'auto'
-          cueAudio.volume = CUE_VOLUME[cueKey]
-          cueAudioRefs.current[cueKey] = cueAudio
-        }
-
-        cueAudioRefs.current[cueKey]?.load()
-      })
+    const unlockAudio = () => {
+      preloadCueAudio()
+      if (!mutedRef.current) {
+        resumeBackgroundAudio()
+      }
     }
 
-    window.addEventListener('pointerdown', preloadAudio, { once: true })
-    window.addEventListener('keydown', preloadAudio, { once: true })
+    window.addEventListener('pointerdown', unlockAudio, { once: true })
+    window.addEventListener('keydown', unlockAudio, { once: true })
 
     return () => {
-      window.removeEventListener('pointerdown', preloadAudio)
-      window.removeEventListener('keydown', preloadAudio)
+      window.removeEventListener('pointerdown', unlockAudio)
+      window.removeEventListener('keydown', unlockAudio)
     }
-  }, [enabled])
+  }, [enabled, preloadCueAudio, resumeBackgroundAudio])
 
   const playCue = useCallback(
     (cue: QuizAudioCue) => {
-      if (!enabled || muted) {
+      if (!enabled || mutedRef.current) {
         return
       }
 
@@ -151,14 +181,30 @@ export function useQuizAudio(
 
       void audio.play().catch(() => undefined)
     },
-    [enabled, muted],
+    [enabled],
+  )
+
+  const toggleMuted = useCallback(
+    () => {
+      const nextMuted = !mutedRef.current
+      mutedRef.current = nextMuted
+      localStorage.setItem(AUDIO_PREF_KEY, nextMuted ? '1' : '0')
+
+      if (nextMuted) {
+        backgroundAudioRef.current?.pause()
+      } else {
+        preloadCueAudio()
+        resumeBackgroundAudio()
+      }
+
+      setMuted(nextMuted)
+    },
+    [preloadCueAudio, resumeBackgroundAudio],
   )
 
   return {
     muted,
     playCue,
-    toggleMuted: () => {
-      setMuted((current) => !current)
-    },
+    toggleMuted,
   }
 }
