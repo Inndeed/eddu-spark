@@ -376,11 +376,13 @@ export function HostLivePage() {
                 <div className="join-qr-panel join-qr-panel-wide">
                   <span className="eyebrow">เข้า</span>
                   <div className="join-code-display">{view?.session.joinCode}</div>
-                  {qrCodeUrl ? <img alt="QR code for joining the room" src={qrCodeUrl} /> : null}
+                  <div className="join-qr-image-slot">
+                    {qrCodeUrl ? <img alt="QR code for joining the room" src={qrCodeUrl} /> : null}
+                  </div>
                   <div className="join-url-panel">
                     <div className="join-url-actions">
                       <button
-                        className="button button-secondary button-inline"
+                        className="button button-secondary button-inline join-copy-button"
                         onClick={() => void handleCopyJoinUrl()}
                         type="button"
                       >

@@ -898,14 +898,6 @@ label {
   object-fit: cover;
 }
 
-.join-qr-panel img {
-  object-fit: contain;
-  align-self: center;
-  justify-self: center;
-  min-height: 0;
-  max-height: min(50vh, 540px);
-}
-
 .question-image-block img,
 .stage-image-frame,
 .join-qr-panel img {
@@ -1612,8 +1604,8 @@ label {
 .join-qr-panel {
   display: grid;
   grid-template-rows: auto auto minmax(0, 1fr) auto;
-  gap: 14px;
-  padding: clamp(18px, 2.2vh, 28px) 18px;
+  gap: clamp(10px, 1.6vh, 18px);
+  padding: clamp(20px, 3vh, 34px) 18px;
   border-radius: 28px;
   background:
     linear-gradient(180deg, rgba(255, 255, 255, 0.22), transparent 40%),
@@ -1628,6 +1620,22 @@ label {
   min-height: 100%;
 }
 
+.join-qr-image-slot {
+  min-height: 0;
+  display: grid;
+  place-items: center;
+  align-self: stretch;
+  padding: clamp(4px, 0.8vh, 10px) 0;
+}
+
+.join-qr-image-slot img {
+  width: auto;
+  height: auto;
+  max-width: min(100%, 58vh);
+  max-height: 100%;
+  object-fit: contain;
+}
+
 .join-qr-panel p {
   word-break: break-word;
   color: rgba(11, 11, 11, 0.68);
@@ -1638,7 +1646,7 @@ label {
   display: grid;
   gap: 6px;
   justify-items: center;
-  align-self: end;
+  align-self: center;
 }
 
 .join-url-actions {
@@ -1650,8 +1658,12 @@ label {
 }
 
 .join-url-actions .button {
-  min-height: 38px;
-  padding: 0.5rem 0.8rem;
+  min-height: 46px;
+  padding: 0.62rem 1rem;
+}
+
+.join-copy-button {
+  min-width: 148px;
 }
 
 .join-url-feedback {
