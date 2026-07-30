@@ -1559,7 +1559,8 @@ label {
 
 .lobby-hero {
   min-height: 0;
-  align-items: center;
+  height: 100%;
+  align-items: stretch;
 }
 
 .panel-header-lobby {
@@ -1617,9 +1618,10 @@ label {
 
 .join-qr-panel {
   display: grid;
-  grid-template-rows: auto auto minmax(0, 1fr) auto;
+  grid-template-rows: auto auto auto auto;
   gap: clamp(10px, 1.6vh, 18px);
   padding: clamp(20px, 3vh, 34px) 18px;
+  align-content: center;
   border-radius: 28px;
   background:
     linear-gradient(180deg, rgba(255, 255, 255, 0.22), transparent 40%),
@@ -1638,8 +1640,8 @@ label {
   min-height: 0;
   display: grid;
   place-items: center;
-  align-self: stretch;
-  padding: clamp(6px, 1vh, 14px) 0;
+  align-self: center;
+  padding: clamp(8px, 1.8vh, 22px) 0;
 }
 
 .join-qr-image-slot img {
@@ -1659,7 +1661,7 @@ label {
   display: grid;
   gap: 6px;
   justify-items: center;
-  align-self: end;
+  align-self: center;
   width: 100%;
 }
 
