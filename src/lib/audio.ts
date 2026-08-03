@@ -3,7 +3,7 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 const AUDIO_PREF_KEY = 'eddu.quiz.audio-muted'
 const BACKGROUND_FADE_MS = 320
 const LOBBY_CROSSFADE_MS = 1_200
-const LOBBY_LOOP_END_SEC = 32.1
+const LOBBY_AUDIBLE_END_SEC = 31.9
 const LOBBY_LOOP_START_SEC = 0
 const LOOP_MONITOR_MS = 50
 
@@ -82,7 +82,7 @@ const disposeDeck = (deck: BackgroundDeck, fade = true) => {
   const initialVolumes = audios.map((audio) => audio.volume)
   const startedAt = performance.now()
   const fadeOut = (now: number) => {
-    const progress = Math.min(1, (now - startedAt) / BACKGROUND_FADE_MS)
+    const progress = Math.max(0, Math.min(1, (now - startedAt) / BACKGROUND_FADE_MS))
     audios.forEach((audio, index) => {
       audio.volume = initialVolumes[index] * (1 - progress)
     })
@@ -132,16 +132,28 @@ const startLobbyMonitor = (deck: BackgroundDeck) => {
     const nextAudio = deck.audios[nextIndex]
     const overlapSec = LOBBY_CROSSFADE_MS / 1_000
 
-    if (!nextAudio || activeAudio.paused || activeAudio.currentTime < LOBBY_LOOP_END_SEC - overlapSec) {
+    if (!nextAudio || activeAudio.paused || activeAudio.currentTime < LOBBY_AUDIBLE_END_SEC - overlapSec) {
       return
     }
 
     deck.crossfading = true
     nextAudio.currentTime = LOBBY_LOOP_START_SEC
-    nextAudio.volume = 0
+    const missedCrossfadeWindow = activeAudio.currentTime >= LOBBY_AUDIBLE_END_SEC
+    nextAudio.volume = missedCrossfadeWindow ? BACKGROUND_VOLUME.lobbyLoop : 0
     void nextAudio.play().catch(() => {
       deck.crossfading = false
     })
+
+    // Background tabs can throttle timers. If the monitor wakes after the audible
+    // section, swap immediately instead of fading through the source's quiet tail.
+    if (missedCrossfadeWindow) {
+      activeAudio.pause()
+      activeAudio.currentTime = LOBBY_LOOP_START_SEC
+      activeAudio.volume = 0
+      deck.activeIndex = nextIndex
+      deck.crossfading = false
+      return
+    }
 
     const startedAt = performance.now()
     const targetVolume = BACKGROUND_VOLUME.lobbyLoop
@@ -150,7 +162,7 @@ const startLobbyMonitor = (deck: BackgroundDeck) => {
         return
       }
 
-      const progress = Math.min(1, (now - startedAt) / LOBBY_CROSSFADE_MS)
+      const progress = Math.max(0, Math.min(1, (now - startedAt) / LOBBY_CROSSFADE_MS))
       activeAudio.volume = targetVolume * (1 - progress)
       nextAudio.volume = targetVolume * progress
 
