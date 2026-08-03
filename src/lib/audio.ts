@@ -2,8 +2,10 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 
 const AUDIO_PREF_KEY = 'eddu.quiz.audio-muted'
 const BACKGROUND_FADE_MS = 320
-const LOBBY_CROSSFADE_MS = 1_200
-const LOBBY_AUDIBLE_END_SEC = 31.9
+const LOBBY_CROSSFADE_MS = 1_000
+// The bundled Pixabay loop has no detected silent tail. Leave a small MP3
+// decoder margin and overlap the next deck before the file boundary.
+const LOBBY_AUDIBLE_END_SEC = 436.2
 const LOBBY_LOOP_START_SEC = 0
 const LOOP_MONITOR_MS = 50
 

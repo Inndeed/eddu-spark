@@ -6,7 +6,7 @@ These audio files are bundled locally so the live host/projection flow does not 
 
 | File | Use | Source |
 | --- | --- | --- |
-| `lobby-loop.mp3` | Looping lobby music while players join | Mixkit, "Game show uplifting" |
+| `lobby-loop.mp3` | Looping lobby music while players join | Pixabay, "Upbeat Adventure Journey Loop 1" by Cyberwave-Orchestra |
 | `question-loop.mp3` | Looping upbeat bed while a question is open before the final 5 seconds | Mixkit Stock Music, "Karma" by Michael Ramir C. |
 | `game-start.mp3` | Start-game stinger | Mixkit, "Game magic hint" |
 | `countdown-urgent.mp3` | Last-5-seconds countdown tension | Mixkit, "Simple countdown" |
@@ -21,4 +21,10 @@ These audio files are bundled locally so the live host/projection flow does not 
 - Mixkit source page: https://mixkit.co/free-sound-effects/game-show/
 - Mixkit stock music page: https://mixkit.co/free-stock-music/tag/game-show/
 - Mixkit license: https://mixkit.co/license/
-- The planned Pixabay track `Fun Upbeat Background Music` could not be fetched from automation because Pixabay returned a Cloudflare challenge. Keep this note if replacing `lobby-loop.mp3` later with a manually downloaded Pixabay asset.
+- Lobby track source: https://pixabay.com/music/adventure-upbeat-adventure-journey-loop-1-382201/
+- Lobby track creator: Cyberwave-Orchestra
+- Lobby track downloaded: 2026-08-03
+- Lobby track duration: 7:16 (436.4 seconds)
+- Lobby track license: https://pixabay.com/service/license-summary/
+- The lobby track is marked `Content ID Registered` by Pixabay. Keep the source and license details above with the bundled file for future claim review.
+- Audio analysis found no silent tail at `-45 dB` for 0.15 seconds. The player crossfades one second before the measured end and keeps a small decoder margin to avoid an MP3 boundary gap.
