@@ -15,6 +15,7 @@ import {
 } from '../lib/api'
 import { formatDateTime } from '../lib/format'
 import { toLocalizedError } from '../lib/errors'
+import { cancelPrimedLobbyAudio, primeLobbyAudioFromGesture } from '../lib/audio'
 import { signInHostWithPassword, signOutHostSession } from '../lib/supabase'
 import { useHostSession } from '../lib/use-host-session'
 import type { QuizQuestion, QuizSet } from '../lib/types'
@@ -342,6 +343,7 @@ export function HostPage() {
   }
 
   const handleLaunch = async (quizSetId: string) => {
+    primeLobbyAudioFromGesture()
     setLaunchingId(quizSetId)
     setError(null)
 
@@ -349,6 +351,7 @@ export function HostPage() {
       const sessionPayload = await launchSession(quizSetId)
       navigate(`/host/live/${sessionPayload.joinCode}`)
     } catch (launchError) {
+      cancelPrimedLobbyAudio()
       setError(toLocalizedError(launchError, 'เริ่มห้องไม่สำเร็จ'))
       setLaunchingId(null)
     }

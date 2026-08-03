@@ -1,7 +1,11 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 
 const AUDIO_PREF_KEY = 'eddu.quiz.audio-muted'
-const FADE_STEP_MS = 40
+const BACKGROUND_FADE_MS = 320
+const LOBBY_CROSSFADE_MS = 1_200
+const LOBBY_LOOP_END_SEC = 32.1
+const LOBBY_LOOP_START_SEC = 0
+const LOOP_MONITOR_MS = 50
 
 export const QUIZ_AUDIO_ASSETS = {
   lobbyLoop: '/audio/lobby-loop.mp3',
@@ -23,11 +27,6 @@ const BACKGROUND_VOLUME: Record<QuizBackgroundTrack, number> = {
   questionLoop: 0.2,
 }
 
-const BACKGROUND_LOOP_POINTS: Partial<Record<QuizBackgroundTrack, { startSec: number; endSec: number }>> = {
-  // The source lobby loop has a long quiet tail. Jump before that tail so the lobby stays alive.
-  lobbyLoop: { startSec: 0, endSec: 32.1 },
-}
-
 const CUE_VOLUME: Record<QuizAudioCue, number> = {
   gameStart: 0.68,
   countdownUrgent: 0.58,
@@ -37,9 +36,208 @@ const CUE_VOLUME: Record<QuizAudioCue, number> = {
   awardChampion: 0.72,
 }
 
+interface BackgroundDeck {
+  activeIndex: number
+  audios: [HTMLAudioElement, HTMLAudioElement?]
+  crossfading: boolean
+  fadeFrame: number | null
+  monitorId: number | null
+  track: QuizBackgroundTrack
+}
+
+let backgroundDeck: BackgroundDeck | null = null
+
+const getDeckAudio = (deck: BackgroundDeck, index: number) =>
+  deck.audios[index] ?? deck.audios[0]
+
 export const getAudioMutedPreference = () => {
   const raw = localStorage.getItem(AUDIO_PREF_KEY)
   return raw === '1'
+}
+
+const cancelDeckTimers = (deck: BackgroundDeck) => {
+  if (deck.monitorId !== null) {
+    window.clearInterval(deck.monitorId)
+    deck.monitorId = null
+  }
+  if (deck.fadeFrame !== null) {
+    window.cancelAnimationFrame(deck.fadeFrame)
+    deck.fadeFrame = null
+  }
+  deck.crossfading = false
+}
+
+const disposeDeck = (deck: BackgroundDeck, fade = true) => {
+  cancelDeckTimers(deck)
+  const audios = deck.audios.filter((audio): audio is HTMLAudioElement => Boolean(audio))
+
+  if (!fade) {
+    audios.forEach((audio) => {
+      audio.pause()
+      audio.currentTime = 0
+    })
+    return
+  }
+
+  const initialVolumes = audios.map((audio) => audio.volume)
+  const startedAt = performance.now()
+  const fadeOut = (now: number) => {
+    const progress = Math.min(1, (now - startedAt) / BACKGROUND_FADE_MS)
+    audios.forEach((audio, index) => {
+      audio.volume = initialVolumes[index] * (1 - progress)
+    })
+
+    if (progress < 1) {
+      window.requestAnimationFrame(fadeOut)
+      return
+    }
+
+    audios.forEach((audio) => {
+      audio.pause()
+      audio.currentTime = 0
+    })
+  }
+  window.requestAnimationFrame(fadeOut)
+}
+
+const pauseBackgroundDeck = () => {
+  if (!backgroundDeck) {
+    return
+  }
+
+  cancelDeckTimers(backgroundDeck)
+  backgroundDeck.audios.forEach((audio, index) => {
+    if (!audio) {
+      return
+    }
+    audio.pause()
+    audio.volume = index === backgroundDeck?.activeIndex
+      ? BACKGROUND_VOLUME[backgroundDeck.track]
+      : 0
+  })
+}
+
+const startLobbyMonitor = (deck: BackgroundDeck) => {
+  if (deck.monitorId !== null) {
+    return
+  }
+
+  deck.monitorId = window.setInterval(() => {
+    if (backgroundDeck !== deck || deck.crossfading) {
+      return
+    }
+
+    const activeAudio = getDeckAudio(deck, deck.activeIndex)
+    const nextIndex = deck.activeIndex === 0 ? 1 : 0
+    const nextAudio = deck.audios[nextIndex]
+    const overlapSec = LOBBY_CROSSFADE_MS / 1_000
+
+    if (!nextAudio || activeAudio.paused || activeAudio.currentTime < LOBBY_LOOP_END_SEC - overlapSec) {
+      return
+    }
+
+    deck.crossfading = true
+    nextAudio.currentTime = LOBBY_LOOP_START_SEC
+    nextAudio.volume = 0
+    void nextAudio.play().catch(() => {
+      deck.crossfading = false
+    })
+
+    const startedAt = performance.now()
+    const targetVolume = BACKGROUND_VOLUME.lobbyLoop
+    const crossfade = (now: number) => {
+      if (backgroundDeck !== deck) {
+        return
+      }
+
+      const progress = Math.min(1, (now - startedAt) / LOBBY_CROSSFADE_MS)
+      activeAudio.volume = targetVolume * (1 - progress)
+      nextAudio.volume = targetVolume * progress
+
+      if (progress < 1) {
+        deck.fadeFrame = window.requestAnimationFrame(crossfade)
+        return
+      }
+
+      activeAudio.pause()
+      activeAudio.currentTime = LOBBY_LOOP_START_SEC
+      activeAudio.volume = 0
+      deck.activeIndex = nextIndex
+      deck.crossfading = false
+      deck.fadeFrame = null
+    }
+
+    deck.fadeFrame = window.requestAnimationFrame(crossfade)
+  }, LOOP_MONITOR_MS)
+}
+
+const createBackgroundDeck = (track: QuizBackgroundTrack): BackgroundDeck => {
+  const firstAudio = new Audio(QUIZ_AUDIO_ASSETS[track])
+  firstAudio.preload = 'auto'
+  firstAudio.volume = BACKGROUND_VOLUME[track]
+
+  if (track === 'questionLoop') {
+    firstAudio.loop = true
+    return {
+      activeIndex: 0,
+      audios: [firstAudio],
+      crossfading: false,
+      fadeFrame: null,
+      monitorId: null,
+      track,
+    }
+  }
+
+  const secondAudio = new Audio(QUIZ_AUDIO_ASSETS[track])
+  secondAudio.preload = 'auto'
+  secondAudio.volume = 0
+  return {
+    activeIndex: 0,
+    audios: [firstAudio, secondAudio],
+    crossfading: false,
+    fadeFrame: null,
+    monitorId: null,
+    track,
+  }
+}
+
+const playBackgroundTrack = (track: QuizBackgroundTrack) => {
+  if (backgroundDeck?.track !== track) {
+    if (backgroundDeck) {
+      disposeDeck(backgroundDeck)
+    }
+    backgroundDeck = createBackgroundDeck(track)
+  }
+
+  const deck = backgroundDeck
+  const activeAudio = getDeckAudio(deck, deck.activeIndex)
+  activeAudio.volume = BACKGROUND_VOLUME[track]
+  if (track === 'lobbyLoop') {
+    startLobbyMonitor(deck)
+  }
+  void activeAudio.play().catch(() => undefined)
+}
+
+const stopBackgroundTrack = () => {
+  if (!backgroundDeck) {
+    return
+  }
+  const deck = backgroundDeck
+  backgroundDeck = null
+  disposeDeck(deck)
+}
+
+export const primeLobbyAudioFromGesture = () => {
+  if (getAudioMutedPreference()) {
+    return
+  }
+  playBackgroundTrack('lobbyLoop')
+}
+
+export const cancelPrimedLobbyAudio = () => {
+  if (backgroundDeck?.track === 'lobbyLoop') {
+    stopBackgroundTrack()
+  }
 }
 
 export function useQuizAudio(
@@ -48,8 +246,6 @@ export function useQuizAudio(
 ) {
   const [muted, setMuted] = useState(() => getAudioMutedPreference())
   const mutedRef = useRef(muted)
-  const backgroundTrackRef = useRef<QuizBackgroundTrack | null>(backgroundTrack)
-  const backgroundAudioRef = useRef<HTMLAudioElement | null>(null)
   const cueAudioRefs = useRef<Partial<Record<QuizAudioCue, HTMLAudioElement>>>({})
 
   const preloadCueAudio = useCallback(() => {
@@ -71,65 +267,24 @@ export function useQuizAudio(
   }, [])
 
   const resumeBackgroundAudio = useCallback(() => {
-    const audio = backgroundAudioRef.current
-    const activeTrack = backgroundTrackRef.current
-    if (!enabled || !audio || !activeTrack) {
+    if (!enabled || !backgroundTrack) {
       return
     }
-
-    audio.volume = BACKGROUND_VOLUME[activeTrack]
-    void audio.play().catch(() => undefined)
-  }, [enabled])
+    playBackgroundTrack(backgroundTrack)
+  }, [backgroundTrack, enabled])
 
   useEffect(() => {
-    backgroundTrackRef.current = backgroundTrack
-
     if (!enabled || !backgroundTrack) {
-      backgroundAudioRef.current?.pause()
+      stopBackgroundTrack()
       return
     }
 
-    const audio = new Audio(QUIZ_AUDIO_ASSETS[backgroundTrack])
-    const loopPoint = BACKGROUND_LOOP_POINTS[backgroundTrack]
-    audio.loop = !loopPoint
-    audio.preload = 'auto'
-    audio.volume = BACKGROUND_VOLUME[backgroundTrack]
-    backgroundAudioRef.current = audio
-
-    const handleLoopBoundary = () => {
-      if (!loopPoint || audio.currentTime < loopPoint.endSec) {
-        return
-      }
-
-      audio.currentTime = loopPoint.startSec
-      if (!audio.paused && !mutedRef.current) {
-        void audio.play().catch(() => undefined)
-      }
-    }
-
-    audio.addEventListener('timeupdate', handleLoopBoundary)
-
     if (!mutedRef.current) {
-      void audio.play().catch(() => undefined)
+      playBackgroundTrack(backgroundTrack)
     }
 
     return () => {
-      audio.removeEventListener('timeupdate', handleLoopBoundary)
-      let nextVolume = audio.volume
-      const fadeTimer = window.setInterval(() => {
-        nextVolume = Math.max(0, nextVolume - 0.08)
-        audio.volume = nextVolume
-
-        if (nextVolume <= 0) {
-          window.clearInterval(fadeTimer)
-          audio.pause()
-          audio.currentTime = 0
-        }
-      }, FADE_STEP_MS)
-
-      if (backgroundAudioRef.current === audio) {
-        backgroundAudioRef.current = null
-      }
+      stopBackgroundTrack()
     }
   }, [backgroundTrack, enabled])
 
@@ -138,7 +293,7 @@ export function useQuizAudio(
     localStorage.setItem(AUDIO_PREF_KEY, muted ? '1' : '0')
 
     if (muted) {
-      backgroundAudioRef.current?.pause()
+      pauseBackgroundDeck()
       return
     }
 
@@ -184,23 +339,20 @@ export function useQuizAudio(
     [enabled],
   )
 
-  const toggleMuted = useCallback(
-    () => {
-      const nextMuted = !mutedRef.current
-      mutedRef.current = nextMuted
-      localStorage.setItem(AUDIO_PREF_KEY, nextMuted ? '1' : '0')
+  const toggleMuted = useCallback(() => {
+    const nextMuted = !mutedRef.current
+    mutedRef.current = nextMuted
+    localStorage.setItem(AUDIO_PREF_KEY, nextMuted ? '1' : '0')
 
-      if (nextMuted) {
-        backgroundAudioRef.current?.pause()
-      } else {
-        preloadCueAudio()
-        resumeBackgroundAudio()
-      }
+    if (nextMuted) {
+      pauseBackgroundDeck()
+    } else {
+      preloadCueAudio()
+      resumeBackgroundAudio()
+    }
 
-      setMuted(nextMuted)
-    },
-    [preloadCueAudio, resumeBackgroundAudio],
-  )
+    setMuted(nextMuted)
+  }, [preloadCueAudio, resumeBackgroundAudio])
 
   return {
     muted,
